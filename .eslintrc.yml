@@ -1,0 +1,36 @@
+env:
+  browser: true
+  es2021: true
+extends:
+  - eslint:recommended
+  - plugin:@typescript-eslint/recommended
+  - prettier
+overrides: []
+parser: '@typescript-eslint/parser'
+parserOptions:
+  ecmaVersion: latest
+  sourceType: module
+plugins:
+  - '@typescript-eslint'
+  - prettier
+  - jest
+rules: 
+  semi: ['error', 'always']
+  keyword-spacing: ['error', { 'before': true, 'after': true }]
+  '@typescript-eslint/no-unused-vars': 'error'
+  '@typescript-eslint/explicit-function-return-type': 'error'
+  '@typescript-eslint/no-explicit-any': 'error'
+  '@typescript-eslint/no-non-null-assertion': 'error'
+  '@typescript-eslint/no-empty-function': 'error'
+  '@typescript-eslint/no-empty-interface': 'error'
+  '@typescript-eslint/ban-ts-comment': 'error'
+  'jest/expect-expect': 'error'
+  'jest/no-disabled-tests': 'warn'
+  'jest/no-focused-tests': 'error'
+  'jest/no-identical-title': 'error'
+  'jest/prefer-to-have-length': 'error'
+  'jest/prefer-expect-assertions': 'error'
+  'jest/valid-expect': 'error'
+  indent:
+    - error
+    - tab
