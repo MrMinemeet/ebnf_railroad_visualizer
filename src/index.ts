@@ -1,3 +1,15 @@
-const message: string = 'Hello, World';
+/*
+ * Copyright (c) 2024. Alexander Voglsperger
+ */
 
-console.log(message);
+import { Grammar } from "./Grammar";
+
+const grammarString = `
+Xu = char Y "a" .
+Y = number .
+Y = number number .
+`;
+
+const g = Grammar.fromString(grammarString);
+
+console.log(g);

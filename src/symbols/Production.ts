@@ -26,7 +26,7 @@ export class Production {
 	/** Holds the {@link NTS} it belongs to. (left side) */
 	readonly nts: NTS;
 
-	constructor(num: number, symbols: Sym[], nts: NTS) {
+	constructor(num: number, nts: NTS, symbols: Sym[]) {
 		this.num = num;
 		this.symbols = symbols;
 		this.str = `${nts.name} = ${symbols.map(s => s.name).join(" ")}`;
