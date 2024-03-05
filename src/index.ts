@@ -12,4 +12,4 @@ Y = number number .
 
 const g = Grammar.fromString(grammarString);
 
-console.log(g);
+console.log(JSON.stringify(g, null, 2));
