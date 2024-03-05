@@ -15,7 +15,9 @@ plugins:
   - prettier
   - jest
 rules: 
-  semi: ['error', 'always']
+  semi: 
+    - error
+    - always
   keyword-spacing: ['error', { 'before': true, 'after': true }]
   '@typescript-eslint/no-unused-vars': 'error'
   '@typescript-eslint/explicit-function-return-type': 'error'
