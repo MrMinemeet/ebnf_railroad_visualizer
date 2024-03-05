@@ -8,8 +8,9 @@ import { TS } from "./symbols/TS";
 import { Sym } from "./symbols/Sym";
 
 
-
-
+/**
+ * Represents the parsed grammar.
+ */
 export class Grammar {
 	readonly grammar: Production[];
 
@@ -17,12 +18,18 @@ export class Grammar {
 		this.grammar = grammar;
 	}
 
+	/**
+	 * Creates a new {@link Grammar} instance from a given string containing a grammar.
+	 * @param grammar The grammar to parse. The individual productions must be separated by a newline and formatted as required by {@link Production}.
+	 * @returns 
+	 */
 	static fromString(grammar: string): Grammar {
 		const prodStrings = grammar.trim().split("\n");
 		const productions = this.parseProductions(prodStrings);
 
 		return new Grammar(productions);
 	}
+
 	/**
 	 * Parses the productions of the grammar, adds them to respective {@link NTS} and returns them.
 	 * @param grammar The grammar to parse.
@@ -30,6 +37,8 @@ export class Grammar {
 	 * @throws If a symbol on the left side of the "=" could not be found in NTS
 	 */
 	private static parseProductions(grammar: string[]): Production[] {
+		// TODO: Add support for Extended-BNF
+
 		const parsedNTS = this.parseNTS(grammar);
 		const productions: Production[] = [];
 
