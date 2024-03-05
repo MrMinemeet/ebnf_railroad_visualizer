@@ -23,14 +23,11 @@ export class Production {
 	readonly symbols: Sym[];
 	/** Holds the production as a string */
 	readonly str: string;
-	/** Holds the {@link NTS} it belongs to. (left side) */
-	readonly nts: NTS;
 
 	constructor(num: number, nts: NTS, symbols: Sym[]) {
 		this.num = num;
 		this.symbols = symbols;
 		this.str = `${nts.name} = ${symbols.map(s => s.name).join(" ")}`;
-		this.nts = nts;
 	}
 
 	equals(other: Production): boolean {
