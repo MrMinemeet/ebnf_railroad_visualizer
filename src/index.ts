@@ -10,6 +10,7 @@ Y = number .
 Y = number number .
 `;
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const g = Grammar.fromString(grammarString);
 
-console.log(JSON.stringify(g, null, 2));
+console.log(g.toString());

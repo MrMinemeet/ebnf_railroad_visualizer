@@ -3,6 +3,7 @@
  */
 
 import { Syntax } from "./wsn/Syntax";
+import { Scanner } from "./scannerparser/Scanner";
 
 
 /**
@@ -23,6 +24,11 @@ export class Grammar {
 	static fromString(grammar: string): Grammar {
 		const prodStrings = grammar.trim().split("\n");
 		console.log(prodStrings);
+
+		const scanner = new Scanner(grammar);
+		while (scanner.hasNext()) {
+			console.log(scanner.next());
+		}
 
 		const syntax: Syntax = new Syntax([]);
 		return new Grammar(syntax);
