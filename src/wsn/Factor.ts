@@ -5,7 +5,9 @@
 import { NTS } from '../symbols/NTS';
 import { Sym } from '../symbols/Sym';
 
-enum FactorType {
+export enum FactorType {
+	Identifier,
+	Literal,
 	Group,
 	Repetition,
 	Optionally,
@@ -32,6 +34,7 @@ export class Factor extends NTS {
 			case FactorType.Group: strRepr = `(${value})`; break;
 			case FactorType.Repetition: strRepr =  `{${value}}`; break;
 			case FactorType.Optionally: strRepr = `[${value}]`; break;
+			default: strRepr = value.toString(); break;
 		}
 		super(strRepr);
 		this.type = type;
@@ -40,9 +43,10 @@ export class Factor extends NTS {
 
 	toString(): string {
 		switch (this.type) {
-			case FactorType.Group: return `(${this.value})`; break;
-			case FactorType.Repetition: return `{${this.value}}`; break;
-			case FactorType.Optionally: return `[${this.value}]`; break;
+			case FactorType.Group: return `(${this.value})`;
+			case FactorType.Repetition: return `{${this.value}}`;
+			case FactorType.Optionally: return `[${this.value}]`;
+			default: return this.value.toString();
 		}
 	}
 }

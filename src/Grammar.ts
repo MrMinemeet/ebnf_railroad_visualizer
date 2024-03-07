@@ -4,6 +4,7 @@
 
 import { Syntax } from "./wsn/Syntax";
 import { Scanner } from "./scannerparser/Scanner";
+import { Parser } from "./scannerparser/Parser";
 
 
 /**
@@ -22,13 +23,16 @@ export class Grammar {
 	 * @returns 
 	 */
 	static fromString(grammar: string): Grammar {
-		const prodStrings = grammar.trim().split("\n");
-		console.log(prodStrings);
-
+		console.log("Scanner:");
 		const scanner = new Scanner(grammar);
 		while (scanner.hasNext()) {
 			console.log(scanner.next());
 		}
+
+		console.log("Parser:");
+		const parser = new Parser(scanner);
+		parser.parse();
+		
 
 		const syntax: Syntax = new Syntax([]);
 		return new Grammar(syntax);
