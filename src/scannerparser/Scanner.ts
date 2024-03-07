@@ -31,39 +31,39 @@ export class Scanner {
 		switch (this.ch) {
 			// ---- Simple tokens ----
 			case "(":
-				token.type = Kind.lpar;
+				token.kind = Kind.lpar;
 				this.nextChar();
 				break;
 			case ")":
-				token.type = Kind.rpar;
+				token.kind = Kind.rpar;
 				this.nextChar();
 				break;
 			case "[":
-				token.type = Kind.lbrak;
+				token.kind = Kind.lbrack;
 				this.nextChar();
 				break;
 			case "]":
-				token.type = Kind.rbrak;
+				token.kind = Kind.rbrack;
 				this.nextChar();
 				break;
 			case "{":
-				token.type = Kind.lbrace;
+				token.kind = Kind.lbrace;
 				this.nextChar();
 				break;
 			case "}":
-				token.type = Kind.rbrace;
+				token.kind = Kind.rbrace;
 				this.nextChar();
 				break;
 			case ".":
-				token.type = Kind.period;
+				token.kind = Kind.period;
 				this.nextChar();
 				break;
 			case "|":
-				token.type = Kind.pipe;
+				token.kind = Kind.pipe;
 				this.nextChar();
 				break;
 			case "=":
-				token.type = Kind.assign;
+				token.kind = Kind.assign;
 				this.nextChar();
 				break;
 			
@@ -75,7 +75,7 @@ export class Scanner {
 						ident += this.ch;
 						this.nextChar();
 					}
-					token.type = Kind.ident;
+					token.kind = Kind.ident;
 					token.str = ident;
 				} else if (this.ch === "\"") {
 					// Literal (--> " character { character } ")
@@ -86,7 +86,7 @@ export class Scanner {
 						this.nextChar();
 					}
 					this.nextChar();
-					token.type = Kind.literal;
+					token.kind = Kind.literal;
 					token.str = literal;
 				} else {
 					throw new Error(`Unknown character: ${this.ch}`);
@@ -95,7 +95,6 @@ export class Scanner {
 		}
 		return token;
 	}
-
 
 	private nextChar(): void {
 		this.ch = this.input[this.pos++];

@@ -7,25 +7,26 @@ export enum Kind {
 	literal = "literal",
 	lpar = "(",
 	rpar = ")",
-	lbrak = "[",
-	rbrak = "]",
+	lbrack = "[",
+	rbrack = "]",
 	lbrace = "{",
 	rbrace = "}",
 	period = ".",
 	pipe = "|",
 	assign = "=",
+	quote = "\"",
 	unknown = "unknown",
 }
 
 export class Token {
-	type: Kind;
+	kind: Kind;
 	str: string = "";
 
-	constructor(type: Kind, ) {
-		this.type = type;
+	constructor(kind: Kind, ) {
+		this.kind = kind;
 	}
 
 	toString(): string {
-		return this.type;
+		return this.kind;
 	}
 }

@@ -5,7 +5,6 @@
 import { NTS } from '../symbols/NTS';
 import { Sym } from '../symbols/Sym';
 
-
 enum FactorType {
 	Group,
 	Repetition,
