@@ -3,17 +3,14 @@
  */
 
 import { Sym } from "./Sym";
-import { Production } from "./Production";
 
 /**
  * Holds a non-terminal symbol which by my convention is written with a capital letter.
  */
 export class NTS extends Sym {
-	readonly productions: Production[];
 
-	constructor(name: string, productions: Production[] = []) {
+	constructor(name: string) {
 		super(name);
-		this.productions = productions;
 	}
 
 	isExpandable(): boolean {
@@ -21,12 +18,14 @@ export class NTS extends Sym {
 	}
 
 	/**
-	 * Returns the first part(s) of the {@link Production} of the {@link NTS}
+	 * Returns the first part(s) of the production of the {@link NTS}
 	 *
 	 * @return the first part(s) of the production
 	 */
 	first(): Sym[] {
 		const firsts = new Set<Sym>();
+		// TODO: Implement first
+		/*
 		for (const prod of this.productions) {
 			if (prod.symbols.length === 0) {
 				continue;
@@ -41,11 +40,14 @@ export class NTS extends Sym {
 				prod.symbols[0].first().forEach(s => firsts.add(s));
 			}
 		}
-
+		*/
 		return [...firsts];
 	}
 
-	equals(other: Sym): boolean {
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	equals(_: Sym): boolean {
+		// TODO: Implement equals
+		/*
 		// Compare sub-class and name
 		if (other instanceof NTS && this.name === other.name) {
 			// Compare productions length
@@ -60,6 +62,7 @@ export class NTS extends Sym {
 				}
 			}
 		}
+		*/
 
 		return false;
 	}
