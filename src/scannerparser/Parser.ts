@@ -4,6 +4,16 @@
 
 import { Token, Kind } from "./Token";
 import { Scanner } from "./Scanner";
+import { Syntax } from "../wsn/Syntax";
+import { Production } from "../wsn/Production";
+import { Term } from "../wsn/Term";
+import { Identifier, letter } from "../wsn/Identifier";
+import { Expression } from "../wsn/Expression";
+import { Factor, FactorType } from "../wsn/Factor";
+import { Literal, character } from "../wsn/Literal";
+
+//const LF: string = "\n";
+
 
 export class Parser {
 	private readonly scanner: Scanner;
@@ -18,96 +28,141 @@ export class Parser {
 		this.sym = Kind.unknown;
 	}
 
-	parse(): void {
+	parse(): Syntax {
 		this.scan();
-		this.Syntax();
+		return this.Syntax();
 	}
 
-	private Syntax(): void {
+	private Syntax(): Syntax {
+		const productions: Production[] = [];
 		// eslint-disable-next-line no-constant-condition
 		while (true) {
 			if (this.sym === Kind.ident) {
-				this.Production();
+				productions.push(this.Production());
 			} else {
 				break;
 			}
 		}
+
+		return new Syntax(productions);
 	}
 
-	private Production(): void {
-		this.Identifier();
+	private Production(): Production {
+		const ident = this.Identifier();
 		this.check(Kind.assign);
-		this.Expression();
+		const expr = this.Expression();
 		this.check(Kind.period);
+
+		return new Production(ident, expr);
 	}
 
-	private Identifier(): void {
-		while (this.sym === Kind.ident) {
-			this.scan();
+	private Identifier(): Identifier {
+		if (this.sym !== Kind.ident) {
+			throw new Error(`Syntax error: unexpected token '${this.t}'`);
 		}
+		this.scan();
+
+		const letters: letter[] = [];
+		for (const c of this.t.str) {
+			letters.push(c as letter);
+		}
+
+		// TODO: Create popper identifier instance
+		return new Identifier(letters);
 	}
 
-	private Expression(): void {
-		this.Term();
+	private Expression(): Expression {
+		const terms: Term[] = [];
+		terms.push(this.Term());
 
 		while (this.sym === Kind.pipe) {
 			this.scan();
-			this.Term();
+			terms.push(this.Term());
 		}
+
+		return new Expression(terms);
 	}
 
-	private Term(): void {
-		this.Factor();
+	private Term(): Term {
+		const factors: Factor[] = [];
+
+		factors.push(this.Factor());
 
 		// TODO: Continue for "{ Factor() }"
+		while (this.sym === Kind.ident || this.sym === Kind.literal ||
+			this.sym === Kind.quote || this.sym === Kind.lpar || 
+			this.sym === Kind.lbrace ||this.sym === Kind.lbrack)
+		{
+			factors.push(this.Factor());
+		}
+
+
+
+		return new Term(factors);
 	}
 
-	private Factor(): void {
+	private Factor(): Factor {
+		let factor: Factor;
+		let expr: Expression;
 		switch (this.sym) {
 			case Kind.ident: // IDENTIFIER
-				this.Identifier();
+				factor = new Factor(FactorType.Identifier, this.Identifier());
 				break;
+
 			case Kind.quote: // "\"" LITERAL "\""
-				this.Literal();
+				factor = new Factor(FactorType.Identifier, this.Literal());
 				break;
+
 			case Kind.lpar: // "(" EXPRESSION ")"
 				this.scan();
-				this.Expression();
+				expr = this.Expression();
 				this.check(Kind.rpar);
+				factor = new Factor(FactorType.Group, expr);
 				break;
+
 			case Kind.lbrace: // "{" EXPRESSION "}"
 				this.scan();
-				this.Expression();
+				expr = this.Expression();
 				this.check(Kind.rbrace);
+				factor = new Factor(FactorType.Repetition, expr);
 				break;
+
 			case Kind.lbrack: // "[" EXPRESSION "]"
 				this.scan();
-				this.Expression();
+				expr = this.Expression();
 				this.check(Kind.rbrack);
+				factor = new Factor(FactorType.Optionally, expr);
 				break;
+				
 			default:
 				throw new Error(`Syntax error: unexpected token '${this.t}'`);
 		}
+
+		return factor;
 	}
 
-	private Literal(): void {
+	private Literal(): Literal {
+		const chars: character[] = [];
+
 		this.check(Kind.quote);
 		while (this.sym === Kind.literal) {
 			this.scan();
 		}
 		this.check(Kind.quote);
+
+		return new Literal(chars);
 	}
 
 
 	/**
-	 * Checks if the lookahead token has the expected {@link Kind} and scans the next.
+	 * Checks if the lookahead token has the expected {@link Kind} and scans the next.4
 	 * @param expected expeced kind of lookahead token
 	 */
 	private check(expected: Kind): void {
-		if (this.sym === expected) {
+		if (this.scanner.hasNext() && this.sym === expected) {
 			this.scan();
 		} else {
-			throw new Error(`Syntax error: '${this.t}' expected`);
+			throw new Error(`Syntax error: '${expected}' expected but '${this.t}' found`);
 		}
 	}
 

@@ -34,34 +34,42 @@ export class Scanner {
 				token.kind = Kind.lpar;
 				this.nextChar();
 				break;
+
 			case ")":
 				token.kind = Kind.rpar;
 				this.nextChar();
 				break;
+
 			case "[":
 				token.kind = Kind.lbrack;
 				this.nextChar();
 				break;
+
 			case "]":
 				token.kind = Kind.rbrack;
 				this.nextChar();
 				break;
+
 			case "{":
 				token.kind = Kind.lbrace;
 				this.nextChar();
 				break;
+
 			case "}":
 				token.kind = Kind.rbrace;
 				this.nextChar();
 				break;
+
 			case ".":
 				token.kind = Kind.period;
 				this.nextChar();
 				break;
+
 			case "|":
 				token.kind = Kind.pipe;
 				this.nextChar();
 				break;
+
 			case "=":
 				token.kind = Kind.assign;
 				this.nextChar();
