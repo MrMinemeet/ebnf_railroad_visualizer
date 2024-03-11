@@ -28,6 +28,10 @@ export class Scanner {
 			this.nextChar();
 		}
 
+		if (this.pos > this.input.length) {
+			return new Token(Kind.eof);
+		}
+
 		const token = new Token(Kind.unknown);
 
 		switch (this.ch) {
@@ -80,7 +84,7 @@ export class Scanner {
 			case '"':
 				token.kind = Kind.quote;
 				this.nextChar();
-				this.wasLiteral = true;
+				this.wasLiteral = !this.wasLiteral;
 				break;
 			
 			default:
@@ -103,6 +107,7 @@ export class Scanner {
 						token.kind = Kind.ident;
 					}
 					token.str = chars;
+					//this.wasLiteral = false;
 				} else {
 					throw new Error(`Unknown character: ${this.ch}`);
 				}

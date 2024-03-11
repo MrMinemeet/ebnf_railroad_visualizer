@@ -12,8 +12,6 @@ import { Expression } from "../wsn/Expression";
 import { Factor, FactorType } from "../wsn/Factor";
 import { Literal, character } from "../wsn/Literal";
 
-//const LF: string = "\n";
-
 
 export class Parser {
 	private readonly scanner: Scanner;
@@ -36,11 +34,10 @@ export class Parser {
 	private Syntax(): Syntax {
 		console.debug("Syntax()");
 		const productions: Production[] = [];
-		// eslint-disable-next-line no-constant-condition
-		while (this.sym !== Kind.eof && this.sym === Kind.ident) {
+		while (this.sym !== Kind.eof) {
 			productions.push(this.Production());
 		}
-
+		this.scan();
 		return new Syntax(productions);
 	}
 
@@ -167,9 +164,6 @@ export class Parser {
 	 * @param expected expeced kind of lookahead token or unexpected end
 	 */
 	private check(expected: Kind): void {
-		if (!this.scanner.hasNext()) {
-			throw new Error("Unexpected end of input");
-		}
 		if (this.sym !== expected) {
 			throw new Error(`Syntax error: '${expected}' expected but '${this.t}' found`);
 		}

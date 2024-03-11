@@ -11,9 +11,9 @@ import { Parser } from "./scannerparser/Parser";
  * Represents the parsed grammar.
  */
 export class Grammar {
-	readonly syntax: Syntax;
+	private syntax: Syntax;
 
-	constructor(syntax: Syntax) {
+	private constructor(syntax: Syntax) {
 		this.syntax = syntax;
 	}
 
@@ -34,10 +34,9 @@ export class Grammar {
 
 		console.log("Parser:");
 		const parser = new Parser(scanner);
-		parser.parse();
-		
+		const syntax = parser.parse();
 
-		const syntax: Syntax = new Syntax([]);
+		
 		return new Grammar(syntax);
 	}
 
