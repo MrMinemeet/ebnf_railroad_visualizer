@@ -5,6 +5,7 @@
 export enum Kind {
 	ident = "identifier",
 	literal = "literal",
+	eof = "EOF",
 	lpar = "(",
 	rpar = ")",
 	lbrack = "[",

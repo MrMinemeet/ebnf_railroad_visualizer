@@ -11,12 +11,14 @@ export class Scanner {
 	readonly input: string;
 	private pos: number;
 	private ch: string;
+	private wasLiteral: boolean;
 
 	constructor(input: string) {
 		this.input = input;
 		this.pos = 0;
 		this.ch = "";
 		this.nextChar();
+		this.wasLiteral = false;
 	}
 
 	next(): Token {
@@ -74,28 +76,33 @@ export class Scanner {
 				token.kind = Kind.assign;
 				this.nextChar();
 				break;
+
+			case '"':
+				token.kind = Kind.quote;
+				this.nextChar();
+				this.wasLiteral = true;
+				break;
 			
 			default:
 				if (/[a-zA-Z]/.test(this.ch)) {
-					// Identifier (--> letter { letter })
-					let ident = "";
-					while (/[a-zA-Z]/.test(this.ch)) {
-						ident += this.ch;
-						this.nextChar();
+					let chars = "";
+
+					if (this.wasLiteral) { // character { character }
+						while (/[a-zA-Z0-9]/.test(this.ch)) {
+							chars += this.ch;
+							this.nextChar();
+						}
+
+						token.kind = Kind.literal;
+					} else { // letter { letter }
+						while (/[a-zA-Z]/.test(this.ch)) {
+							chars += this.ch;
+							this.nextChar();
+						}
+
+						token.kind = Kind.ident;
 					}
-					token.kind = Kind.ident;
-					token.str = ident;
-				} else if (this.ch === "\"") {
-					// Literal (--> " character { character } ")
-					let literal = "";
-					this.nextChar();
-					while (this.ch !== "\"") {
-						literal += this.ch;
-						this.nextChar();
-					}
-					this.nextChar();
-					token.kind = Kind.literal;
-					token.str = literal;
+					token.str = chars;
 				} else {
 					throw new Error(`Unknown character: ${this.ch}`);
 				}
