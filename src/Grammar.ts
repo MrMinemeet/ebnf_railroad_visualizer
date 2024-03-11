@@ -11,7 +11,7 @@ import { Parser } from "./scannerparser/Parser";
  * Represents the parsed grammar.
  */
 export class Grammar {
-	private syntax: Syntax;
+	readonly syntax: Syntax;
 
 	private constructor(syntax: Syntax) {
 		this.syntax = syntax;
