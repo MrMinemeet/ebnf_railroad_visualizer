@@ -9,7 +9,7 @@ Xu = char Y "a" .
 Y = number .
 Y = number number .
 `;
-
 const g = Grammar.fromString(grammarString);
 
-console.log(JSON.stringify(g, null, 2));
+console.log(g.toString());
+console.log("done!");
