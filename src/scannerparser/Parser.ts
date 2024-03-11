@@ -32,7 +32,6 @@ export class Parser {
 	}
 
 	private Syntax(): Syntax {
-		console.debug("Syntax()");
 		const productions: Production[] = [];
 		while (this.sym !== Kind.eof) {
 			productions.push(this.Production());
@@ -42,7 +41,6 @@ export class Parser {
 	}
 
 	private Production(): Production {
-		console.debug("Production()");
 		const ident = this.Identifier();
 		this.check(Kind.assign);
 		const expr = this.Expression();
@@ -52,7 +50,6 @@ export class Parser {
 	}
 
 	private Identifier(): Identifier {
-		console.debug("Identifier()");
 		if (this.sym !== Kind.ident) {
 			throw new Error(`Syntax error: unexpected token '${this.t}'`);
 		}
@@ -68,7 +65,6 @@ export class Parser {
 	}
 
 	private Expression(): Expression {
-		console.debug("Expression()");
 		const terms: Term[] = [];
 		terms.push(this.Term());
 
@@ -81,12 +77,8 @@ export class Parser {
 	}
 
 	private Term(): Term {
-		console.debug("Term()");
-		const factors: Factor[] = [];
+		const factors: Factor[] = [ this.Factor() ];
 
-		factors.push(this.Factor());
-
-		// TODO: Continue for "{ Factor() }"
 		while (this.sym === Kind.ident || this.sym === Kind.literal ||
 			this.sym === Kind.quote || this.sym === Kind.lpar || 
 			this.sym === Kind.lbrace ||this.sym === Kind.lbrack)
@@ -94,13 +86,10 @@ export class Parser {
 			factors.push(this.Factor());
 		}
 
-
-
 		return new Term(factors);
 	}
 
 	private Factor(): Factor {
-		console.debug("Factor()");
 		let factor: Factor;
 		let expr: Expression;
 		switch (this.sym) {
@@ -141,7 +130,6 @@ export class Parser {
 	}
 
 	private Literal(): Literal {
-		console.debug("Literal()");
 		const chars: character[] = [];
 
 		this.check(Kind.quote);

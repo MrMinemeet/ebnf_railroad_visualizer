@@ -5,10 +5,10 @@
 import { Token } from './Token';
 import { Kind } from './Token';
 
-export class Scanner {
-	static readonly LF = "\n";
+const LF: string = "\n";
 
-	readonly input: string;
+export class Scanner {
+	private readonly input: string;
 	private pos: number;
 	private ch: string;
 	private wasLiteral: boolean;
@@ -22,20 +22,19 @@ export class Scanner {
 	}
 
 	next(): Token {
-
 		// Skip whitespace characters
 		while (this.pos < this.input.length && this.isWhitespace(this.ch)) {
 			this.nextChar();
 		}
 
 		if (this.pos > this.input.length) {
+			// Return eof token if end of input is reached
 			return new Token(Kind.eof);
 		}
 
 		const token = new Token(Kind.unknown);
 
 		switch (this.ch) {
-			// ---- Simple tokens ----
 			case "(":
 				token.kind = Kind.lpar;
 				this.nextChar();
@@ -116,14 +115,21 @@ export class Scanner {
 		return token;
 	}
 
+	/**
+	 * Get the next character from the input and skip LF symbol
+	 */
 	private nextChar(): void {
 		this.ch = this.input[this.pos++];
-		if (this.ch === Scanner.LF) {
+		if (this.ch === LF) {
 			// Skip LF symbol
 			this.ch = this.input[this.pos++];
 		}
 	}
 
+	/**
+	 * Check if there are more characters to read
+	 * @returns true if there are more characters to read, otherwise false
+	 */
 	hasNext(): boolean {
 		return this.pos < this.input.length;
 	}
