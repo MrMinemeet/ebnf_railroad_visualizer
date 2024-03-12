@@ -8,7 +8,7 @@ export type letter = "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j" |
 
 /**
  * An identifier is a TS defined as a sequence of atomic letters:
- * 
+ *
  * `IDENTIFIER = letter { letter } .`
  */
 export class Identifier extends TS {

@@ -7,7 +7,7 @@ import { NTS } from '../symbols/NTS';
 
 /**
  * A syntax is a sequence of productions defined as:
- * 
+ *
  * `SYNTAX = PRODUCTION { PRODUCTION } .`
  */
 export class Syntax extends NTS {

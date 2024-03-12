@@ -7,7 +7,7 @@ import { Term } from './Term';
 
 /**
  * A sequence of terms defined as:
- * 
+ *
  * `EXPRESSION = TERM { "|" TERM } .`
  */
 export class Expression extends NTS {

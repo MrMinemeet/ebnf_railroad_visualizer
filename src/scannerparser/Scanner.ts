@@ -85,7 +85,7 @@ export class Scanner {
 				this.nextChar();
 				this.wasLiteral = !this.wasLiteral;
 				break;
-			
+
 			default:
 				if (/[a-zA-Z]/.test(this.ch)) {
 					let chars = "";

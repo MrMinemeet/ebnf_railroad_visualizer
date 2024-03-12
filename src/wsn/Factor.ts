@@ -15,7 +15,7 @@ export enum FactorType {
 
 /**
  * A factor is a single symbol or a group of symbols defined as:
- * 
+ *
  * ```plaintext
  * FACTOR = IDENTIFIER
  *        | LITERAL

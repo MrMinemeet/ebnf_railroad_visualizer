@@ -9,7 +9,7 @@ export type character = letter | "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" |
 
 /**
  * A literal is a TS defined as a sequence of atomic characters:
- * 
+ *
  * `LITERAL = "\"" character { character } "\"" .`
  */
 export class Literal extends TS {

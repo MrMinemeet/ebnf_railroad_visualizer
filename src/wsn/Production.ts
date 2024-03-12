@@ -8,7 +8,7 @@ import { Expression } from './Expression';
 
 /**
  * A Production is a rule that defines how a non-terminal symbol is expanded into a sequence of terminal and/or non-terminal symbols. Defined as:
- * 
+ *
  * `PRODUCTION = IDENTIFIER "=" EXPRESSION "." .`
  */
 export class Production extends NTS {

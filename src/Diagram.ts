@@ -2,13 +2,17 @@
  * Copyright (c) 2024. Alexander Voglsperger
  */
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Grammar } from "./Grammar";
 import { Sym } from "./symbols/Sym";
-import rd from "./railroad.js";
+import rr from "./railroad.js";
 import { Literal } from "./wsn/Literal";
 import { Identifier } from "./wsn/Identifier";
+import { Production } from "./wsn/Production";
+import { Expression } from "./wsn/Expression";
 import { Term } from "./wsn/Term";
-import { Syntax } from "./wsn/Syntax";
+import { Factor, FactorType } from "./wsn/Factor";
+import { isUppercase } from "./ChooChoo";
 
 
 const railroadCss = `
@@ -65,30 +69,87 @@ svg.railroad-diagram g.diagram-text:hover path.diagram-text {
 
 export class Diagram {
 	private grammar: Grammar;
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	private diagram: any = undefined;
 
 	constructor(grammar: Grammar) {
 		this.grammar = grammar;
-		this.diagram = this.generateFrom(grammar.syntax);
+		this.diagram = rr.Diagram(this.forProduction(grammar.syntax.productions[0]));
 	}
-	
+
+	private forProduction(prod: Production): any {
+		const idk = this.generateFrom(prod.expr);
+		return rr.Sequence(idk);
+	}
+
+	private forExpression(expr: Expression): any {
+		const terms = [];
+		for (const term of expr.terms) {
+			terms.push(this.generateFrom(term));
+		}
+		return rr.Optional(...terms);
+	}
+
+	private forTerm(term: Term): any {
+		const factors = [];
+		for (const factor of term.factors) {
+			factors.push(this.generateFrom(factor));
+		}
+		return rr.OneOrMore(...factors);
+	}
+
+	private forFactor(factor: Factor): any {
+		switch (factor.type) {
+
+			case FactorType.Identifier:
+			case FactorType.Literal:
+				return this.generateFrom(factor.value);
+
+			case FactorType.Group:
+				return rr.Group(this.generateFrom(factor.value));
+
+			case FactorType.Repetition:
+				return rr.ZeroOrMore(this.generateFrom(factor.value));
+
+			case FactorType.Optionally:
+				return rr.Optional(this.generateFrom(factor.value));
+
+			default:
+				throw new Error(`Unknown factor type: $
+				Y = number .
+				Y = number number .{factor.type}`);
+		}
+	}
+
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	private generateFrom(sym: Sym): any[] {
-		const diag = [];
-
-
+	private generateFrom(sym: Sym): any {
+		let val: any;
 		switch (true) {
-			// TODO: Add more cases for others
+			case sym instanceof Expression:
+				val = this.forExpression(sym);
+				break;
+
+			case sym instanceof Term:
+				val = this.forTerm(sym);
+				break;
+
+			case sym instanceof Factor:
+				val =  this.forFactor(sym);
+				break;
 
 			case sym instanceof Identifier:
+				if (isUppercase(sym.toString())) {
+					val = rr.NonTerminal(sym.toString());
+				} else {
+					val = rr.Terminal(sym.toString());
+				}
+				break;
+
 			case sym instanceof Literal:
-				diag.push(rd.Terminal(sym.toString()));
+				val =  rr.Terminal(sym.toString());
 				break;
 		}
-		
 
-		return diag;
+		return val;
 	}
 
 
@@ -122,5 +183,9 @@ export class Diagram {
 		} else {
 			return this.diagram.toString() as string;
 		}
+	}
+
+	toString(): string {
+		return this.diagram.toString();
 	}
 }
