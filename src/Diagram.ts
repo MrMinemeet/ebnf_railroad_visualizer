@@ -86,7 +86,13 @@ export class Diagram {
 		for (const term of expr.terms) {
 			terms.push(this.generateFrom(term));
 		}
-		return rr.Optional(...terms);
+
+		const first = terms.shift();
+		if (terms.length === 0) {
+			return first;
+		} else {
+			return rr.Sequence(first, rr.Optional(...terms));
+		}
 	}
 
 	private forTerm(term: Term): any {
@@ -94,7 +100,13 @@ export class Diagram {
 		for (const factor of term.factors) {
 			factors.push(this.generateFrom(factor));
 		}
-		return rr.OneOrMore(...factors);
+
+		const first = factors.shift();
+		if (factors.length === 0) {
+			return first;
+		} else {
+			return rr.Sequence(first, ...factors);
+		}
 	}
 
 	private forFactor(factor: Factor): any {
