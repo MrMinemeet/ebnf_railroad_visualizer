@@ -2,7 +2,7 @@
  * Copyright (c) 2024. Alexander Voglsperger
  */
 
-import { NTS } from '../symbols/NTS';
+import { Sym } from '../symbols/Sym';
 import { Identifier } from './Identifier';
 import { Expression } from './Expression';
 
@@ -11,12 +11,12 @@ import { Expression } from './Expression';
  *
  * `PRODUCTION = IDENTIFIER "=" EXPRESSION "." .`
  */
-export class Production extends NTS {
+export class Production extends Sym {
 	readonly ident: Identifier;
 	readonly expr: Expression;
 
-	constructor(ident: Identifier, expr: Expression) {
-		super(`${ident} = ${expr}`);
+	constructor(ident: Identifier, expr: Expression, id: number = -1) {
+		super(`${ident} = ${expr}`, id);
 		this.ident = ident;
 		this.expr = expr;
 	}

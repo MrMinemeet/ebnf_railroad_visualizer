@@ -10,7 +10,7 @@ import { Term } from "../wsn/Term";
 import { Identifier, letter } from "../wsn/Identifier";
 import { Expression } from "../wsn/Expression";
 import { Factor, FactorType } from "../wsn/Factor";
-import { Literal, character } from "../wsn/Literal";
+import { Literal } from "../wsn/Literal";
 
 
 export class Parser {
@@ -18,6 +18,7 @@ export class Parser {
 	private t: Token;
 	private la: Token;
 	private sym: Kind;
+	private idCounter: number = 0;
 
 	constructor(scanner: Scanner) {
 		this.scanner = scanner;
@@ -37,7 +38,7 @@ export class Parser {
 			productions.push(this.Production());
 		}
 		this.scan();
-		return new Syntax(productions);
+		return new Syntax(productions, this.idCounter++);
 	}
 
 	private Production(): Production {
@@ -46,7 +47,7 @@ export class Parser {
 		const expr = this.Expression();
 		this.check(Kind.period);
 
-		return new Production(ident, expr);
+		return new Production(ident, expr, this.idCounter++);
 	}
 
 	private Identifier(): Identifier {
@@ -61,7 +62,7 @@ export class Parser {
 		}
 
 		// TODO: Create popper identifier instance
-		return new Identifier(letters);
+		return new Identifier(letters, this.idCounter++);
 	}
 
 	private Expression(): Expression {
@@ -73,7 +74,7 @@ export class Parser {
 			terms.push(this.Term());
 		}
 
-		return new Expression(terms);
+		return new Expression(terms, this.idCounter++);
 	}
 
 	private Term(): Term {
@@ -86,7 +87,7 @@ export class Parser {
 			factors.push(this.Factor());
 		}
 
-		return new Term(factors);
+		return new Term(factors, this.idCounter++);
 	}
 
 	private Factor(): Factor {
@@ -94,32 +95,32 @@ export class Parser {
 		let expr: Expression;
 		switch (this.sym) {
 			case Kind.ident: // IDENTIFIER
-				factor = new Factor(FactorType.Identifier, this.Identifier());
+				factor = new Factor(FactorType.Identifier, this.Identifier(), this.idCounter++);
 				break;
 
 			case Kind.quote: // "\"" LITERAL "\""
-				factor = new Factor(FactorType.Identifier, this.Literal());
+				factor = new Factor(FactorType.Identifier, this.Literal(), this.idCounter++);
 				break;
 
 			case Kind.lpar: // "(" EXPRESSION ")"
 				this.scan();
 				expr = this.Expression();
 				this.check(Kind.rpar);
-				factor = new Factor(FactorType.Group, expr);
+				factor = new Factor(FactorType.Group, expr, this.idCounter++);
 				break;
 
 			case Kind.lbrace: // "{" EXPRESSION "}"
 				this.scan();
 				expr = this.Expression();
 				this.check(Kind.rbrace);
-				factor = new Factor(FactorType.Repetition, expr);
+				factor = new Factor(FactorType.Repetition, expr, this.idCounter++);
 				break;
 
 			case Kind.lbrack: // "[" EXPRESSION "]"
 				this.scan();
 				expr = this.Expression();
 				this.check(Kind.rbrack);
-				factor = new Factor(FactorType.Optionally, expr);
+				factor = new Factor(FactorType.Optionally, expr, this.idCounter++);
 				break;
 
 			default:
@@ -130,20 +131,18 @@ export class Parser {
 	}
 
 	private Literal(): Literal {
-		const chars: character[] = [];
+		let characters: string = "";
 
 		this.check(Kind.quote);
 		if (this.sym !== Kind.literal) {
 			throw new Error(`Syntax error: expected literal but found '${this.la}'`);
 		}
 
-		for (const c of this.la.str) {
-			chars.push(c as character);
-		}
+		characters = this.la.str;
 		this.scan();
 		this.check(Kind.quote);
 
-		return new Literal(chars);
+		return new Literal(characters, this.idCounter++);
 	}
 
 

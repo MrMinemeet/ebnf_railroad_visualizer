@@ -12,18 +12,12 @@
  */
 export abstract class Sym {
 	readonly name: string;
+	readonly id: number;
 
-	constructor(name: string) {
+	constructor(name: string, id: number = -1) {
 		this.name = name;
+		this.id = id;
 	}
-
-	/** Tells whether the part is a terminal symbol or a non-terminal symbol*/
-	abstract isExpandable(): boolean;
-
-	/** Returns the first part of the production */
-	abstract first(): Sym[];
-
-	abstract equals(other: Sym): boolean;
 
 	toString(): string {
 		return this.name;

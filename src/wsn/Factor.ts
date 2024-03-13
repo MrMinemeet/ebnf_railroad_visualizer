@@ -2,7 +2,6 @@
  * Copyright (c) 2024. Alexander Voglsperger
  */
 
-import { NTS } from '../symbols/NTS';
 import { Sym } from '../symbols/Sym';
 
 export enum FactorType {
@@ -24,11 +23,11 @@ export enum FactorType {
  *        | "[" EXPRESSION "]" .
  * ```
  */
-export class Factor extends NTS {
+export class Factor extends Sym {
 	readonly type: FactorType;
 	readonly value: Sym;
 
-	constructor(type: FactorType, value: Sym) {
+	constructor(type: FactorType, value: Sym, id: number = -1) {
 		let strRepr: string;
 		switch (type) {
 			case FactorType.Group: strRepr = `(${value})`; break;
@@ -36,7 +35,7 @@ export class Factor extends NTS {
 			case FactorType.Optionally: strRepr = `[${value}]`; break;
 			default: strRepr = value.toString(); break;
 		}
-		super(strRepr);
+		super(strRepr, id);
 		this.type = type;
 		this.value = value;
 	}

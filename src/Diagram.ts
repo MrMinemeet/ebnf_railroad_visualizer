@@ -69,46 +69,44 @@ svg.railroad-diagram g.diagram-text:hover path.diagram-text {
 
 export class Diagram {
 	private readonly grammar: Grammar;
-	private readonly toExpand: string[] = [];
 
-	constructor(grammar: Grammar, toExpand: string[] = []) {
+	constructor(grammar: Grammar) {
 		this.grammar = grammar;
-		this.toExpand = toExpand;
 	}
 
 	/**
 	 * Generate a diagram from a production
 	 * @returns {any} The diagram
 	 */
-	generateDiagram(): any {
+	generateDiagram(toExpandIDs: number[] = []): any {
 		const firstProd = this.grammar.syntax.productions[0];
-		const diagram = rr.Diagram(this.generateFrom(firstProd));
+		const diagram = rr.Diagram(this.generateFrom(firstProd, toExpandIDs));
 		return diagram;
 	}
 
-	private forProduction(prod: Production): any {
-		const idk = this.generateFrom(prod.expr);
+	private forProduction(prod: Production, toExpandIDs: number[] = []): any {
+		const idk = this.generateFrom(prod.expr, toExpandIDs);
 		return rr.Sequence(idk);
 	}
 
-	private forExpression(expr: Expression): any {
+	private forExpression(expr: Expression, toExpandIDs: number[] = []): any {
 		const terms = [];
 		for (const term of expr.terms) {
-			terms.push(this.generateFrom(term));
+			terms.push(this.generateFrom(term, toExpandIDs));
 		}
 
 		const first = terms.shift();
 		if (terms.length === 0) {
 			return first;
 		} else {
-			return rr.Sequence(first, rr.Optional(...terms));
+			return rr.Choice( (terms.length + 1) / 2, first, ...terms);
 		}
 	}
 
-	private forTerm(term: Term): any {
+	private forTerm(term: Term, toExpandIDs: number[] = []): any {
 		const factors = [];
 		for (const factor of term.factors) {
-			factors.push(this.generateFrom(factor));
+			factors.push(this.generateFrom(factor, toExpandIDs));
 		}
 
 		const first = factors.shift();
@@ -119,67 +117,66 @@ export class Diagram {
 		}
 	}
 
-	private forFactor(factor: Factor): any {
+	private forFactor(factor: Factor, toExpandIDs: number[] = []): any {
+		const generated = this.generateFrom(factor.value, toExpandIDs);
 		switch (factor.type) {
 			case FactorType.Identifier:
 			case FactorType.Literal:
-				return this.generateFrom(factor.value);
+				return generated;
 
 			case FactorType.Group:
-				return rr.Group(this.generateFrom(factor.value));
+				return rr.Sequence(generated);
 
 			case FactorType.Repetition:
-				return rr.ZeroOrMore(this.generateFrom(factor.value));
+				return rr.ZeroOrMore(generated);
 
 			case FactorType.Optionally:
-				return rr.Optional(this.generateFrom(factor.value));
+				return rr.Optional(generated);
 
 			default:
-				throw new Error(`Unknown factor type: $
-				Y = number .
-				Y = number number .{factor.type}`);
+				throw new Error(`Unknown factor type: ${factor.type}`);
 		}
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	private generateFrom(sym: Sym): any {
+	private generateFrom(sym: Sym, toExpandIDs: number[] = []): any {
 		let val: any;
 		switch (true) {
 			case sym instanceof Production:
-				val = this.forProduction(sym);
+				val = this.forProduction(sym, toExpandIDs);
 				break;
 
 			case sym instanceof Expression:
-				val = this.forExpression(sym);
+				val = this.forExpression(sym, toExpandIDs);
 				break;
 
 			case sym instanceof Term:
-				val = this.forTerm(sym);
+				val = this.forTerm(sym, toExpandIDs);
 				break;
 
 			case sym instanceof Factor:
-				val =  this.forFactor(sym);
+				val =  this.forFactor(sym, toExpandIDs);
 				break;
 
 			case sym instanceof Identifier:
 				if (isUppercase(sym.toString())) {
 					// Non-terminal
-					if (this.toExpand.some(s => s === sym.name)) {
+					if (toExpandIDs.some(id => id === sym.id)) {
 						// Expand NTS
 						const innerProd = this.getProductionFromName(sym.toString());
-						val = rr.Group(this.generateFrom(innerProd.expr), sym.name);
+						val = rr.Group(this.generateFrom(innerProd.expr, toExpandIDs), sym.name);
 					} else {
 						// No NTS expansion
-						val = rr.NonTerminal(sym.toString());
+						val = rr.NonTerminal(sym.toString(), { title: sym.id });
 					}
 				} else {
 					// Terminal
-					val = rr.Terminal(sym.toString(), { title: sym.toString() });
+					val = rr.Terminal(sym.toString(), { title: sym.id });
 				}
 				break;
 
 			case sym instanceof Literal:
-				val =  rr.Terminal(sym.toString());
+				val =  rr.Terminal(sym.toString(), { title: sym.id });
 				break;
 		}
 
@@ -202,9 +199,10 @@ export class Diagram {
 
 	/**
 	 * A diagram in HTML format
+	 * @param toExpandIDs The IDs of the non-terminals to expand
 	 * @returns {string} The diagram in HTML format
 	 */
-	toHtml(): string {
+	toHtml(toExpandIDs: number[] = []): string {
 		return `
 		<!DOCTYPE html>
 		<html>
@@ -217,7 +215,7 @@ export class Diagram {
 					<pre>${this.grammar.toString()}</pre>
 				</div>
 				<div class="diagram">
-					${this.toSvg().replace('>', `>${railroadCss}`)}
+					${this.toSvg(toExpandIDs).replace('>', `>${railroadCss}`)}
 				</div>
 			</body>
 		</html>
@@ -226,10 +224,11 @@ export class Diagram {
 
 	/**
 	 * A diagram in SVG format
+	 * @param toExpandIDs The IDs of the non-terminals to expand
 	 * @returns {string} The diagram in SVG format
 	 */
-	toSvg(): string {
-		return this.generateDiagram().toString() as string;
+	toSvg(toExpandIDs: number[] = []): string {
+		return this.generateDiagram(toExpandIDs).toString() as string;
 	}
 
 	/**
