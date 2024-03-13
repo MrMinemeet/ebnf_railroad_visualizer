@@ -15,7 +15,7 @@ import { Factor, FactorType } from "./wsn/Factor";
 import { isUppercase } from "./ChooChoo";
 
 
-const railroadCss = `
+const railroadCss: string = `
 <style>
 svg.railroad-diagram {
 	background-color: hsl(30,20%,95%);
@@ -68,12 +68,22 @@ svg.railroad-diagram g.diagram-text:hover path.diagram-text {
 `;
 
 export class Diagram {
-	private grammar: Grammar;
-	private diagram: any = undefined;
+	private readonly grammar: Grammar;
+	private readonly toExpand: string[] = [];
 
-	constructor(grammar: Grammar) {
+	constructor(grammar: Grammar, toExpand: string[] = []) {
 		this.grammar = grammar;
-		this.diagram = rr.Diagram(this.forProduction(grammar.syntax.productions[0]));
+		this.toExpand = toExpand;
+	}
+
+	/**
+	 * Generate a diagram from a production
+	 * @returns {any} The diagram
+	 */
+	generateDiagram(): any {
+		const firstProd = this.grammar.syntax.productions[0];
+		const diagram = rr.Diagram(this.generateFrom(firstProd));
+		return diagram;
 	}
 
 	private forProduction(prod: Production): any {
@@ -111,7 +121,6 @@ export class Diagram {
 
 	private forFactor(factor: Factor): any {
 		switch (factor.type) {
-
 			case FactorType.Identifier:
 			case FactorType.Literal:
 				return this.generateFrom(factor.value);
@@ -136,6 +145,10 @@ export class Diagram {
 	private generateFrom(sym: Sym): any {
 		let val: any;
 		switch (true) {
+			case sym instanceof Production:
+				val = this.forProduction(sym);
+				break;
+
 			case sym instanceof Expression:
 				val = this.forExpression(sym);
 				break;
@@ -150,9 +163,18 @@ export class Diagram {
 
 			case sym instanceof Identifier:
 				if (isUppercase(sym.toString())) {
-					val = rr.NonTerminal(sym.toString());
+					// Non-terminal
+					if (this.toExpand.some(s => s === sym.name)) {
+						// Expand NTS
+						const innerProd = this.getProductionFromName(sym.toString());
+						val = rr.Group(this.generateFrom(innerProd.expr), sym.name);
+					} else {
+						// No NTS expansion
+						val = rr.NonTerminal(sym.toString());
+					}
 				} else {
-					val = rr.Terminal(sym.toString());
+					// Terminal
+					val = rr.Terminal(sym.toString(), { title: sym.toString() });
 				}
 				break;
 
@@ -164,7 +186,24 @@ export class Diagram {
 		return val;
 	}
 
+	/**
+	 * Get a production from its name
+	 * @param name The name of the production
+	 * @returns {Production} The production corresponding to the name
+	 * */
+	private getProductionFromName(name: string): Production {
+		for (const prod of this.grammar.syntax.productions) {
+			if (prod.ident.name === name) {
+				return prod;
+			}
+		}
+		throw new Error(`Production ${name} not found`);
+	}
 
+	/**
+	 * A diagram in HTML format
+	 * @returns {string} The diagram in HTML format
+	 */
 	toHtml(): string {
 		return `
 		<!DOCTYPE html>
@@ -190,14 +229,14 @@ export class Diagram {
 	 * @returns {string} The diagram in SVG format
 	 */
 	toSvg(): string {
-		if (this.diagram === undefined) {
-			return "";
-		} else {
-			return this.diagram.toString() as string;
-		}
+		return this.generateDiagram().toString() as string;
 	}
 
+	/**
+	 * A diagram in string format
+	 * @returns {string} The diagram in string format
+	 */
 	toString(): string {
-		return this.diagram.toString();
+		return this.generateDiagram().toString();
 	}
 }
