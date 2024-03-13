@@ -7,14 +7,15 @@ import { Diagram } from "./Diagram";
 import fs from "fs";
 
 const grammarString = `
-Xu = char Y "a" .
-Y = number [ number ] .
+Path = Dir { Dir } Name .
+Dir = ( Name | "." [ "." ] ) "/" .
+Name = an { an } .
 `;
 
 const g = Grammar.fromString(grammarString);
 
-console.log(`Parsed Grammar as String: \n${g.toString()}\n\n`);
+console.log(`Parsed Grammar as String: \n${g.toString()}\n`);
 
-const diagram = new Diagram(g, ["Y"]);
+const diagram = new Diagram(g, ["Name"]);
 fs.writeFileSync("test/diagram.html", diagram.toHtml(), "utf-8");
 console.log("done!");

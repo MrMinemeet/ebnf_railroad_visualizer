@@ -80,7 +80,7 @@ export class Parser {
 		const factors: Factor[] = [ this.Factor() ];
 
 		while (this.sym === Kind.ident || this.sym === Kind.literal ||
-			this.sym === Kind.quote || this.sym === Kind.lpar || 
+			this.sym === Kind.quote || this.sym === Kind.lpar ||
 			this.sym === Kind.lbrace ||this.sym === Kind.lbrack)
 		{
 			factors.push(this.Factor());
@@ -121,7 +121,7 @@ export class Parser {
 				this.check(Kind.rbrack);
 				factor = new Factor(FactorType.Optionally, expr);
 				break;
-				
+
 			default:
 				throw new Error(`Syntax error: unexpected token '${this.t}'`);
 		}
