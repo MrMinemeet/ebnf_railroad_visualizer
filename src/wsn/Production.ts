@@ -2,21 +2,21 @@
  * Copyright (c) 2024. Alexander Voglsperger
  */
 
-import { NTS } from '../symbols/NTS';
+import { Sym } from '../symbols/Sym';
 import { Identifier } from './Identifier';
 import { Expression } from './Expression';
 
 /**
  * A Production is a rule that defines how a non-terminal symbol is expanded into a sequence of terminal and/or non-terminal symbols. Defined as:
- * 
+ *
  * `PRODUCTION = IDENTIFIER "=" EXPRESSION "." .`
  */
-export class Production extends NTS {
+export class Production extends Sym {
 	readonly ident: Identifier;
 	readonly expr: Expression;
 
-	constructor(ident: Identifier, expr: Expression) {
-		super(`${ident} = ${expr}`);
+	constructor(ident: Identifier, expr: Expression, id: number = -1) {
+		super(`${ident} = ${expr}`, id);
 		this.ident = ident;
 		this.expr = expr;
 	}

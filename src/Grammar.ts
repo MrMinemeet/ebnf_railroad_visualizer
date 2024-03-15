@@ -11,7 +11,7 @@ import { Parser } from "./scannerparser/Parser";
  * Represents the parsed grammar.
  */
 export class Grammar {
-	private syntax: Syntax;
+	readonly syntax: Syntax;
 
 	private constructor(syntax: Syntax) {
 		this.syntax = syntax;
@@ -20,24 +20,12 @@ export class Grammar {
 	/**
 	 * Creates a new {@link Grammar} instance from a given string containing a grammar.
 	 * @param grammar The grammar to parse. The individual productions must be separated by a newline.
-	 * @returns 
+	 * @returns
 	 */
 	static fromString(grammar: string): Grammar {
-		console.log("Scanner:");
 		const scanner = new Scanner(grammar);
-		
-		/*
-		while (scanner.hasNext()) {
-			console.log(scanner.next());
-		}
-		*/
-
-		console.log("Parser:");
 		const parser = new Parser(scanner);
-		const syntax = parser.parse();
-
-		
-		return new Grammar(syntax);
+		return new Grammar(parser.parse());
 	}
 
 	toString(): string {

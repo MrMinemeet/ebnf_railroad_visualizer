@@ -3,18 +3,18 @@
  */
 
 import { Production } from './Production';
-import { NTS } from '../symbols/NTS';
+import { Sym } from '../symbols/Sym';
 
 /**
  * A syntax is a sequence of productions defined as:
- * 
+ *
  * `SYNTAX = PRODUCTION { PRODUCTION } .`
  */
-export class Syntax extends NTS {
+export class Syntax extends Sym {
 	readonly productions: Production[];
 
-	constructor(productions: Production[]) {
-		super(productions.map(p => p.toString()).join("\n"));
+	constructor(productions: Production[], id: number = -1) {
+		super(productions.map(p => p.toString()).join("\n"), id);
 		this.productions = productions;
 	}
 

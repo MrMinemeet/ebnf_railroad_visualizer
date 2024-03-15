@@ -2,19 +2,19 @@
  * Copyright (c) 2024. Alexander Voglsperger
  */
 
-import { NTS } from '../symbols/NTS';
+import { Sym } from '../symbols/Sym';
 import { Term } from './Term';
 
 /**
  * A sequence of terms defined as:
- * 
+ *
  * `EXPRESSION = TERM { "|" TERM } .`
  */
-export class Expression extends NTS {
+export class Expression extends Sym {
 	readonly terms: Term[];
 
-	constructor(terms: Term[]) {
-		super(terms.map(t => t.toString()).join(" | "));
+	constructor(terms: Term[], id: number = -1) {
+		super(terms.map(t => t.toString()).join(" | "), id);
 		this.terms = terms;
 	}
 

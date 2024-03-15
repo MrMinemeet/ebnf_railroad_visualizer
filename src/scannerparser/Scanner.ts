@@ -11,14 +11,14 @@ export class Scanner {
 	private readonly input: string;
 	private pos: number;
 	private ch: string;
-	private wasLiteral: boolean;
+	private isLiteral: boolean;
 
 	constructor(input: string) {
 		this.input = input;
 		this.pos = 0;
 		this.ch = "";
 		this.nextChar();
-		this.wasLiteral = false;
+		this.isLiteral = false;
 	}
 
 	next(): Token {
@@ -33,6 +33,21 @@ export class Scanner {
 		}
 
 		const token = new Token(Kind.unknown);
+
+		// Special handling for literals, where almost every character is valid when under double quotes
+		if (this.isLiteral && this.ch !== '"') {
+			let chars = ""; // letter { letter }
+			while (this.ch !== '"') {
+				// Add until the next '"' is found
+				chars += this.ch;
+				this.nextChar();
+			}
+			token.kind = Kind.literal;
+			token.str = chars;
+
+			return token;
+		}
+
 
 		switch (this.ch) {
 			case "(":
@@ -83,30 +98,19 @@ export class Scanner {
 			case '"':
 				token.kind = Kind.quote;
 				this.nextChar();
-				this.wasLiteral = !this.wasLiteral;
+				this.isLiteral = !this.isLiteral;
 				break;
-			
+
 			default:
 				if (/[a-zA-Z]/.test(this.ch)) {
-					let chars = "";
-
-					if (this.wasLiteral) { // character { character }
-						while (/[a-zA-Z0-9]/.test(this.ch)) {
-							chars += this.ch;
-							this.nextChar();
-						}
-
-						token.kind = Kind.literal;
-					} else { // letter { letter }
-						while (/[a-zA-Z]/.test(this.ch)) {
-							chars += this.ch;
-							this.nextChar();
-						}
-
-						token.kind = Kind.ident;
+					let chars = ""; // letter { letter }
+					while (/[a-zA-Z]/.test(this.ch)) {
+						chars += this.ch;
+						this.nextChar();
 					}
+
+					token.kind = Kind.ident;
 					token.str = chars;
-					//this.wasLiteral = false;
 				} else {
 					throw new Error(`Unknown character: ${this.ch}`);
 				}
