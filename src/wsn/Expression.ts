@@ -2,7 +2,7 @@
  * Copyright (c) 2024. Alexander Voglsperger
  */
 
-import { Sym } from '../symbols/Sym';
+import { Sym } from '../scannerparser/Sym';
 import { Term } from './Term';
 
 /**

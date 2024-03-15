@@ -3,7 +3,7 @@
  */
 
 import { Factor } from "./Factor";
-import { Sym } from "../symbols/Sym";
+import { Sym } from "../scannerparser/Sym";
 
 /**
  * A Term is a sequence of factors defined as:

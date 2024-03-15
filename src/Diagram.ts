@@ -4,7 +4,7 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Grammar } from "./Grammar";
-import { Sym } from "./symbols/Sym";
+import { Sym } from "./scannerparser/Sym";
 import rr from "./railroad.js";
 import { Literal } from "./wsn/Literal";
 import { Identifier } from "./wsn/Identifier";

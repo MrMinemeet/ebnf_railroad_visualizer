@@ -2,7 +2,7 @@
  * Copyright (c) 2024. Alexander Voglsperger
  */
 
-import { Sym } from "../symbols/Sym";
+import { Sym } from "../scannerparser/Sym";
 
 /**
  * A literal is a TS defined as a sequence of atomic characters:

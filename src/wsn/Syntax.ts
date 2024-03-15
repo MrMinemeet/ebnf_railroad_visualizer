@@ -3,7 +3,7 @@
  */
 
 import { Production } from './Production';
-import { Sym } from '../symbols/Sym';
+import { Sym } from '../scannerparser/Sym';
 
 /**
  * A syntax is a sequence of productions defined as:
