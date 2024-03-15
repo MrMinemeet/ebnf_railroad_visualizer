@@ -138,7 +138,6 @@ export class Diagram {
 		}
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	private generateFrom(sym: Sym, toExpandIDs: number[] = []): any {
 		let val: any;
 		switch (true) {

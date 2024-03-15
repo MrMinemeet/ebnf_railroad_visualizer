@@ -3,6 +3,7 @@
     "@types/node": "^20.11.26",
     "@typescript-eslint/eslint-plugin": "^7.1.1",
     "@typescript-eslint/parser": "^7.1.1",
+    "esbuild": "0.20.2",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-jest": "^27.9.0",
@@ -12,7 +13,11 @@
   "scripts": {
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "pretest": "npm run compile && npm run lint",
-    "lint": "eslint src --ext ts"
+    "pretest": "pnpm run compile && pnpm run lint",
+    "lint": "eslint src --ext ts",
+    "minify": "pnpm run minifygen && pnpm run minifywsn && pnpm run minifyscannerparser",
+    "minifywsn": "./node_modules/.bin/esbuild --minify ./out/wsn/*.js --outdir=./out/min/wsn/",
+    "minifyscannerparser": "./node_modules/.bin/esbuild --minify ./out/scannerparser/*.js --outdir=./out/min/scannerparser/",
+    "minifygen": "./node_modules/.bin/esbuild --minify ./out/*.js --outdir=./out/min/"
   }
 }
