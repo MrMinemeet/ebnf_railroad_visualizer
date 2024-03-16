@@ -2,10 +2,9 @@
  * Copyright (c) 2024. Alexander Voglsperger
  */
 
-import { Syntax } from "./wsn/Syntax";
-import { Scanner } from "./scannerparser/Scanner";
-import { Parser } from "./scannerparser/Parser";
-
+import { Syntax } from "./wsn/Syntax.js";
+import { Scanner } from "./scannerparser/Scanner.js";
+import { Parser } from "./scannerparser/Parser.js";
 
 /**
  * Represents the parsed grammar.

@@ -2,8 +2,8 @@
  * Copyright (c) 2024. Alexander Voglsperger
  */
 
-import { Grammar } from "./Grammar";
-import { Diagram } from "./Diagram";
+import { Grammar } from "./Grammar.js";
+import { Diagram } from "./Diagram.js";
 import fs from "fs";
 
 const grammarString = `

@@ -2,8 +2,8 @@
  * Copyright (c) 2024. Alexander Voglsperger
  */
 
-import { Factor } from "./Factor";
-import { Sym } from "../scannerparser/Sym";
+import { Factor } from "./Factor.js";
+import { Sym } from "../scannerparser/Sym.js";
 
 /**
  * A Term is a sequence of factors defined as:
