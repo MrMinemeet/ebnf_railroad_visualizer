@@ -2,7 +2,7 @@
  * Copyright (c) 2024. Alexander Voglsperger
  */
 
-import { Sym } from "../scannerparser/Sym";
+import { Sym } from "../scannerparser/Sym.js";
 
 /**
  * A literal is a TS defined as a sequence of atomic characters:

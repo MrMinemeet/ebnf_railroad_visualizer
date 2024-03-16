@@ -2,8 +2,7 @@
  * Copyright (c) 2024. Alexander Voglsperger
  */
 
-import { Token } from './Token';
-import { Kind } from './Token';
+import { Token, Kind } from './Token.js';
 
 const LF: string = "\n";
 

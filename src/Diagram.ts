@@ -3,16 +3,16 @@
  */
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Grammar } from "./Grammar";
-import { Sym } from "./scannerparser/Sym";
+import { Grammar } from "./Grammar.js";
+import { Sym } from "./scannerparser/Sym.js";
 import rr from "./railroad.js";
-import { Literal } from "./wsn/Literal";
-import { Identifier } from "./wsn/Identifier";
-import { Production } from "./wsn/Production";
-import { Expression } from "./wsn/Expression";
-import { Term } from "./wsn/Term";
-import { Factor, FactorType } from "./wsn/Factor";
-import { isUppercase } from "./ChooChoo";
+import { Literal } from "./wsn/Literal.js";
+import { Identifier } from "./wsn/Identifier.js";
+import { Production } from "./wsn/Production.js";
+import { Expression } from "./wsn/Expression.js";
+import { Term } from "./wsn/Term.js";
+import { Factor, FactorType } from "./wsn/Factor.js";
+import { isUppercase } from "./ChooChoo.js";
 
 
 const railroadCss: string = `

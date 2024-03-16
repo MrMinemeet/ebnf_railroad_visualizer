@@ -2,9 +2,9 @@
  * Copyright (c) 2024. Alexander Voglsperger
  */
 
-import { Sym } from '../scannerparser/Sym';
-import { Identifier } from './Identifier';
-import { Expression } from './Expression';
+import { Sym } from '../scannerparser/Sym.js';
+import { Identifier } from './Identifier.js';
+import { Expression } from './Expression.js';
 
 /**
  * A Production is a rule that defines how a non-terminal symbol is expanded into a sequence of terminal and/or non-terminal symbols. Defined as:

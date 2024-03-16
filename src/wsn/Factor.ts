@@ -2,7 +2,7 @@
  * Copyright (c) 2024. Alexander Voglsperger
  */
 
-import { Sym } from '../scannerparser/Sym';
+import { Sym } from '../scannerparser/Sym.js';
 
 export enum FactorType {
 	Identifier,

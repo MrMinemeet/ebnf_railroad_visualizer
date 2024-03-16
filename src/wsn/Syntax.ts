@@ -2,8 +2,8 @@
  * Copyright (c) 2024. Alexander Voglsperger
  */
 
-import { Production } from './Production';
-import { Sym } from '../scannerparser/Sym';
+import { Production } from './Production.js';
+import { Sym } from '../scannerparser/Sym.js';
 
 /**
  * A syntax is a sequence of productions defined as:
