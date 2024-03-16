@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Test</title>
+	</head>
+	<body>
+		<!--<script src="js.min/railroad.js"/>-->
+		<script type="module">
+			import * as Diagram from "./js.min/Diagram.js";
+		</script>
+		<script>
+			function generateDiagram() {
+				alert("OK");
+				return true;
+			}
+		</script>
+
+		<div>
+			<h2>Grammar</h2>
+			<form onsubmit="return generateDiagram();">
+				<input autofocus="true" name="ebnf_grammar" placeholder="EBNF-Grammar in Wirth Syntax Notation"></input>
+				<input type="submit" value="Generate">
+			</form>
+		</div>
+		
+	</body>
+</html>
