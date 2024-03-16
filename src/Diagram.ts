@@ -213,12 +213,21 @@ export class Diagram {
 					<h2>Grammar</h2>
 					<pre>${this.grammar.toString()}</pre>
 				</div>
-				<div class="diagram">
-					${this.toSvg(toExpandIDs).replace('>', `>${railroadCss}`)}
-				</div>
+				${this.toHtmlTag(toExpandIDs)}
 			</body>
 		</html>
 		`;
+	}
+	/**
+	 * A diagram in HTML format
+	 * @param toExpandIDs The IDs of the non-terminals to expand
+	 * @returns {string} The diagram in HTML format
+	 */
+	toHtmlTag(toExpandIDs: number[] = []): string {
+
+		return `<div class="diagram">
+			${(this.generateDiagram(toExpandIDs).toString() as string).replace('>', `>${railroadCss}`)}
+		</div>`;
 	}
 
 	/**
