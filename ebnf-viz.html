@@ -4,12 +4,11 @@
 		<title>Test</title>
 	</head>
 	<body>
-		<!--<script src="js.min/railroad.js"/>-->
 		<script type="module">
-			import * as Diagram from "./js.min/Diagram.js";
-		</script>
-		<script>
+			import Diagram from "./js.min/Diagram.js";
+
 			function generateDiagram() {
+				const d = new Diagram(null);
 				alert("OK");
 				return true;
 			}

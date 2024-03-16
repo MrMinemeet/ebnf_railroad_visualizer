@@ -2,15 +2,15 @@
  * Copyright (c) 2024. Alexander Voglsperger
  */
 
-import { Token, Kind } from "./Token";
-import { Scanner } from "./Scanner";
-import { Syntax } from "../wsn/Syntax";
-import { Production } from "../wsn/Production";
-import { Term } from "../wsn/Term";
-import { Identifier, letter } from "../wsn/Identifier";
-import { Expression } from "../wsn/Expression";
-import { Factor, FactorType } from "../wsn/Factor";
-import { Literal } from "../wsn/Literal";
+import { Token, Kind } from "./Token.js";
+import { Scanner } from "./Scanner.js";
+import { Syntax } from "../wsn/Syntax.js";
+import { Production } from "../wsn/Production.js";
+import { Term } from "../wsn/Term.js";
+import { Identifier, letter } from "../wsn/Identifier.js";
+import { Expression } from "../wsn/Expression.js";
+import { Factor, FactorType } from "../wsn/Factor.js";
+import { Literal } from "../wsn/Literal.js";
 
 
 export class Parser {
