@@ -70,15 +70,24 @@ svg.railroad-diagram g.diagram-text:hover path.diagram-text {
 export class Diagram {
 	private readonly grammar: Grammar;
 
-	constructor(grammar: Grammar) {
+	private constructor(grammar: Grammar) {
 		this.grammar = grammar;
+	}
+
+	/**
+	 * Generate a diagram from a grammar
+	 * @param grammarString The grammar as a string
+	 * @returns	{Diagram} The diagram
+	 */
+	static fromString(grammarString: string): Diagram {
+		return new Diagram(Grammar.fromString(grammarString));
 	}
 
 	/**
 	 * Generate a diagram from a production
 	 * @returns {any} The diagram
 	 */
-	generateDiagram(toExpandIDs: number[] = []): any {
+	private generateDiagram(toExpandIDs: number[] = []): any {
 		const firstProd = this.grammar.syntax.productions[0];
 		const diagram = rr.Diagram(this.generateFrom(firstProd, toExpandIDs));
 		return diagram;
