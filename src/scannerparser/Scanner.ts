@@ -36,7 +36,7 @@ export class Scanner {
 		// Special handling for literals, where almost every character is valid when under double quotes
 		if (this.isLiteral && this.ch !== '"') {
 			let chars = ""; // letter { letter }
-			while (this.ch !== '"') {
+			while (this.hasNext() && this.ch !== '"') {
 				// Add until the next '"' is found
 				chars += this.ch;
 				this.nextChar();
