@@ -1,26 +1,28 @@
 <!DOCTYPE html>
 <html>
 	<head>
+		<meta charset="UTF-8">
 		<title>Test</title>
-	</head>
-	<body>
 		<script type="module">
-			import Diagram from "./js.min/Diagram.js";
+			import { Diagram } from "./js.min/Diagram.js";
 
-			function generateDiagram() {
+			window.generateDiagram = function() {
+				const ebnfGrammarValue = document.querySelector("textarea[name=ebnf_grammar]").value;
 				const d = new Diagram(null);
-				alert("OK");
+				alert(ebnfGrammarValue);
 				return true;
 			}
 		</script>
+	</head>
+	<body>
 
 		<div>
 			<h2>Grammar</h2>
 			<form onsubmit="return generateDiagram();">
-				<input autofocus="true" name="ebnf_grammar" placeholder="EBNF-Grammar in Wirth Syntax Notation"></input>
+				<textarea autofocus="true" name="ebnf_grammar" placeholder="EBNF-Grammar in Wirth Syntax Notation"></textarea>
 				<input type="submit" value="Generate">
 			</form>
 		</div>
-		
+
 	</body>
 </html>
