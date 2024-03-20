@@ -61,7 +61,6 @@ export class Parser {
 			letters.push(c as letter);
 		}
 
-		// TODO: Create popper identifier instance
 		return new Identifier(letters, this.idCounter++);
 	}
 
