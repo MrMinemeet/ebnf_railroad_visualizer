@@ -117,7 +117,7 @@ export class Scanner {
 					token.kind = Kind.ident;
 					token.str = chars;
 				} else {
-					throw new Error(`Unknown character: ${this.ch}`);
+					throw new Error(`Unknown character: '${this.ch}' at position ${this.pos}`);
 				}
 				break;
 		}

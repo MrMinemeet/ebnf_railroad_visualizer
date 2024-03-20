@@ -5,8 +5,9 @@
 		<title>EBNF Railroad Visualizer</title>
 		<link rel="icon" href="/favicon.svg" />
 		<link rel="stylesheet" type="text/css" href="./css/railroad.css">
+		<link rel="stylesheet" href="./css/styles.css">
 		<script type="module">
-     		import { Diagram } from "./js.min/Diagram.js";
+     		import { Diagram, EXPAND_ALL } from "./out/Diagram.js";
 
 			const DIAGRAM_GENERATION_TIMEOUT = 100;
 			const toExtend = new Set();
@@ -18,7 +19,7 @@
 			 * @throws {Error} - If the diagram could not be generated or took longer than the timeout.
 			 */
 			async function asyncGenerateDiagram(grammar) {
-				console.log("Generating diagram…");
+				console.debug("Generating diagram…");
 				return new Promise((resolve, reject) => {
 					// Timeout to prevent blocking the UI or freezing the browser
 					setTimeout(() => {
@@ -39,7 +40,7 @@
 			function generateDiagram() {
 				const ebnfGrammarValue = document.querySelector("textarea[name=ebnf_grammar]").value;
 				if (ebnfGrammarValue.trim() === "") {
-					console.warn("Nothing was entered into the textarea.")
+					console.debug("Nothing was entered into the textarea.")
 					return;
 				}
 
@@ -59,7 +60,7 @@
 
 								// Add the ID to the set of non-terminals to extend
 								toExtend.add(parseInt(id));
-								console.log(`Expanding NTS with ID '${id}'`);
+								console.debug(`Expanding NTS with ID '${id}'`);
 
 								// Generate the diagram again
 								generateDiagram();
@@ -68,14 +69,41 @@
 
 						// TODO: Add a click event listener to the Groups to shrink the NTS it encloses
 					});
-				}).catch(e => console.error(e));
+				}).catch(e => console.warn(`An error occurred while generating the diagram: ${e}`));
 			}
 
 			/**
 			 * Handle the generation of a diagram from the entered grammar.
 			 */
 			window.handleGenerateDiagram = function() {
+				toExtend.clear();
 				generateDiagram();
+			}
+
+
+			/**
+			 * Handle the click event of the "Collapse All" button.
+			 */
+			window.onCollapseAll = function() {
+				console.debug("Collapsing all non-terminals");
+				// Remove all non-terminals to extend
+				toExtend.clear();
+				// Generate the diagram again
+				generateDiagram();
+			}
+
+			/**
+			 * Handle the click event of the "Expand All" button.
+			 */
+			window.onExpandAll = function() {
+				console.debug("Expanding all non-terminals");
+				// Remove all current "toExpand" NTS
+				console.clear();
+				// Add special number"for expanding all
+				toExtend.add(EXPAND_ALL);
+				// Generate the diagram again
+				generateDiagram();
+
 			}
 		</script>
 	</head>
@@ -83,7 +111,10 @@
 		<h1>EBNF Visualizer</h1>
 		<h2>Grammar</h2>
 		<textarea autofocus="true" name="ebnf_grammar" placeholder="EBNF-Grammar in Wirth Syntax Notation" oninput="handleGenerateDiagram()"></textarea>
+
 		<h2>Railroad Diagram</h2>
+		<button onclick="onExpandAll();">Expand All</button>
+		<button onclick="onCollapseAll();">Collapse All</button>
     	<div id="visualized_ebnf">
 			<!-- Diagram will be inserted here -->
 		</div>
