@@ -80,6 +80,11 @@
         generateDiagram();
       }
 
+      /**
+       * Handle the click event of the "Store Diagram" button.
+       * Converts railroad.css to a string and adds it to the SVG.
+       * Then stores the SVG as a file.
+       */
       window.onStoreDiagram = function() {
       const svgHtml = document.getElementById("visualized_ebnf").innerHTML;
       if (!svgHtml.includes('svg')) {
