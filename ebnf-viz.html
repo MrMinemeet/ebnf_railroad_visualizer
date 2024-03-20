@@ -7,35 +7,9 @@
 		<link rel="stylesheet" type="text/css" href="./css/railroad.css">
 		<link rel="stylesheet" href="./css/styles.css">
 		<script type="module">
-     		import { Diagram, EXPAND_ALL } from "./out/Diagram.js";
-
-			const DIAGRAM_GENERATION_TIMEOUT = 100;
+     	import { Diagram, EXPAND_ALL } from "./out/Diagram.js";
+      import { asyncGenerateDiagram } from "./out/ChooChoo.js";
 			const toExtend = new Set();
-
-			/**
-			 * Asynchronously generate a diagram from a given grammar.
-			 * @param {string} grammar - The grammar to generate a diagram from.
-			 * @returns {Promise<Diagram>} - The generated diagram.
-			 * @throws {Error} - If the diagram could not be generated or took longer than the timeout.
-			 */
-			async function asyncGenerateDiagram(grammar) {
-				console.debug("Generating diagram…");
-				return new Promise((resolve, reject) => {
-					// Timeout to prevent blocking the UI or freezing the browser
-					setTimeout(() => {
-						console.debug("Generation Timeout");
-						reject()
-					}, DIAGRAM_GENERATION_TIMEOUT);
-
-					try {
-						// Generate the diagram
-						const d = Diagram.fromString(grammar);
-						resolve(d);
-					} catch (e) {
-						reject(e);
-					}
-				});
-			}
 
 			function generateDiagram() {
 				const ebnfGrammarValue = document.querySelector("textarea[name=ebnf_grammar]").value;
@@ -103,7 +77,31 @@
 				toExtend.add(EXPAND_ALL);
 				// Generate the diagram again
 				generateDiagram();
+			}
 
+			window.onStoreDiagram = function() {
+			const svgHtml = document.getElementById("visualized_ebnf").innerHTML;
+			if (!svgHtml.includes('svg')) {
+				alert("No diagram to store.")
+				console.log("No diagram to store.");
+				return;
+			}
+			console.debug("Storing diagram as SVG…");
+			// Get the style of the diagram (./css/railroad.css)
+			const styleSheet = document.styleSheets[0];
+
+			asyncCssToString(styleSheet).then((cssString) => {
+				const svgImg = svgHtml.replace(">", `>\n<style>\n${cssString}\n</style>`);
+
+				console.debug(svgImg);
+				// save image
+				const blob = new Blob([svgImg], {type: "image/svg+xml"});
+				const url = URL.createObjectURL(blob);
+				const a = document.createElement("a");
+				a.href = url;
+				a.download = "railroad-diagram.svg";
+				a.click();
+			});
 			}
 		</script>
 	</head>
