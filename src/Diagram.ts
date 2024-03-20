@@ -14,6 +14,9 @@ import { Term } from "./wsn/Term.js";
 import { Factor, FactorType } from "./wsn/Factor.js";
 import { isUppercase } from "./ChooChoo.js";
 
+/** Special symbol for expanding all NTS */
+export const EXPAND_ALL = -1;
+
 export class Diagram {
 	private readonly grammar: Grammar;
 
@@ -116,7 +119,8 @@ export class Diagram {
 			case sym instanceof Identifier:
 				if (isUppercase(sym.toString())) {
 					// Non-terminal
-					if (toExpandIDs.some(id => id === sym.id)) {
+					if (toExpandIDs.some(id => id === EXPAND_ALL) ||
+					    toExpandIDs.some(id => id === sym.id)) {
 						// Expand NTS
 						const innerProd = this.getProductionFromName(sym.toString());
 						val = rr.Group(this.generateFrom(innerProd.expr, toExpandIDs), sym.name);
