@@ -14,59 +14,6 @@ import { Term } from "./wsn/Term.js";
 import { Factor, FactorType } from "./wsn/Factor.js";
 import { isUppercase } from "./ChooChoo.js";
 
-
-const railroadCss: string = `
-<style>
-svg.railroad-diagram {
-	background-color: hsl(30,20%,95%);
-}
-svg.railroad-diagram path {
-	stroke-width: 3;
-	stroke: black;
-	fill: rgba(0,0,0,0);
-}
-svg.railroad-diagram text {
-	font: bold 14px monospace;
-	text-anchor: middle;
-	white-space: pre;
-}
-svg.railroad-diagram text.diagram-text {
-	font-size: 12px;
-}
-svg.railroad-diagram text.diagram-arrow {
-	font-size: 16px;
-}
-svg.railroad-diagram text.label {
-	text-anchor: start;
-}
-svg.railroad-diagram text.comment {
-	font: italic 12px monospace;
-}
-svg.railroad-diagram g.non-terminal text {
-	/*font-style: italic;*/
-}
-svg.railroad-diagram rect {
-	stroke-width: 3;
-	stroke: black;
-	fill: hsl(120,100%,90%);
-}
-svg.railroad-diagram rect.group-box {
-	stroke: gray;
-	stroke-dasharray: 10 5;
-	fill: none;
-}
-svg.railroad-diagram path.diagram-text {
-	stroke-width: 3;
-	stroke: black;
-	fill: white;
-	cursor: help;
-}
-svg.railroad-diagram g.diagram-text:hover path.diagram-text {
-	fill: #eee;
-}
-</style>
-`;
-
 export class Diagram {
 	private readonly grammar: Grammar;
 
@@ -203,40 +150,6 @@ export class Diagram {
 			}
 		}
 		throw new Error(`Production ${name} not found`);
-	}
-
-	/**
-	 * A diagram in HTML format
-	 * @param toExpandIDs The IDs of the non-terminals to expand
-	 * @returns {string} The diagram in HTML format
-	 */
-	toHtml(toExpandIDs: number[] = []): string {
-		return `
-		<!DOCTYPE html>
-		<html>
-			<head>
-				<title>Test</title>
-			</head>
-			<body>
-				<div>
-					<h2>Grammar</h2>
-					<pre>${this.grammar.toString()}</pre>
-				</div>
-				${this.toHtmlTag(toExpandIDs)}
-			</body>
-		</html>
-		`;
-	}
-	/**
-	 * A diagram in HTML format
-	 * @param toExpandIDs The IDs of the non-terminals to expand
-	 * @returns {string} The diagram in HTML format
-	 */
-	toHtmlTag(toExpandIDs: number[] = []): string {
-
-		return `<div class="diagram">
-			${(this.generateDiagram(toExpandIDs).toString() as string).replace('>', `>${railroadCss}`)}
-		</div>`;
 	}
 
 	/**
