@@ -8,7 +8,7 @@
 		<link rel="stylesheet" href="./css/styles.css">
 		<script type="module">
      	import { Diagram, EXPAND_ALL } from "./out/Diagram.js";
-      import { asyncGenerateDiagram } from "./out/ChooChoo.js";
+      import { asyncGenerateDiagram, asyncCssToString } from "./out/ChooChoo.js";
 			const toExtend = new Set();
 
 			function generateDiagram() {
@@ -80,30 +80,35 @@
 				generateDiagram();
 			}
 
-			window.onStoreDiagram = function() {
-			const svgHtml = document.getElementById("visualized_ebnf").innerHTML;
-			if (!svgHtml.includes('svg')) {
-				alert("No diagram to store.")
-				console.log("No diagram to store.");
-				return;
-			}
-			console.debug("Storing diagram as SVG…");
-			// Get the style of the diagram (./css/railroad.css)
-			const styleSheet = document.styleSheets[0];
+      /**
+       * Handle the click event of the "Store Diagram" button.
+       * Converts railroad.css to a string and adds it to the SVG.
+       * Then stores the SVG as a file.
+       */
+      window.onStoreDiagram = function() {
+        const svgHtml = document.getElementById("visualized_ebnf").innerHTML;
+        if (!svgHtml.includes('svg')) {
+          alert("No diagram to store.")
+          console.log("No diagram to store.");
+          return;
+        }
+        console.debug("Storing diagram as SVG…");
+        // Get the style of the diagram (./css/railroad.css)
+        const styleSheet = document.styleSheets[0];
 
-			asyncCssToString(styleSheet).then((cssString) => {
-				const svgImg = svgHtml.replace(">", `>\n<style>\n${cssString}\n</style>`);
+        asyncCssToString(styleSheet).then((cssString) => {
+          const svgImg = svgHtml.replace(">", `>\n<style>\n${cssString}\n</style>`);
 
-				console.debug(svgImg);
-				// save image
-				const blob = new Blob([svgImg], {type: "image/svg+xml"});
-				const url = URL.createObjectURL(blob);
-				const a = document.createElement("a");
-				a.href = url;
-				a.download = "railroad-diagram.svg";
-				a.click();
-			});
-			}
+          console.debug(svgImg);
+          // save image
+          const blob = new Blob([svgImg], {type: "image/svg+xml"});
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "railroad-diagram.svg";
+          a.click();
+        });
+      }
 		</script>
 	</head>
 	<body>
@@ -114,7 +119,8 @@
 		<h2>Railroad Diagram</h2>
 		<button onclick="onExpandAll();">Expand All</button>
 		<button onclick="onCollapseAll();">Collapse All</button>
-    	<div id="visualized_ebnf">
+    <button onclick="onStoreDiagram();">Store Diagram</button>
+    <div id="visualized_ebnf">
 			<!-- Diagram will be inserted here -->
 		</div>
 	</body>
