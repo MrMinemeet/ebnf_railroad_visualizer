@@ -10,3 +10,12 @@ textarea {
   font-family: monospace;
   resize: none;
 }
+
+#repository_reference {
+  width: 50px;
+  padding: 10px;
+  resize: none;
+  position: fixed;
+  top: 0;
+  right: 0;
+}

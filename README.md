@@ -24,5 +24,6 @@ NTS are displayed as rectangles and can be expanded by clicking them. The defini
 ## TODOs
 * Show errors in the UI
 
-## Included Dependencies
+## Included Dependencies / Other Resources
 - [railroad.js](https://github.com/tabatkins/railroad-diagrams) by Tab Atkins Jr. (and others)
+- [github-mark.svg](https://github.com/logos) by GitHub
