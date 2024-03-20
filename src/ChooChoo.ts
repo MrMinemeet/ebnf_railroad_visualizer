@@ -2,6 +2,8 @@
  * Copyright (c) 2024. Alexander Voglsperger
  */
 
+import { Diagram } from "./Diagram.js";
+
 /*
  *     ooOOOO
  *    oo      _____
@@ -48,5 +50,22 @@ export async function asyncGenerateDiagram(grammar: string): Promise<Diagram> {
 	   } catch (e) {
 		   reject(e);
 	   }
+	});
+}
+
+/**
+ * Asynchronously convert a CSSStyleSheet to a string.
+ * @param styleSheet The CSSStyleSheet to convert.
+ * @returns A promise that resolves to the CSSStyleSheet as a string.
+ */
+export async function asyncCssToString(styleSheet: CSSStyleSheet): Promise<string> {
+	return new Promise((resolve, reject) => {
+		try {
+			resolve(Array.from(styleSheet.cssRules)
+				.map(rule => rule.cssText)
+				.join("\n"));
+		} catch (e) {
+			reject(e);
+		}
 	});
 }
