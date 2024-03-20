@@ -21,10 +21,6 @@ export class Scanner {
 	}
 
 	next(): Token {
-		// Skip whitespace characters
-		while (this.pos < this.input.length && this.isWhitespace(this.ch)) {
-			this.nextChar();
-		}
 
 		if (this.pos > this.input.length) {
 			// Return eof token if end of input is reached
@@ -38,13 +34,23 @@ export class Scanner {
 			let chars = ""; // letter { letter }
 			while (this.hasNext() && this.ch !== '"') {
 				// Add until the next '"' is found
-				chars += this.ch;
+				if (this.ch === " ") {
+					// Make space explicitly visible
+					chars += "␣";
+				} else {
+					chars += this.ch;
+				}
 				this.nextChar();
 			}
 			token.kind = Kind.literal;
 			token.str = chars;
 
 			return token;
+		}
+
+		// Skip whitespace characters
+		while (this.pos < this.input.length && this.isWhitespace(this.ch)) {
+			this.nextChar();
 		}
 
 
