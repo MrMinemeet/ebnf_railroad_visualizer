@@ -18,5 +18,5 @@ console.log(`Parsed Grammar as String: \n${g.toString()}\n`);
 
 const diagram = Diagram.fromString(grammarString);
 fs.mkdirSync("test", { recursive: true });
-fs.writeFileSync("test/diagram.html", diagram.toHtml([1, 8]), "utf-8");
+fs.writeFileSync("test/diagram.svg", diagram.toSvg([1, 8]), "utf-8");
 console.log("done!");

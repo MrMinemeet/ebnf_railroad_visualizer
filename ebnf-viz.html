@@ -2,9 +2,11 @@
 <html>
 	<head>
 		<meta charset="UTF-8">
-		<title>Test</title>
+		<title>EBNF Railroad Visualizer</title>
+
+		<link rel="stylesheet" type="text/css" href="./css/railroad.css">
 		<script type="module">
-     		import { Diagram } from "./out/Diagram.js";
+     		import { Diagram } from "./js.min/Diagram.js";
 
 			const DIAGRAM_GENERATION_TIMEOUT = 100;
 			const toExtend = new Set();
@@ -44,8 +46,7 @@
 				asyncGenerateDiagram(ebnfGrammarValue).then((diagram) =>
 				{
 					// Insert the diagram into the HTML
-					const toExtendArr = Array.from(toExtend);
-					document.getElementById("visualized_ebnf").innerHTML = diagram.toHtmlTag(toExtendArr);
+					document.getElementById("visualized_ebnf").innerHTML = diagram.toSvg(Array.from(toExtend));
 
 					// Add a click event listener to the diagram
 					document.addEventListener("click", (event) => {
