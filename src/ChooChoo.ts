@@ -38,19 +38,21 @@ export async function asyncGenerateDiagram(grammar: string): Promise<Diagram> {
 	console.debug("Generating diagram…");
 	return new Promise((resolve, reject) => {
 	   // Timeout to prevent blocking the UI or freezing the browser
-	   setTimeout(() => {
-		   console.debug("Generation Timeout");
-		   reject();
-	   }, DIAGRAM_GENERATION_TIMEOUT);
+	   	const timeoutID = setTimeout(() => {
+			console.debug("Generation Timeout");
+			reject();
+	   	}, DIAGRAM_GENERATION_TIMEOUT);
 
-	   try {
-		   // Generate the diagram
-		   const d = Diagram.fromString(grammar);
-		   console.debug("Diagram generated successfully.");
-		   resolve(d);
-	   } catch (e) {
-		   reject(e);
-	   }
+	   	try {
+			// Generate the diagram
+			const d = Diagram.fromString(grammar);
+			console.debug("Diagram generated successfully.");
+			clearTimeout(timeoutID);
+			resolve(d);
+	   	} catch (e) {
+			clearTimeout(timeoutID);
+			reject(e);
+	   	}
 	});
 }
 
