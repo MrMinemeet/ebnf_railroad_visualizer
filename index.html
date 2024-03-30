@@ -11,18 +11,9 @@
     <script type="module">
       import { Diagram, EXPAND_ALL } from "./out/Diagram.js";
       import { asyncGenerateDiagram, asyncCssToString } from "./out/ChooChoo.js";
-      const TIME_BETWEEN_DIAGRAM_UPDATES = 500;
-
       const toExtend = new Set();
-      
-      let lastUpdate = 0;
 
 			function generateDiagram() {
-        if (Date.now() - lastUpdate < TIME_BETWEEN_DIAGRAM_UPDATES) {
-          console.debug("Too many updates in a short time. Skipping this one.");
-          return;
-        }
-        lastUpdate = Date.now();
 
 				const ebnfGrammarValue = document.querySelector("textarea[name=ebnf_grammar]").value;
 				if (ebnfGrammarValue.trim() === "") {
