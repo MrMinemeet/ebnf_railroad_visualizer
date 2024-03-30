@@ -113,7 +113,7 @@ export class Scanner {
 			default:
 				if (/[a-zA-Z]/.test(this.ch)) {
 					let chars = ""; // letter { letter }
-					while (/[a-zA-Z]/.test(this.ch)) {
+					while (this.hasNext() && /[a-zA-Z]/.test(this.ch)) {
 						chars += this.ch;
 						this.nextChar();
 					}
