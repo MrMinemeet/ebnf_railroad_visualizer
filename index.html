@@ -11,14 +11,26 @@
     <script type="module">
       import { Diagram, EXPAND_ALL } from "./out/Diagram.js";
       import { asyncGenerateDiagram, asyncCssToString } from "./out/ChooChoo.js";
+      const TIME_BETWEEN_DIAGRAM_UPDATES = 500;
+
       const toExtend = new Set();
+      
+      let lastUpdate = 0;
 
 			function generateDiagram() {
+        if (Date.now() - lastUpdate < TIME_BETWEEN_DIAGRAM_UPDATES) {
+          console.debug("Too many updates in a short time. Skipping this one.");
+          return;
+        }
+        lastUpdate = Date.now();
+
 				const ebnfGrammarValue = document.querySelector("textarea[name=ebnf_grammar]").value;
 				if (ebnfGrammarValue.trim() === "") {
 					console.debug("Nothing was entered into the textarea.")
 					return;
 				}
+
+        const error_message_container = document.getElementById("error_message");
 
 				asyncGenerateDiagram(ebnfGrammarValue).then((diagram) =>
 				{
@@ -45,7 +57,14 @@
 
 						// TODO: Add a click event listener to the Groups to shrink the NTS it encloses
 					});
-				}).catch(e => console.warn(`An error occurred while generating the diagram: ${e}`));
+
+          // Hide the error message container
+          error_message_container.style.display = "none";
+				}).catch(e => {
+          console.warn(`An error occurred while generating the diagram: ${e}`)
+          error_message_container.innerHTML = `<p>${e}</p>`;
+          error_message_container.style.display = "block";
+        });
 			}
 
 			/**
@@ -80,58 +99,6 @@
 				// Generate the diagram again
 				generateDiagram();
 			}
-
-      /**
-       * Handle the click event of the "Store Diagram" button.
-       * Converts railroad.css to a string and adds it to the SVG.
-       * Then stores the SVG as a file.
-       */
-      window.onStoreDiagram = function() {
-        const svgHtml = document.getElementById("visualized_ebnf").innerHTML;
-        if (!svgHtml.includes('svg')) {
-          alert("No diagram to store.")
-          console.log("No diagram to store.");
-          return;
-        }
-
-        asyncGenerateDiagram(ebnfGrammarValue).then((diagram) =>
-        {
-          // Insert the diagram into the HTML
-          document.getElementById("visualized_ebnf").innerHTML = diagram.toSvg(Array.from(toExtend));
-
-          // Add a click event listener to the diagram
-          document.addEventListener("click", (event) => {
-            // Add a click event listener to the NTS to extend
-            const elements = document.querySelectorAll(".non-terminal");
-            elements.forEach((element) => {
-              element.addEventListener("click", (event) => {
-                // Get ID from inner child with tag "title"
-                const title = event.currentTarget.querySelector("title");
-                const id = title.textContent.trim();
-
-                // Add the ID to the set of non-terminals to extend
-                toExtend.add(parseInt(id));
-                console.debug(`Expanding NTS with ID '${id}'`);
-
-                // Generate the diagram again
-                generateDiagram();
-              });
-            });
-
-            // TODO: Add a click event listener to the Groups to shrink the NTS it encloses
-          });
-
-
-          // Hide the error message container
-          const error_message_container = document.getElementById("error_message");
-          error_message_container.style.display = "none";
-        }).catch(e => {
-          console.warn(`An error occurred while generating the diagram: ${e}`)
-          const error_message_container = document.getElementById("error_message");
-          error_message_container.innerHTML = `<p>${e}</p>`;
-          error_message_container.style.display = "block";
-        });
-      }
 
       /**
        * Handle the generation of a diagram from the entered grammar.
