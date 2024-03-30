@@ -3,3 +3,6 @@ out
 
 test
 js.min
+
+# Builds
+bundle.zip
