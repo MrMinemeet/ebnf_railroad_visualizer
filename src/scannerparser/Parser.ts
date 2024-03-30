@@ -52,7 +52,7 @@ export class Parser {
 
 	private Identifier(): Identifier {
 		if (this.sym !== Kind.ident) {
-			throw new Error(`Syntax error: unexpected token '${this.t}'`);
+			this.throwError(`expected identifier but found '${this.t}'`);
 		}
 		this.scan();
 
@@ -123,7 +123,7 @@ export class Parser {
 				break;
 
 			default:
-				throw new Error(`Syntax error: unexpected token '${this.t}'`);
+				this.throwError(`expected identifier, '"', '(', '{' or '[' but found '${this.t}'`);
 		}
 
 		return factor;
@@ -134,7 +134,7 @@ export class Parser {
 
 		this.check(Kind.quote);
 		if (this.sym !== Kind.literal) {
-			throw new Error(`Syntax error: expected literal but found '${this.la}'`);
+			this.throwError(`expected literal but found '${this.la}'`);
 		}
 
 		characters = this.la.str;
@@ -151,7 +151,7 @@ export class Parser {
 	 */
 	private check(expected: Kind): void {
 		if (this.sym !== expected) {
-			throw new Error(`Syntax error: '${expected}' expected but '${this.t}' found`);
+			this.throwError(`expected '${expected}' but found '${this.t}'`);
 		}
 
 		this.scan();
@@ -164,5 +164,10 @@ export class Parser {
 		this.t = this.la;
 		this.la = this.scanner.next();
 		this.sym = this.la.kind;
+	}
+
+	private throwError(message: string): never {
+		const [line, col] = this.scanner.getPosition();
+		throw new Error(`(line ${line}, column ${col}) - ${message}`);
 	}
 }

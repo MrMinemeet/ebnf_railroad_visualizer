@@ -11,6 +11,8 @@ export class Scanner {
 	private pos: number;
 	private ch: string;
 	private isLiteral: boolean;
+	private line: number;
+	private column: number;
 
 	constructor(input: string) {
 		this.input = input;
@@ -18,6 +20,8 @@ export class Scanner {
 		this.ch = "";
 		this.nextChar();
 		this.isLiteral = false;
+		this.line = 1;
+		this.column = 1;
 	}
 
 	next(): Token {
@@ -117,7 +121,7 @@ export class Scanner {
 					token.kind = Kind.ident;
 					token.str = chars;
 				} else {
-					throw new Error(`Unknown character: '${this.ch}' at position ${this.pos}`);
+					throw new Error(`(line ${this.line}, column ${this.column}) - Unknown character '${this.ch}'`);
 				}
 				break;
 		}
@@ -129,7 +133,10 @@ export class Scanner {
 	 */
 	private nextChar(): void {
 		this.ch = this.input[this.pos++];
+		this.column++;
 		if (this.ch === LF) {
+			this.line++;
+			this.column = 1;
 			// Skip LF symbol
 			this.ch = this.input[this.pos++];
 		}
@@ -145,5 +152,13 @@ export class Scanner {
 
 	private isWhitespace(ch: string): boolean {
 		return !ch.replace(/\s/g, '').length;
+	}
+
+	/**
+	 * Returns the position of the scanner.
+	 * @returns the line and column of the scanner
+	 */
+	getPosition(): [number, number] {
+		return [this.line, this.column];
 	}
 }

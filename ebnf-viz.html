@@ -119,7 +119,17 @@
 
             // TODO: Add a click event listener to the Groups to shrink the NTS it encloses
           });
-        }).catch(e => console.warn(`An error occurred while generating the diagram: ${e}`));
+
+
+          // Hide the error message container
+          const error_message_container = document.getElementById("error_message");
+          error_message_container.style.display = "none";
+        }).catch(e => {
+          console.warn(`An error occurred while generating the diagram: ${e}`)
+          const error_message_container = document.getElementById("error_message");
+          error_message_container.innerHTML = `<p>${e}</p>`;
+          error_message_container.style.display = "block";
+        });
       }
 
       /**
@@ -156,28 +166,28 @@
       }
 
       window.onStoreDiagram = function() {
-      const svgHtml = document.getElementById("visualized_ebnf").innerHTML;
-      if (!svgHtml.includes('svg')) {
-        alert("No diagram to store.")
-        console.log("No diagram to store.");
-        return;
-      }
-      console.debug("Storing diagram as SVG…");
-      // Get the style of the diagram (./css/railroad.css)
-      const styleSheet = document.styleSheets[0];
+        const svgHtml = document.getElementById("visualized_ebnf").innerHTML;
+        if (!svgHtml.includes('svg')) {
+          alert("No diagram to store.")
+          console.log("No diagram to store.");
+          return;
+        }
+        console.debug("Storing diagram as SVG…");
+        // Get the style of the diagram (./css/railroad.css)
+        const styleSheet = document.styleSheets[0];
 
-      asyncCssToString(styleSheet).then((cssString) => {
-        const svgImg = svgHtml.replace(">", `>\n<style>\n${cssString}\n</style>`);
+        asyncCssToString(styleSheet).then((cssString) => {
+          const svgImg = svgHtml.replace(">", `>\n<style>\n${cssString}\n</style>`);
 
-        console.debug(svgImg);
-        // save image
-        const blob = new Blob([svgImg], {type: "image/svg+xml"});
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "railroad-diagram.svg";
-        a.click();
-      });
+          console.debug(svgImg);
+          // save image
+          const blob = new Blob([svgImg], {type: "image/svg+xml"});
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "railroad-diagram.svg";
+          a.click();
+        });
       }
     </script>
   </head>
@@ -186,7 +196,11 @@
     <a id="repository_reference" href="https://github.com/MrMinemeet/ebnf_railroad_visualizer" target="_blank"><img src="./images/github-mark.svg" alt="GitHub Invertocat linking to the repository"></a>
     
     <h2>Grammar</h2>
-    <textarea autofocus="true" name="ebnf_grammar" placeholder="EBNF-Grammar in Wirth Syntax Notation" oninput="handleGenerateDiagram()"></textarea>
+      <textarea autofocus="true" id="userInput" name="ebnf_grammar" placeholder="EBNF-Grammar in Wirth Syntax Notation" oninput="handleGenerateDiagram()"></textarea>
+      <div id="error_message">
+        <!-- Error message will be inserted here -->
+      </div>
+    </div>
 
     <h2>Railroad Diagram</h2>
     <button onclick="onExpandAll();">Expand All</button>
