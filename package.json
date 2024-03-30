@@ -1,4 +1,25 @@
 {
+  "name": "ebnf-railroad-visualizer",
+  "description": "A web-based EBNF railroad diagram visualizer",
+  "homepage": "https://github.com/MrMinemeet/ebnf_railroad_visualizer",
+  "license": "MIT",
+  "author": {
+    "name": "Alexander Voglsperger",
+    "email": "alex@wtf-my-code.works",
+    "url": "http://wtf-my-code.works/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MrMinemeet/ebnf_railroad_visualizer.git"
+  },
+  "keywords": [
+    "ebnf",
+    "railroad",
+    "diagram",
+    "visualizer",
+    "client-side",
+    "web"
+  ],
   "devDependencies": {
     "@types/node": "^20.11.30",
     "@typescript-eslint/eslint-plugin": "^7.3.1",
