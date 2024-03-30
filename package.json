@@ -18,6 +18,9 @@
     "minify": "pnpm run compile && pnpm run minifygen && pnpm run minifywsn && pnpm run minifyscannerparser",
     "minifywsn": "./node_modules/.bin/esbuild --minify ./out/wsn/*.js --outdir=./js.min/wsn/",
     "minifyscannerparser": "./node_modules/.bin/esbuild --minify ./out/scannerparser/*.js --outdir=./js.min/scannerparser/",
-    "minifygen": "./node_modules/.bin/esbuild --minify ./out/*.js --outdir=./js.min/"
+    "minifygen": "./node_modules/.bin/esbuild --minify ./out/*.js --outdir=./js.min/",
+    "useMinified": "sed -i 's/\\.\\/out\\//.\\/js.min\\//g' index.html",
+    "useNormal": "sed -i 's/\\.\\/js.min\\//.\\/out\\//g' index.html",
+    "bundle": "pnpm run minify && pnpm run useMinified && zip -r bundle.zip js.min/ css/ images/ index.html README.md LICENSE && pnpm run useNormal"
   }
 }
