@@ -46,6 +46,7 @@ export async function asyncGenerateDiagram(grammar: string): Promise<Diagram> {
 	   try {
 		   // Generate the diagram
 		   const d = Diagram.fromString(grammar);
+		   console.debug("Diagram generated successfully.");
 		   resolve(d);
 	   } catch (e) {
 		   reject(e);
