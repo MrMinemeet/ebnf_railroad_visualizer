@@ -63,6 +63,9 @@
           error_message_container.style.display = "none";
 				}).catch(e => {
           console.warn(`An error occurred while generating the diagram: ${e}`)
+          if (!e.message.includes("but found") && !e.message.includes("Unknown character")) {
+            console.warn(e.stack)
+          }
           error_message_container.innerHTML = `<p>${e}</p>`;
           error_message_container.style.display = "block";
         });
