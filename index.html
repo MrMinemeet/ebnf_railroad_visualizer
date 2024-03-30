@@ -14,19 +14,20 @@
       const toExtend = new Set();
 
 			function generateDiagram() {
-
+        const error_message_container = document.getElementById("error_message");
+        const diagram_container = document.getElementById("visualized_ebnf");
 				const ebnfGrammarValue = document.querySelector("textarea[name=ebnf_grammar]").value;
+
 				if (ebnfGrammarValue.trim() === "") {
 					console.debug("Nothing was entered into the textarea.")
+          diagram_container.style.display = "none";
 					return;
 				}
-
-        const error_message_container = document.getElementById("error_message");
 
 				asyncGenerateDiagram(ebnfGrammarValue).then((diagram) =>
 				{
 					// Insert the diagram into the HTML
-					document.getElementById("visualized_ebnf").innerHTML = diagram.toSvg(Array.from(toExtend));
+					diagram_container.innerHTML = diagram.toSvg(Array.from(toExtend));
 
 					// Add a click event listener to the diagram
 					document.addEventListener("click", (event) => {
@@ -52,6 +53,7 @@
 
           // Hide the error message container
           error_message_container.style.display = "none";
+          diagram_container.style.display = "block";
 				}).catch(e => {
           console.warn(`An error occurred while generating the diagram: ${e}`)
           if (!e.message.includes("but found") && !e.message.includes("Unknown character")) {
@@ -59,6 +61,7 @@
           }
           error_message_container.innerHTML = `<p>${e}</p>`;
           error_message_container.style.display = "block";
+          diagram_container.style.display = "none";
         });
 			}
 
