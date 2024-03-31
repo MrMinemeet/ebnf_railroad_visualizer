@@ -32,8 +32,7 @@
 					// Add a click event listener to the diagram
 					document.addEventListener("click", (event) => {
 						// Add a click event listener to the NTS to extend
-						const elements = document.querySelectorAll(".non-terminal");
-						elements.forEach((element) => {
+						document.querySelectorAll(".non-terminal").forEach((element) => {
 							element.addEventListener("click", (event) => {
 								// Get ID from inner child with tag "title"
 								const title = event.currentTarget.querySelector("title");
