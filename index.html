@@ -47,7 +47,22 @@
 							});
 						});
 
-						// TODO: Add a click event listener to the Groups to shrink the NTS it encloses
+						// Add a click event listener to the comment to collapse
+						document.querySelectorAll(".comment").forEach((element) => {
+							element.addEventListener("click", (event) => {
+								// Get ID from inner child with tag "title"
+								const title = event.currentTarget.querySelector("title");
+                if(!title) return;
+								const id = title.textContent.trim();
+
+								// Add the ID to the set of non-terminals to extend
+								toExtend.delete(parseInt(id));
+								console.debug(`Collapsing group with ID '${id}'`);
+
+								// Generate the diagram again
+								generateDiagram();
+							});
+						});
 					});
 
           // Hide the error message container
@@ -124,6 +139,7 @@
         console.debug("Expanding all non-terminals");
         // Remove all current "toExpand" NTS
         console.clear();
+        // TODO: Actually add all items. Otherwise "Expand All" and then collapsing some parts won't work
         // Add special number"for expanding all
         toExtend.add(EXPAND_ALL);
         // Generate the diagram again
