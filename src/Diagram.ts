@@ -123,7 +123,7 @@ export class Diagram {
 					    toExpandIDs.some(id => id === sym.id)) {
 						// Expand NTS
 						const innerProd = this.getProductionFromName(sym.toString());
-						val = rr.Group(this.generateFrom(innerProd.expr, toExpandIDs), sym.name);
+						val = rr.Group(this.generateFrom(innerProd.expr, toExpandIDs), sym.name, sym.id);
 					} else {
 						// No NTS expansion
 						val = rr.NonTerminal(sym.toString(), { title: sym.id });

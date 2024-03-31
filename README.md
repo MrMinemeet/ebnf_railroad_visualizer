@@ -29,5 +29,5 @@ Name = an { an } .
 * Make it possible to collapse expanded NTS^
 
 ## Included Dependencies / Other Resources
-- [railroad.js](https://github.com/tabatkins/railroad-diagrams) by Tab Atkins Jr. (and others)
+- [railroad.js](https://github.com/tabatkins/railroad-diagrams) by Tab Atkins Jr. (and others) with some modifications (see comment in the file at line ~16)
 - [github-mark.svg](https://github.com/logos) by GitHub
