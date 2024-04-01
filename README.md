@@ -27,6 +27,10 @@ Name = an { an } .
 
 ## TODOs
 * Make UI nicer and a bit more user-friendly. Maybe also add some instructions and a dark mode 🌕
+* Fix "too much recursion" when expanding NTS that contain themselves
+* Make a small "x" on the top left of the expanded NTS box to close it.  
+  Another possibility is to add a "x" when hovering a expanded NTS box name.
+* Change color when hovering NTS that can be expanded
 
 ## Included Dependencies / Other Resources
 - [railroad.js](https://github.com/tabatkins/railroad-diagrams) by Tab Atkins Jr. (and others) with some modifications (see comment in the file at line ~16)
