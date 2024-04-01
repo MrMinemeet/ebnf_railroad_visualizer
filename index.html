@@ -29,41 +29,37 @@
 					// Insert the diagram into the HTML
 					diagram_container.innerHTML = diagram.toSvg(Array.from(toExtend));
 
-					// Add a click event listener to the diagram
-					document.addEventListener("click", (event) => {
-						// Add a click event listener to the NTS to extend
-						document.querySelectorAll(".non-terminal").forEach((element) => {
-							element.addEventListener("click", (event) => {
-								// Get ID from inner child with tag "title"
-								const title = event.currentTarget.querySelector("title");
-								const id = title.textContent.trim();
+          // Add a click event listener to the NTS to extend
+          document.querySelectorAll(".non-terminal").forEach((element) => {
+            element.addEventListener("click", (event) => {
+              // Get ID from inner child with tag "title"
+              const title = event.currentTarget.querySelector("title");
+              const id = title.textContent.trim();
 
-								// Add the ID to the set of non-terminals to extend
-								toExtend.add(parseInt(id));
-								console.debug(`Expanding NTS with ID '${id}'`);
+              // Add the ID to the set of non-terminals to extend
+              toExtend.add(parseInt(id));
+              console.debug(`Expanding NTS with ID '${id}'`);
 
-								// Generate the diagram again
-								generateDiagram();
-							});
-						});
+              // Generate the diagram again
+              generateDiagram();
+            });
+          });
 
-						// Add a click event listener to the comment to collapse
-						document.querySelectorAll(".comment").forEach((element) => {
-							element.addEventListener("click", (event) => {
-								// Get ID from inner child with tag "title"
-								const title = event.currentTarget.querySelector("title");
-                if(!title) return;
-								const id = title.textContent.trim();
+          // Add a click event listener to the comment to collapse
+          document.querySelectorAll("g.comment").forEach((element) => {
+            element.addEventListener("click", (event) => {
+              // Get ID from inner child with tag "title"
+              const title = event.currentTarget.querySelector("title");
+              const id = title.textContent.trim();
 
-								// Add the ID to the set of non-terminals to extend
-								toExtend.delete(parseInt(id));
-								console.debug(`Collapsing group with ID '${id}'`);
+              // Add the ID to the set of non-terminals to extend
+              toExtend.delete(parseInt(id));
+              console.debug(`Collapsing group with ID '${id}'`);
 
-								// Generate the diagram again
-								generateDiagram();
-							});
-						});
-					});
+              // Generate the diagram again
+              generateDiagram();
+            });
+          });
 
           // Hide the error message container
           error_message_container.style.display = "none";
