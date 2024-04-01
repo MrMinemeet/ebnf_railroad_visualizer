@@ -58,3 +58,19 @@ svg.railroad-diagram path.diagram-text {
 svg.railroad-diagram g.diagram-text:hover path.diagram-text {
 	fill: #eee;
 }
+
+/* Stylings after this comment are not part of the original railroad.css */
+svg.railroad-diagram .non-terminal:hover rect {
+	cursor: pointer;
+	stroke-width: 3;
+	stroke: black;
+	fill: hsl(120, 100%, 75%);
+}
+
+svg.railroad-diagram text:hover {
+	cursor: default;
+}
+
+svg.railroad-diagram .non-terminal:hover text {
+	cursor: pointer;
+}
