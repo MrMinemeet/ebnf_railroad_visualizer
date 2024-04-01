@@ -3,6 +3,7 @@
  */
 
 import { Diagram } from "./Diagram.js";
+import { Grammar } from "./Grammar.js";
 
 /*
  *     ooOOOO
@@ -15,7 +16,7 @@ import { Diagram } from "./Diagram.js";
  * else and/or is not provided my TS/JS per default.
  */
 
-const DIAGRAM_GENERATION_TIMEOUT = 100;
+const GENERATION_TIMEOUT = 100;
 
 /**
  * Checks if a word starts with an uppercase letter.
@@ -41,7 +42,7 @@ export async function asyncGenerateDiagram(grammar: string): Promise<Diagram> {
 	   	const timeoutID = setTimeout(() => {
 			console.debug("Generation Timeout");
 			reject();
-	   	}, DIAGRAM_GENERATION_TIMEOUT);
+	   	}, GENERATION_TIMEOUT);
 
 	   	try {
 			// Generate the diagram
@@ -54,6 +55,33 @@ export async function asyncGenerateDiagram(grammar: string): Promise<Diagram> {
 			reject(e);
 	   	}
 	});
+}
+
+/**
+ * Asynchronously generate a grammar from a given grammar string
+ * @param {string} grammar - The grammar string to generate from
+ * @returns {Promise<Diagram>} - The generated grammar
+ */
+export async function asyncGenerateGrammar(grammar: string): Promise<Grammar> {
+	console.debug("Scanning/Parsing grammar");
+	return new Promise((resolve, reject) => {
+		// Timeout to prevent blocking the UI or freezing the browser
+		const timeoutID = setTimeout(() => {
+			 console.debug("Generation Timeout");
+			 reject();
+		}, GENERATION_TIMEOUT);
+
+		try {
+			 // Generate the diagram
+			 const g = Grammar.fromString(grammar);
+			 console.debug("Grammar scanned/parsed successfully.");
+			 clearTimeout(timeoutID);
+			 resolve(g);
+		} catch (e) {
+			 clearTimeout(timeoutID);
+			 reject(e);
+		}
+	 });
 }
 
 /**

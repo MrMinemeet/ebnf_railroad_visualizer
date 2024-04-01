@@ -26,7 +26,7 @@ Name = an { an } .
 ![Example railroad diagram with expanded NTS](./images/expanded_railroad_diagram.jpg)
 
 ## TODOs
-* Make it possible to collapse expanded NTS^
+* Make UI nicer and a bit more user-friendly. Maybe also add some instructions and a dark mode 🌕
 
 ## Included Dependencies / Other Resources
 - [railroad.js](https://github.com/tabatkins/railroad-diagrams) by Tab Atkins Jr. (and others) with some modifications (see comment in the file at line ~16)

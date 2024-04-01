@@ -9,9 +9,9 @@
     <link rel="stylesheet" type="text/css" href="./css/railroad.css">
     <link rel="stylesheet" href="./css/styles.css">
     <script type="module">
-      import { Diagram, EXPAND_ALL } from "./out/Diagram.js";
-      import { asyncGenerateDiagram, asyncCssToString } from "./out/ChooChoo.js";
-      const toExtend = new Set();
+      import { Diagram } from "./out/Diagram.js";
+      import { asyncGenerateDiagram, asyncGenerateGrammar, asyncCssToString } from "./out/ChooChoo.js";
+      let toExtend = new Set();
 
 			function generateDiagram() {
         const error_message_container = document.getElementById("error_message");
@@ -99,57 +99,25 @@
 				generateDiagram();
 			}
 
-			/**
-			 * Handle the click event of the "Expand All" button.
-			 */
-			window.onExpandAll = function() {
-				console.debug("Expanding all non-terminals");
-				// Remove all current "toExpand" NTS
-				console.clear();
-				// Add special number"for expanding all
-				toExtend.add(EXPAND_ALL);
-				// Generate the diagram again
-				generateDiagram();
-			}
-
-      /**
-       * Handle the generation of a diagram from the entered grammar.
-       */
-      window.handleGenerateDiagram = function() {
-        toExtend.clear();
-        generateDiagram();
-      }
-
-
-      /**
-       * Handle the click event of the "Collapse All" button.
-       */
-      window.onCollapseAll = function() {
-        console.debug("Collapsing all non-terminals");
-        // Remove all non-terminals to extend
-        toExtend.clear();
-        // Generate the diagram again
-        generateDiagram();
-      }
-
       /**
        * Handle the click event of the "Expand All" button.
        */
-      window.onExpandAll = function() {
-        console.debug("Expanding all non-terminals");
-        // Remove all current "toExpand" NTS
-        console.clear();
-        // TODO: Actually add all items. Otherwise "Expand All" and then collapsing some parts won't work
-        // Add special number"for expanding all
-        toExtend.add(EXPAND_ALL);
+      window.onExpandAll = function() {		
+        const ebnfGrammarValue = document.querySelector("textarea[name=ebnf_grammar]").value;
+        if (ebnfGrammarValue.trim() === "") return;
+        console.debug("Expanding all non-erminals");		
+        // Replace currently "toExtend" with all IDs that are expandable
+        asyncGenerateGrammar(ebnfGrammarValue).then((g) => {
+          toExtend = new Set(g.expandableIDs);
+          generateDiagram();
+        }).catch((e) =>  console.warn(e));
         // Generate the diagram again
-        generateDiagram();
       }
 
       window.onStoreDiagram = function() {
         const svgHtml = document.getElementById("visualized_ebnf").innerHTML;
         if (!svgHtml.includes('svg')) {
-          alert("No diagram to store.")
+          alert("No diagram to store.");
           console.log("No diagram to store.");
           return;
         }

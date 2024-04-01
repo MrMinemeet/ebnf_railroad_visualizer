@@ -11,6 +11,7 @@ import { Identifier, letter } from "../wsn/Identifier.js";
 import { Expression } from "../wsn/Expression.js";
 import { Factor, FactorType } from "../wsn/Factor.js";
 import { Literal } from "../wsn/Literal.js";
+import { isUppercase } from "../ChooChoo.js";
 
 
 export class Parser {
@@ -18,18 +19,21 @@ export class Parser {
 	private t: Token;
 	private la: Token;
 	private sym: Kind;
-	private idCounter: number = 0;
+	private idCounter: number ;
+	private expandableIDs: number[];
 
 	constructor(scanner: Scanner) {
 		this.scanner = scanner;
 		this.t = new Token(Kind.unknown);
 		this.la = new Token(Kind.unknown);
 		this.sym = Kind.unknown;
+		this.idCounter = 0;
+		this.expandableIDs = [];
 	}
 
-	parse(): Syntax {
+	parse(): [Syntax, number[]] {
 		this.scan();
-		return this.Syntax();
+		return [this.Syntax(), this.expandableIDs];
 	}
 
 	private Syntax(): Syntax {
@@ -59,6 +63,10 @@ export class Parser {
 		const letters: letter[] = [];
 		for (const c of this.t.str) {
 			letters.push(c as letter);
+		}
+
+		if (isUppercase(letters[0])) {
+			this.expandableIDs.push(this.idCounter);
 		}
 
 		return new Identifier(letters, this.idCounter++);
