@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>EBNF Railroad Visualizer</title>
+    <meta charset="UTF-8">
+    <meta name="description" content="A visualizer for EBNF grammars using railroad diagrams.">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="./images/favicon.svg" />
+    <link rel="stylesheet" type="text/css" href="./css/railroad.css">
+    <link rel="stylesheet" href="./css/styles.css">
+    <script type="module">
+      import { Diagram } from "./out/Diagram.js";
+      import { asyncGenerateDiagram, asyncGenerateGrammar, asyncCssToString } from "./out/ChooChoo.js";
+      let toExtend = new Set();
+
+			function generateDiagram() {
+        const error_message_container = document.getElementById("error_message");
+        const diagram_container = document.getElementById("visualized_ebnf");
+				const ebnfGrammarValue = document.querySelector("textarea[name=ebnf_grammar]").value;
+
+				if (ebnfGrammarValue.trim() === "") {
+					console.debug("Nothing was entered into the textarea.")
+          diagram_container.style.display = "none";
+					return;
+				}
+
+				asyncGenerateDiagram(ebnfGrammarValue).then((diagram) =>
+				{
+					// Insert the diagram into the HTML
+					diagram_container.innerHTML = diagram.toSvg(Array.from(toExtend));
+
+					// Add a click event listener to the diagram
+					document.addEventListener("click", (event) => {
+						// Add a click event listener to the NTS to extend
+						document.querySelectorAll(".non-terminal").forEach((element) => {
+							element.addEventListener("click", (event) => {
+								// Get ID from inner child with tag "title"
+								const title = event.currentTarget.querySelector("title");
+								const id = title.textContent.trim();
+
+								// Add the ID to the set of non-terminals to extend
+								toExtend.add(parseInt(id));
+								console.debug(`Expanding NTS with ID '${id}'`);
+
+								// Generate the diagram again
+								generateDiagram();
+							});
+						});
+
+						// Add a click event listener to the comment to collapse
+						document.querySelectorAll(".comment").forEach((element) => {
+							element.addEventListener("click", (event) => {
+								// Get ID from inner child with tag "title"
+								const title = event.currentTarget.querySelector("title");
+                if(!title) return;
+								const id = title.textContent.trim();
+
+								// Add the ID to the set of non-terminals to extend
+								toExtend.delete(parseInt(id));
+								console.debug(`Collapsing group with ID '${id}'`);
+
+								// Generate the diagram again
+								generateDiagram();
+							});
+						});
+					});
+
+          // Hide the error message container
+          error_message_container.style.display = "none";
+          diagram_container.style.display = "block";
+				}).catch(e => {
+          console.warn(`An error occurred while generating the diagram: ${e}`)
+          if (!e.message.includes("but found") && !e.message.includes("Unknown character")) {
+            console.warn(e.stack)
+          }
+          error_message_container.innerHTML = `<p>${e}</p>`;
+          error_message_container.style.display = "block";
+          diagram_container.style.display = "none";
+        });
+			}
+
+			/**
+			 * Handle the generation of a diagram from the entered grammar.
+			 */
+			window.handleGenerateDiagram = function() {
+				toExtend.clear();
+				generateDiagram();
+			}
+
+
+			/**
+			 * Handle the click event of the "Collapse All" button.
+			 */
+			window.onCollapseAll = function() {
+				console.debug("Collapsing all non-terminals");
+				// Remove all non-terminals to extend
+				toExtend.clear();
+				// Generate the diagram again
+				generateDiagram();
+			}
+
+      /**
+       * Handle the click event of the "Expand All" button.
+       */
+      window.onExpandAll = function() {		
+        const ebnfGrammarValue = document.querySelector("textarea[name=ebnf_grammar]").value;
+        if (ebnfGrammarValue.trim() === "") return;
+        console.debug("Expanding all non-erminals");		
+        // Replace currently "toExtend" with all IDs that are expandable
+        asyncGenerateGrammar(ebnfGrammarValue).then((g) => {
+          toExtend = new Set(g.expandableIDs);
+          generateDiagram();
+        }).catch((e) =>  console.warn(e));
+        // Generate the diagram again
+      }
+
+      window.onStoreDiagram = function() {
+        const svgHtml = document.getElementById("visualized_ebnf").innerHTML;
+        if (!svgHtml.includes('svg')) {
+          alert("No diagram to store.");
+          console.log("No diagram to store.");
+          return;
+        }
+        console.debug("Storing diagram as SVG…");
+        // Get the style of the diagram (./css/railroad.css)
+        const styleSheet = document.styleSheets[0];
+
+        asyncCssToString(styleSheet).then((cssString) => {
+          const svgImg = svgHtml.replace(">", `>\n<style>\n${cssString}\n</style>`);
+
+          console.debug(svgImg);
+          // save image
+          const blob = new Blob([svgImg], {type: "image/svg+xml"});
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "railroad-diagram.svg";
+          a.click();
+        });
+      }
+    </script>
+  </head>
+  <body>
+    <h1>EBNF Visualizer</h1>
+    <a loading="lazy" id="repository_reference" href="https://github.com/MrMinemeet/ebnf_railroad_visualizer" target="_blank"><img src="./images/github-mark.svg" alt="GitHub Invertocat linking to the repository"></a>
+    
+    <h2>Grammar</h2>
+      <textarea autofocus="true" id="userInput" name="ebnf_grammar" placeholder="EBNF-Grammar in Wirth Syntax Notation" oninput="handleGenerateDiagram()"></textarea>
+      <div id="error_message">
+        <!-- Error message will be inserted here -->
+      </div>
+    </div>
+
+    <h2>Railroad Diagram</h2>
+    <button onclick="onExpandAll();">Expand All</button>
+    <button onclick="onCollapseAll();">Collapse All</button>
+    <button onclick="onStoreDiagram();">Store Diagram</button>
+    <div id="visualized_ebnf">
+      <!-- Diagram will be inserted here -->
+    </div>
+  </body>
+</html>

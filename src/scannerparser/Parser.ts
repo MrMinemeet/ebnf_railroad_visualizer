@@ -2,15 +2,16 @@
  * Copyright (c) 2024. Alexander Voglsperger
  */
 
-import { Token, Kind } from "./Token";
-import { Scanner } from "./Scanner";
-import { Syntax } from "../wsn/Syntax";
-import { Production } from "../wsn/Production";
-import { Term } from "../wsn/Term";
-import { Identifier, letter } from "../wsn/Identifier";
-import { Expression } from "../wsn/Expression";
-import { Factor, FactorType } from "../wsn/Factor";
-import { Literal } from "../wsn/Literal";
+import { Token, Kind } from "./Token.js";
+import { Scanner } from "./Scanner.js";
+import { Syntax } from "../wsn/Syntax.js";
+import { Production } from "../wsn/Production.js";
+import { Term } from "../wsn/Term.js";
+import { Identifier, letter } from "../wsn/Identifier.js";
+import { Expression } from "../wsn/Expression.js";
+import { Factor, FactorType } from "../wsn/Factor.js";
+import { Literal } from "../wsn/Literal.js";
+import { isUppercase } from "../ChooChoo.js";
 
 
 export class Parser {
@@ -18,18 +19,21 @@ export class Parser {
 	private t: Token;
 	private la: Token;
 	private sym: Kind;
-	private idCounter: number = 0;
+	private idCounter: number ;
+	private expandableIDs: number[];
 
 	constructor(scanner: Scanner) {
 		this.scanner = scanner;
 		this.t = new Token(Kind.unknown);
 		this.la = new Token(Kind.unknown);
 		this.sym = Kind.unknown;
+		this.idCounter = 0;
+		this.expandableIDs = [];
 	}
 
-	parse(): Syntax {
+	parse(): [Syntax, number[]] {
 		this.scan();
-		return this.Syntax();
+		return [this.Syntax(), this.expandableIDs];
 	}
 
 	private Syntax(): Syntax {
@@ -52,13 +56,17 @@ export class Parser {
 
 	private Identifier(): Identifier {
 		if (this.sym !== Kind.ident) {
-			throw new Error(`Syntax error: unexpected token '${this.t}'`);
+			this.throwError(`expected identifier but found '${this.t}'`);
 		}
 		this.scan();
 
 		const letters: letter[] = [];
 		for (const c of this.t.str) {
 			letters.push(c as letter);
+		}
+
+		if (isUppercase(letters[0])) {
+			this.expandableIDs.push(this.idCounter);
 		}
 
 		return new Identifier(letters, this.idCounter++);
@@ -123,7 +131,7 @@ export class Parser {
 				break;
 
 			default:
-				throw new Error(`Syntax error: unexpected token '${this.t}'`);
+				this.throwError(`expected identifier, '"', '(', '{' or '[' but found '${this.t}'`);
 		}
 
 		return factor;
@@ -134,7 +142,7 @@ export class Parser {
 
 		this.check(Kind.quote);
 		if (this.sym !== Kind.literal) {
-			throw new Error(`Syntax error: expected literal but found '${this.la}'`);
+			this.throwError(`expected literal but found '${this.la}'`);
 		}
 
 		characters = this.la.str;
@@ -151,7 +159,7 @@ export class Parser {
 	 */
 	private check(expected: Kind): void {
 		if (this.sym !== expected) {
-			throw new Error(`Syntax error: '${expected}' expected but '${this.t}' found`);
+			this.throwError(`expected '${expected}' but found '${this.t}'`);
 		}
 
 		this.scan();
@@ -164,5 +172,10 @@ export class Parser {
 		this.t = this.la;
 		this.la = this.scanner.next();
 		this.sym = this.la.kind;
+	}
+
+	private throwError(message: string): never {
+		const [line, col] = this.scanner.getPosition();
+		throw new Error(`(line ${line}, column ${col}) - ${message}`);
 	}
 }

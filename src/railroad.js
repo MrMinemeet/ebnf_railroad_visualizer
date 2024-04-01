@@ -13,6 +13,11 @@ Don't ask me for permission to use any part of this project, JUST USE IT.
 I would appreciate attribution, but that is not required by the license.
 */
 
+/*
+Notes on changes I made to the original code:
+* Added the ability to pass a "title" to the Group-class, which interallly passes it to the Comment-class.
+*/
+
 // Export function versions of all the constructors.
 // Each class will add itself to this object.
 const funcs = {};
@@ -1619,15 +1624,15 @@ funcs.ZeroOrMore = (...args)=>new ZeroOrMore(...args);
 
 
 export class Group extends FakeSVG {
-	constructor(item, label) {
+	constructor(item, label, title) {
 		super('g');
 		this.item = wrapString(item);
 		this.label =
 			label instanceof FakeSVG
-			  ? label
-			: label
-			  ? new Comment(label)
-			  : undefined;
+				? label
+				: label
+					? new Comment(label, {title: (title ? `${title}` : "")} )
+					: undefined;
 
 		this.width = Math.max(
 			this.item.width + (this.item.needsSpace?20:0),

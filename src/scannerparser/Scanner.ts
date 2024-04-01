@@ -2,8 +2,7 @@
  * Copyright (c) 2024. Alexander Voglsperger
  */
 
-import { Token } from './Token';
-import { Kind } from './Token';
+import { Token, Kind } from './Token.js';
 
 const LF: string = "\n";
 
@@ -12,6 +11,8 @@ export class Scanner {
 	private pos: number;
 	private ch: string;
 	private isLiteral: boolean;
+	private line: number;
+	private column: number;
 
 	constructor(input: string) {
 		this.input = input;
@@ -19,13 +20,11 @@ export class Scanner {
 		this.ch = "";
 		this.nextChar();
 		this.isLiteral = false;
+		this.line = 1;
+		this.column = 1;
 	}
 
 	next(): Token {
-		// Skip whitespace characters
-		while (this.pos < this.input.length && this.isWhitespace(this.ch)) {
-			this.nextChar();
-		}
 
 		if (this.pos > this.input.length) {
 			// Return eof token if end of input is reached
@@ -37,15 +36,25 @@ export class Scanner {
 		// Special handling for literals, where almost every character is valid when under double quotes
 		if (this.isLiteral && this.ch !== '"') {
 			let chars = ""; // letter { letter }
-			while (this.ch !== '"') {
+			while (this.hasNext() && this.ch !== '"') {
 				// Add until the next '"' is found
-				chars += this.ch;
+				if (this.ch === " ") {
+					// Make space explicitly visible
+					chars += "␣";
+				} else {
+					chars += this.ch;
+				}
 				this.nextChar();
 			}
 			token.kind = Kind.literal;
 			token.str = chars;
 
 			return token;
+		}
+
+		// Skip whitespace characters
+		while (this.pos < this.input.length && this.isWhitespace(this.ch)) {
+			this.nextChar();
 		}
 
 
@@ -104,7 +113,7 @@ export class Scanner {
 			default:
 				if (/[a-zA-Z]/.test(this.ch)) {
 					let chars = ""; // letter { letter }
-					while (/[a-zA-Z]/.test(this.ch)) {
+					while (this.hasNext() && /[a-zA-Z]/.test(this.ch)) {
 						chars += this.ch;
 						this.nextChar();
 					}
@@ -112,7 +121,7 @@ export class Scanner {
 					token.kind = Kind.ident;
 					token.str = chars;
 				} else {
-					throw new Error(`Unknown character: ${this.ch}`);
+					throw new Error(`(line ${this.line}, column ${this.column}) - Unknown character '${this.ch}'`);
 				}
 				break;
 		}
@@ -124,7 +133,10 @@ export class Scanner {
 	 */
 	private nextChar(): void {
 		this.ch = this.input[this.pos++];
+		this.column++;
 		if (this.ch === LF) {
+			this.line++;
+			this.column = 1;
 			// Skip LF symbol
 			this.ch = this.input[this.pos++];
 		}
@@ -140,5 +152,13 @@ export class Scanner {
 
 	private isWhitespace(ch: string): boolean {
 		return !ch.replace(/\s/g, '').length;
+	}
+
+	/**
+	 * Returns the position of the scanner.
+	 * @returns the line and column of the scanner
+	 */
+	getPosition(): [number, number] {
+		return [this.line, this.column];
 	}
 }

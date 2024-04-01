@@ -2,8 +2,8 @@
  * Copyright (c) 2024. Alexander Voglsperger
  */
 
-import { Sym } from '../scannerparser/Sym';
-import { Term } from './Term';
+import { Sym } from '../scannerparser/Sym.js';
+import { Term } from './Term.js';
 
 /**
  * A sequence of terms defined as:

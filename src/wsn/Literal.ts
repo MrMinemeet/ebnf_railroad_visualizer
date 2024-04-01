@@ -2,7 +2,7 @@
  * Copyright (c) 2024. Alexander Voglsperger
  */
 
-import { Sym } from "../scannerparser/Sym";
+import { Sym } from "../scannerparser/Sym.js";
 
 /**
  * A literal is a TS defined as a sequence of atomic characters:
@@ -15,5 +15,9 @@ export class Literal extends Sym {
 			throw new Error("A literal must have at least one character");
 		}
 		super(characters, id);
+	}
+
+	override toString(): string {
+		return `"${super.toString()}"`;
 	}
 }

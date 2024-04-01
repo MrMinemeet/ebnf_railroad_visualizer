@@ -18,11 +18,16 @@ Name = an { an } .
 ```
 ![Example railroad diagram for given grammar](./images/basic_railroad_diagram.jpg)
 
-NTS are displayed as rectangles and can be expanded by clicking them. The definition of the NTS is then displayed in a dashed box as shown:
+## Features
+* **Error Information:** In the case that an error occurs during scanning or parsing of the input grammar, a small description is written below the grammar as shown:  
+![Example of message for faulty grammar](./images/faulty_grammar_input.jpg)
+
+* **NTS Expansion:** NTS are displayed as rectangles and can be expanded by clicking them. The definition of the NTS is then displayed in a dashed box as shown:  
 ![Example railroad diagram with expanded NTS](./images/expanded_railroad_diagram.jpg)
 
 ## TODOs
-* Show errors in the UI
+* Make UI nicer and a bit more user-friendly. Maybe also add some instructions and a dark mode 🌕
 
-## Included Dependencies
-- [railroad.js](https://github.com/tabatkins/railroad-diagrams) by Tab Atkins Jr. (and others)
+## Included Dependencies / Other Resources
+- [railroad.js](https://github.com/tabatkins/railroad-diagrams) by Tab Atkins Jr. (and others) with some modifications (see comment in the file at line ~16)
+- [github-mark.svg](https://github.com/logos) by GitHub

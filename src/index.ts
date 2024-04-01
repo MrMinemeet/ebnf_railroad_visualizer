@@ -2,8 +2,8 @@
  * Copyright (c) 2024. Alexander Voglsperger
  */
 
-import { Grammar } from "./Grammar";
-import { Diagram } from "./Diagram";
+import { Grammar } from "./Grammar.js";
+import { Diagram } from "./Diagram.js";
 import fs from "fs";
 
 const grammarString = `
@@ -16,7 +16,7 @@ const g = Grammar.fromString(grammarString);
 
 console.log(`Parsed Grammar as String: \n${g.toString()}\n`);
 
-const diagram = new Diagram(g);
+const diagram = Diagram.fromString(grammarString);
 fs.mkdirSync("test", { recursive: true });
-fs.writeFileSync("test/diagram.html", diagram.toHtml([1, 8]), "utf-8");
+fs.writeFileSync("test/diagram.svg", diagram.toSvg([1, 8]), "utf-8");
 console.log("done!");
