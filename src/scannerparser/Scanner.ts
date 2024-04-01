@@ -53,8 +53,13 @@ export class Scanner {
 		}
 
 		// Skip whitespace characters
-		while (this.pos < this.input.length && this.isWhitespace(this.ch)) {
+		while (this.pos <= this.input.length && this.isWhitespace(this.ch)) {
 			this.nextChar();
+		}
+
+		if (this.pos > this.input.length) {
+			// Return eof token if end of input is reached
+			return new Token(Kind.eof);
 		}
 
 
