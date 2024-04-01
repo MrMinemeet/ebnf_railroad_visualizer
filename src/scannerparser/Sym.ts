@@ -20,6 +20,6 @@ export abstract class Sym {
 	}
 
 	toString(): string {
-		return (this.id === -1) ? this.name : `${this.name} (${this.id})`;
+		return this.name;
 	}
 }

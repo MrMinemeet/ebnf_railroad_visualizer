@@ -131,7 +131,7 @@ export class Diagram {
 				break;
 
 			case sym instanceof Literal:
-				val =  rr.Terminal(`"${sym.toString()}"`, { title: sym.id });
+				val =  rr.Terminal(sym.toString(), { title: sym.id });
 				break;
 		}
 
