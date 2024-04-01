@@ -16,4 +16,8 @@ export class Literal extends Sym {
 		}
 		super(characters, id);
 	}
+
+	override toString(): string {
+		return `"${super.toString()}"`;
+	}
 }

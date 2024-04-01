@@ -11,9 +11,11 @@ import { Parser } from "./scannerparser/Parser.js";
  */
 export class Grammar {
 	readonly syntax: Syntax;
+	readonly expandableIDs: number[];
 
-	private constructor(syntax: Syntax) {
+	private constructor(syntax: Syntax, expandableIDs: number[]) {
 		this.syntax = syntax;
+		this.expandableIDs = expandableIDs;
 	}
 
 	/**
@@ -24,7 +26,8 @@ export class Grammar {
 	static fromString(grammar: string): Grammar {
 		const scanner = new Scanner(grammar);
 		const parser = new Parser(scanner);
-		return new Grammar(parser.parse());
+		const [syntax, ids] = parser.parse();
+		return new Grammar(syntax, ids);
 	}
 
 	toString(): string {
