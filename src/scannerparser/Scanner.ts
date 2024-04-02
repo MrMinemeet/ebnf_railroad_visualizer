@@ -3,6 +3,7 @@
  */
 
 import { Token, Kind } from './Token.js';
+import { isQuote } from '../ChooChoo.js';
 
 const LF: string = "\n";
 
@@ -34,9 +35,9 @@ export class Scanner {
 		const token = new Token(Kind.unknown);
 
 		// Special handling for literals, where almost every character is valid when under double quotes
-		if (this.isLiteral && this.ch !== '"') {
+		if (this.isLiteral && !isQuote(this.ch)) {
 			let chars = ""; // letter { letter }
-			while (this.hasNext() && this.ch !== '"') {
+			while (this.hasNext() && !isQuote(this.ch)) {
 				// Add until the next '"' is found
 				if (this.ch === " ") {
 					// Make space explicitly visible
@@ -60,6 +61,14 @@ export class Scanner {
 		if (this.pos > this.input.length) {
 			// Return eof token if end of input is reached
 			return new Token(Kind.eof);
+		}
+
+		// Perform quote check before switch as a helper function is used
+		if (isQuote(this.ch)) {
+			token.kind = Kind.quote;
+			this.nextChar();
+			this.isLiteral = !this.isLiteral;
+			return token;
 		}
 
 
@@ -107,12 +116,6 @@ export class Scanner {
 			case "=":
 				token.kind = Kind.assign;
 				this.nextChar();
-				break;
-
-			case '"':
-				token.kind = Kind.quote;
-				this.nextChar();
-				this.isLiteral = !this.isLiteral;
 				break;
 
 			default:
