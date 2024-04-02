@@ -7,7 +7,7 @@ This project is a part of the course [Project in Software Engineering](https://s
 ## Usage
 The grammar expects a correctly formatted EBNF grammar in WSN. Uppercase identifiers are treated as Non-Terminal Symbols (*NTS*). Lowercase identifiers are treated as Terminal Symbols (*TS*) which cannot be broken down further, e.g. `an` which may stand for a-z, A-Z and 0-9.
 
-The grammar is automatically parsed and visualized as a railroad diagram when an input is detected. Currently errors are only logged to the console, but the plan is to display them in the UI.
+The grammar is automatically parsed and visualized as a railroad diagram when an input is detected. Errors are displayed below the input grammar if any occur.
 
 ## Example
 The following input results in the railroad diagram below:
@@ -28,8 +28,6 @@ Name = an { an } .
 ## TODOs
 * Make UI nicer and a bit more user-friendly. Maybe also add some instructions and a dark mode 🌕
 * Fix "too much recursion" when expanding NTS that contain themselves
-* Make a small "x" on the top left of the expanded NTS box to close it.  
-  Another possibility is to add a "x" when hovering a expanded NTS box name.
 
 ## Included Dependencies / Other Resources
 - [railroad.js](https://github.com/tabatkins/railroad-diagrams) by Tab Atkins Jr. (and others) with some modifications (see comment in the file at line ~16)
