@@ -16,6 +16,7 @@ I would appreciate attribution, but that is not required by the license.
 /*
 Notes on changes I made to the original code:
 * Added the ability to pass a "title" to the Group-class, which interallly passes it to the Comment-class.
+* Add "x" next to comment text so it can be collapsed on click.
 */
 
 // Export function versions of all the constructors.
@@ -1894,8 +1895,11 @@ export class Comment extends FakeSVG {
 		var text = new FakeSVG('text', {x:x+this.width/2, y:y+5, class:'comment'}, this.text);
 		if(this.href)
 			new FakeSVG('a', {'xlink:href': this.href}, [text]).addTo(this);
-		else
+		else {
 			text.addTo(this);
+			let collapseX = new FakeSVG('text', {x:x+this.width + 5, y:y+5, class:'collapseX'}, ["&#11198;"]); // The "⮾" symbol next to the comment
+			collapseX.addTo(this);
+		}
 		if(this.title)
 			new FakeSVG('title', {}, this.title).addTo(this);
 		return this;

@@ -11,6 +11,8 @@
  * Don't ask me for permission to use any part of this project, JUST USE IT.
  * I would appreciate attribution, but that is not required by the license.
  */
+
+ /* These styles are contained in the original railroad.css but may have been modified */
 svg.railroad-diagram {
 	background-color: hsl(30,20%,95%);
 }
@@ -66,11 +68,18 @@ svg.railroad-diagram .non-terminal:hover rect {
 	stroke: black;
 	fill: hsl(120, 100%, 75%);
 }
-
 svg.railroad-diagram text:hover {
 	cursor: default;
 }
-
 svg.railroad-diagram .non-terminal:hover text {
 	cursor: pointer;
+}
+svg.railroad-diagram g.comment:hover text {
+	cursor: pointer;
+}
+svg.railroad-diagram g.comment text.collapseX{
+	display: none;
+}
+svg.railroad-diagram g.comment:hover text.collapseX {
+	display: block;
 }
