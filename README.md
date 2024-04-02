@@ -27,7 +27,6 @@ Name = an { an } .
 
 ## TODOs
 * Make UI nicer and a bit more user-friendly. Maybe also add some instructions and a dark mode 🌕
-* Fix "too much recursion" when expanding NTS that contain themselves
 
 ## Included Dependencies / Other Resources
 - [railroad.js](https://github.com/tabatkins/railroad-diagrams) by Tab Atkins Jr. (and others) with some modifications (see comment in the file at line ~16)

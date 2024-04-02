@@ -117,9 +117,15 @@ export class Diagram {
 				if (isUppercase(sym.toString())) {
 					// Non-terminal
 					if (toExpandIDs.some(id => id === sym.id)) {
+						// Remove ID from list to not expand it again in recursion
+						toExpandIDs.splice(toExpandIDs.indexOf(sym.id), 1);
+
 						// Expand NTS
 						const innerProd = this.getProductionFromName(sym.toString());
 						val = rr.Group(this.generateFrom(innerProd.expr, toExpandIDs), sym.name, sym.id);
+
+						// Re-add ID
+						toExpandIDs.push(sym.id);
 					} else {
 						// No NTS expansion
 						val = rr.NonTerminal(sym.toString(), { title: sym.id });
