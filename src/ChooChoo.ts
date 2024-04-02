@@ -30,6 +30,17 @@ export function isUppercase(word: string): boolean {
 }
 
 /**
+ * Checks if char is some type of quote character.
+ *
+ * Because iOS (and probably other OS) uses different quotes.
+ * @param char The character to check.
+ * @returns `true` if the character is a quote character, `false` otherwise.
+ */
+export function isQuote(char: string): boolean {
+	return char === '"' || char === '„' || char ==='“';
+}
+
+/**
 * Asynchronously generate a diagram from a given grammar.
 * @param {string} grammar - The grammar to generate a diagram from.
 * @returns {Promise<Diagram>} - The generated diagram.
