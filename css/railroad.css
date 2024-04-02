@@ -74,6 +74,12 @@ svg.railroad-diagram text:hover {
 svg.railroad-diagram .non-terminal:hover text {
 	cursor: pointer;
 }
-svg.railroad-diagram text.comment:hover {
+svg.railroad-diagram g.comment:hover text {
 	cursor: pointer;
+}
+svg.railroad-diagram g.comment text.collapseX{
+	display: none;
+}
+svg.railroad-diagram g.comment:hover text.collapseX {
+	display: block;
 }
