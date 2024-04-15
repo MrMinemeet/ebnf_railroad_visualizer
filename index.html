@@ -10,10 +10,10 @@
     <link rel="stylesheet" href="./css/styles.css">
     <script type="module">
       import { Diagram } from "./out/Diagram.js";
-      import { asyncGenerateDiagram, asyncGenerateGrammar, asyncCssToString, base64UrlEncode, base64UrlDecode } from "./out/ChooChoo.js";
+      import { asyncGenerateDiagram, asyncGenerateGrammar, asyncCssToString, base64UrlEncode } from "./out/ChooChoo.js";
       let toExtend = new Set();
 
-			function generateDiagram() {
+			window.generateDiagram = function() {
         const error_message_container = document.getElementById("error_message");
         const diagram_container = document.getElementById("visualized_ebnf");
 				const ebnfGrammarValue = document.querySelector("textarea[name=ebnf_grammar]").value;
@@ -174,27 +174,6 @@
         // Replace URL
         window.history.replaceState({}, "", url.toString());
       }
-
-      window.onload = function() {
-        // Try to get grammar from URL
-        let urlGrammar = new URLSearchParams(window.location.search).get("grammar");
-        if(urlGrammar) {
-          let grammar = base64UrlDecode(urlGrammar)
-          document.querySelector("textarea[name=ebnf_grammar]").value = grammar;
-        }
-
-        // Try to get toExpand numbers from URL
-        let urlToExpandNumbers = new URLSearchParams(window.location.search).get("expand");
-        if(urlToExpandNumbers) {
-          let toExpandNumbers = urlToExpandNumbers.split("|").map(Number);
-          toExtend = new Set(toExpandNumbers);
-        }
-
-        if (urlGrammar || urlToExpandNumbers) {
-          // Generate diagram when something is in the URL
-          generateDiagram();
-        }
-      }
     </script>
   </head>
   <body>
@@ -215,5 +194,33 @@
     <div id="visualized_ebnf">
       <!-- Diagram will be inserted here -->
     </div>
+
+    <script type="module" async defer>
+      import { base64UrlDecode } from "./out/ChooChoo.js";
+      // Try to get grammar from URL
+      let urlGrammar = new URLSearchParams(window.location.search).get("grammar");
+      if(urlGrammar) {
+        let grammar = base64UrlDecode(urlGrammar)
+        document.querySelector("textarea[name=ebnf_grammar]").value = grammar;
+      }
+
+      // Try to get toExpand numbers from URL
+      let urlToExpandNumbers = new URLSearchParams(window.location.search).get("expand");
+      if(urlToExpandNumbers) {
+        let toExpandNumbers = urlToExpandNumbers.split("|").map(Number);
+        toExtend = new Set(toExpandNumbers);
+      }
+
+      if (urlGrammar || urlToExpandNumbers) {
+        // Generate diagram when something is in the URL
+        setTimeout(function() {
+            if (typeof window.generateDiagram === 'function') {
+                window.generateDiagram();
+            } else {
+                console.error('generateDiagram function is not available');
+            }
+        }, 100); // 100ms delay
+      }
+    </script>
   </body>
 </html>
