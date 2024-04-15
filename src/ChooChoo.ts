@@ -105,6 +105,8 @@ export async function asyncCssToString(styleSheet: CSSStyleSheet): Promise<strin
 		try {
 			resolve(Array.from(styleSheet.cssRules)
 				.map(rule => rule.cssText)
+				// Don't include hover rules (The collapse/expand doesn't work in SVGs anyway)
+				.filter(rule => !rule.includes("hover"))
 				.join("\n"));
 		} catch (e) {
 			reject(e);
