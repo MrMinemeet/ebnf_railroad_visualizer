@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="./css/styles.css">
     <script type="module">
       import { Diagram } from "./out/Diagram.js";
-      import { asyncGenerateDiagram, asyncGenerateGrammar, asyncCssToString } from "./out/ChooChoo.js";
+      import { asyncGenerateDiagram, asyncGenerateGrammar, asyncCssToString, base64UrlEncode, base64UrlDecode } from "./out/ChooChoo.js";
       let toExtend = new Set();
 
 			function generateDiagram() {
@@ -81,6 +81,7 @@
 			window.handleGenerateDiagram = function() {
 				toExtend.clear();
 				generateDiagram();
+        updateURL();
 			}
 
 
@@ -142,6 +143,21 @@
           a.download = "railroad-diagram.svg";
           a.click();
         });
+      }
+
+      window.updateURL = function() {
+        let grammar = document.querySelector("textarea[name=ebnf_grammar]").value;
+        let url = window.location.origin + window.location.pathname + "?grammar=" + base64UrlEncode(grammar);
+        window.history.replaceState({}, "", url);
+      }
+
+      window.onload = function() {
+        let urlGrammar = new URLSearchParams(window.location.search).get("grammar");
+        if(urlGrammar) {
+          let grammar = base64UrlDecode(urlGrammar)
+          document.querySelector("textarea[name=ebnf_grammar]").value = grammar;
+          window.handleGenerateDiagram();
+        }
       }
     </script>
   </head>

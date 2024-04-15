@@ -113,3 +113,31 @@ export async function asyncCssToString(styleSheet: CSSStyleSheet): Promise<strin
 		}
 	});
 }
+
+/**
+ * Encode a string to base64URL.
+ * It internally replaces the characters `+`, `/` and `=` with `-`, `_` to avoid percentage encoding in URL
+ * @param toEncode The string to encode
+ * @returns The base64URL encoded string
+ */
+export function base64UrlEncode(toEncode: string): string {
+	return btoa(toEncode)
+		.replace(/\+/g, '-')
+		.replace(/\//g, '_')
+		.replace(/=/g, '');
+}
+
+/**
+ * Decode a base64URL encoded string.
+ * @param toDecode The base64URL encoded string to decode
+ * @returns The decoded string
+ */
+export function base64UrlDecode(toDecode: string): string {
+	let base64 = toDecode
+		.replace(/-/g, '+')
+		.replace(/_/g, '/');
+	while (base64.length % 4 !== 0) {
+		base64 += '=';
+	}
+	return atob(base64);
+}
