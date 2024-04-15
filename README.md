@@ -27,7 +27,7 @@ Try it out yourself with this [LINK](https://wtf-my-code.works/rr-diagram//index
 * **NTS Expansion:** NTS are displayed as rectangles and can be expanded by clicking them. The definition of the NTS is then displayed in a dashed box as shown:  
 ![Example railroad diagram with expanded NTS](./images/expanded_railroad_diagram.svg)
 
-* **URL Encoded Grammar:** Grammar is base64URL encoded into the URL. This allows for easy sharing of the current grammar by copying the URL or bookmarking it.
+* **URL Encoded Grammar:** Grammar is base64URL encoded into the URL. This allows for easy sharing of the current grammar by copying the URL or bookmarking it. The encoding also includes the list of expanded NTS.
 
 ## TODOs
 * Make UI nicer and a bit more user-friendly. Maybe also add some instructions and a dark mode 🌕

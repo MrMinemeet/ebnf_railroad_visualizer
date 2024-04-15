@@ -42,6 +42,7 @@
 
               // Generate the diagram again
               generateDiagram();
+              updateURL();
             });
           });
 
@@ -58,6 +59,7 @@
 
               // Generate the diagram again
               generateDiagram();
+              updateURL();
             });
           });
 
@@ -94,6 +96,7 @@
 				toExtend.clear();
 				// Generate the diagram again
 				generateDiagram();
+        updateURL();
 			}
 
       /**
@@ -107,6 +110,7 @@
         asyncGenerateGrammar(ebnfGrammarValue).then((g) => {
           toExtend = new Set(g.expandableIDs);
           generateDiagram();
+          updateURL();
         }).catch((e) =>  console.warn(e));
         // Generate the diagram again
       }
@@ -145,18 +149,50 @@
         });
       }
 
+      // Update URL with grammar and expand numbers
       window.updateURL = function() {
+        let url = new URL(window.location.href)
+
         let grammar = document.querySelector("textarea[name=ebnf_grammar]").value;
-        let url = window.location.origin + window.location.pathname + "?grammar=" + base64UrlEncode(grammar);
-        window.history.replaceState({}, "", url);
+        if (grammar.trim() === "") {
+          // Remove grammar from URL
+          url.searchParams.delete("grammar");
+        } else {
+          //  Encode grammar to base64URL and add to URL
+          let grammarBase64 = base64UrlEncode(grammar);
+          url.searchParams.set("grammar", grammarBase64);
+        }
+
+        if (toExtend.size === 0) {
+          // Remove expand numbers from URL
+          url.searchParams.delete("expand");
+        } else {
+          // Add expand numbers to URL
+          url.searchParams.set("expand", Array.from(toExtend).join("|"));
+        }
+
+        // Replace URL
+        window.history.replaceState({}, "", url.toString());
       }
 
       window.onload = function() {
+        // Try to get grammar from URL
         let urlGrammar = new URLSearchParams(window.location.search).get("grammar");
         if(urlGrammar) {
           let grammar = base64UrlDecode(urlGrammar)
           document.querySelector("textarea[name=ebnf_grammar]").value = grammar;
-          window.handleGenerateDiagram();
+        }
+
+        // Try to get toExpand numbers from URL
+        let urlToExpandNumbers = new URLSearchParams(window.location.search).get("expand");
+        if(urlToExpandNumbers) {
+          let toExpandNumbers = urlToExpandNumbers.split("|").map(Number);
+          toExtend = new Set(toExpandNumbers);
+        }
+
+        if (urlGrammar || urlToExpandNumbers) {
+          // Generate diagram when something is in the URL
+          generateDiagram();
         }
       }
     </script>
