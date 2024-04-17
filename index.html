@@ -13,6 +13,7 @@
       import { asyncGenerateDiagram, asyncGenerateGrammar, asyncCssToString, base64UrlEncode } from "./out/ChooChoo.js";
       let toExtend = new Set();
 
+
 			window.generateDiagram = function() {
         const error_message_container = document.getElementById("error_message");
         const diagram_container = document.getElementById("visualized_ebnf");
@@ -67,13 +68,23 @@
           error_message_container.style.display = "none";
           diagram_container.style.display = "block";
 				}).catch(e => {
+          const PRODUCTION_NOT_FOUND_REGEX = /^Production '([^']*)' not found$/
+
           console.warn(`An error occurred while generating the diagram: ${e}`)
-          if (!e.message.includes("but found") && !e.message.includes("Unknown character")) {
+          if (!e.message.includes("but found") && 
+            !e.message.includes("Unknown character") &&
+            !PRODUCTION_NOT_FOUND_REGEX.test(e.message)
+            ) {
             console.warn(e.stack)
           }
+          
           error_message_container.innerHTML = `<p>${e}</p>`;
           error_message_container.style.display = "block";
-          diagram_container.style.display = "none";
+
+          // Don't hide graph if it is a "production X not found" error
+          if (!PRODUCTION_NOT_FOUND_REGEX.test(e.message)) {
+            diagram_container.style.display = "none";
+          }
         });
 			}
 

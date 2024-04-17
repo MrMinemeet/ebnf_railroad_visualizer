@@ -155,7 +155,7 @@ export class Diagram {
 				return prod;
 			}
 		}
-		throw new Error(`Production ${name} not found`);
+		throw new Error(`Production '${name}' not found`);
 	}
 
 	/**
