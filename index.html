@@ -8,9 +8,10 @@
     <link rel="icon" href="./images/favicon.svg" />
     <link rel="stylesheet" type="text/css" href="./css/railroad.css">
     <link rel="stylesheet" href="./css/styles.css">
+    <script src="./out/external/lz-string.js"></script>
     <script type="module">
       import { Diagram } from "./out/Diagram.js";
-      import { asyncGenerateDiagram, asyncGenerateGrammar, asyncCssToString, base64UrlEncode, getNonAsciiChars } from "./out/ChooChoo.js";
+      import { asyncGenerateDiagram, asyncGenerateGrammar, asyncCssToString, base64ToBase64Url, getNonAsciiChars } from "./out/ChooChoo.js";
       let toExtend = new Set();
 
 
@@ -178,7 +179,9 @@
           url.searchParams.delete("grammar");
         } else {
           //  Encode grammar to base64URL and add to URL
-          let grammarBase64 = base64UrlEncode(grammar);
+          const compressedGrammar = LZString.compressToBase64(grammar);
+          console.debug(`Compressed grammar from ${grammar.length} to ${compressedGrammar.length} characters`);
+          const grammarBase64 = base64ToBase64Url(compressedGrammar);
           url.searchParams.set("grammar", grammarBase64);
         }
 
@@ -215,11 +218,11 @@
     </div>
 
     <script type="module" async defer>
-      import { base64UrlDecode } from "./out/ChooChoo.js";
+      import { base64UrlToBase64 } from "./out/ChooChoo.js";
       // Try to get grammar from URL
       let urlGrammar = new URLSearchParams(window.location.search).get("grammar");
       if(urlGrammar) {
-        let grammar = base64UrlDecode(urlGrammar)
+        const grammar = LZString.decompressFromBase64(base64UrlToBase64(urlGrammar));
         document.querySelector("textarea[name=ebnf_grammar]").value = grammar;
       }
 
