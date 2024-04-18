@@ -141,3 +141,15 @@ export function base64UrlDecode(toDecode: string): string {
 	}
 	return atob(base64);
 }
+
+/**
+ * Check if a string is ASCII.
+ * @param str The string to check
+ * @param extended If `true`, the string can contain extended ASCII characters (0-255), otherwise only 0-127
+ * @returns
+ */
+export function getNonAsciiChars(str: string, extended: boolean = false): Set<string>  {
+	return new Set(str
+		.split('')
+		.filter(char => char.charCodeAt(0) > (extended ? 255 : 127)));
+}

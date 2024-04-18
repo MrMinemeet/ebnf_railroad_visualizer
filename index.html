@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="./css/styles.css">
     <script type="module">
       import { Diagram } from "./out/Diagram.js";
-      import { asyncGenerateDiagram, asyncGenerateGrammar, asyncCssToString, base64UrlEncode } from "./out/ChooChoo.js";
+      import { asyncGenerateDiagram, asyncGenerateGrammar, asyncCssToString, base64UrlEncode, getNonAsciiChars } from "./out/ChooChoo.js";
       let toExtend = new Set();
 
 
@@ -24,6 +24,14 @@
           diagram_container.style.display = "none";
 					return;
 				}
+        let nonAscii = getNonAsciiChars(ebnfGrammarValue);
+        if (nonAscii.size > 0) {
+          console.warn("The following non-ASCII characters were detected in the grammar: ", nonAscii);
+          error_message_container.innerHTML = `<p>Non-ASCII character(s) detected: ${Array.from(nonAscii).join(", ")}</p>`;
+          error_message_container.style.display = "block";
+          diagram_container.style.display = "none";
+          return;
+        }
 
 				asyncGenerateDiagram(ebnfGrammarValue).then((diagram) =>
 				{
