@@ -66,9 +66,11 @@
 
               // Add the ID to the set of non-terminals to extend
               // TODO: Adjust
-              // FIXME: The removal from the set is not working
-              toExtend.delete(titleToPath(pathTitle));
               console.debug(`Collapsing NTS on path '${pathTitle}'`);
+
+              // Remove the pathTitle and all children that start with it from the set
+              // TODO: Either remove all children or the entry for the path itself
+              toExtend = new Set(Array.from(toExtend).filter((x) => !x.join('-').startsWith(pathTitle)));
 
               // Generate the diagram again
               generateDiagram();
