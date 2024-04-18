@@ -132,7 +132,7 @@ export class Diagram {
 					const identPath = this.pathStack.join("-");
 
 					// Expand in in expandingNtsPaths or if the depth is reached
-					if ((this.pathStack.length < this.MAX_EXPANSION_DEPTH) ||
+					if ((this.pathStack.length < this.MAX_EXPANSION_DEPTH) &&
 						this.expandingNtsPaths
 							.some(path => path.join("-") === identPath )) {
 						// Expand NTS
