@@ -126,7 +126,7 @@ export class Diagram {
 					// Path of the identifier
 					const identPath = this.pathStack.join("-");
 					// Get production-number for identifier
-
+					// FIXME: The Path may change when parts before "curPath" get expanded
 					if (this.expandingNtsPaths
 						.some(path => path.join("-") === identPath )) {
 						// Expand NTS
