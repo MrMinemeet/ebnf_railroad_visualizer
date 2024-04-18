@@ -4,7 +4,6 @@
 
 import { Diagram } from "./Diagram.js";
 import { Grammar } from "./Grammar.js";
-
 /*
  *     ooOOOO
  *    oo      _____
@@ -115,31 +114,30 @@ export async function asyncCssToString(styleSheet: CSSStyleSheet): Promise<strin
 }
 
 /**
- * Encode a string to base64URL.
- * It internally replaces the characters `+`, `/` and `=` with `-`, `_` to avoid percentage encoding in URL
- * @param toEncode The string to encode
+ * Convert a base64 encoded string to a base64URL encoded string.
+ * @param base64 The base64 encoded string to convert
  * @returns The base64URL encoded string
  */
-export function base64UrlEncode(toEncode: string): string {
-	return btoa(toEncode)
+export function base64ToBase64Url(base64: string): string {
+	return base64
 		.replace(/\+/g, '-')
 		.replace(/\//g, '_')
 		.replace(/=/g, '');
 }
 
 /**
- * Decode a base64URL encoded string.
- * @param toDecode The base64URL encoded string to decode
- * @returns The decoded string
+ * Convert a base64URL encoded string to a base64 encoded string.
+ * @param base64Url The base64URL encoded string to convert
+ * @returns The base64 encoded string
  */
-export function base64UrlDecode(toDecode: string): string {
-	let base64 = toDecode
+export function base64UrlToBase64(base64Url: string): string {
+	let base64 = base64Url
 		.replace(/-/g, '+')
 		.replace(/_/g, '/');
 	while (base64.length % 4 !== 0) {
 		base64 += '=';
 	}
-	return atob(base64);
+	return base64;
 }
 
 /**
