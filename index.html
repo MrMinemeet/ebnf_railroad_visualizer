@@ -12,7 +12,6 @@
     <script type="module">
       import { Diagram } from "./out/Diagram.js";
       import { asyncGenerateDiagram, asyncGenerateGrammar, asyncCssToString, base64ToBase64Url, getNonAsciiChars, titleToPath } from "./out/ChooChoo.js";
-      let toExtend = new Set();
 
 
 			window.generateDiagram = function() {
@@ -37,7 +36,7 @@
 				asyncGenerateDiagram(ebnfGrammarValue).then((diagram) =>
 				{
 					// Insert the diagram into the HTML
-					diagram_container.innerHTML = diagram.toSvg(Array.from(toExtend));
+					diagram_container.innerHTML = diagram.toSvg(Array.from(window.window.toExtend));
 
           // Add a click event listener to the NTS to extend
           document.querySelectorAll(".non-terminal").forEach((element) => {
@@ -69,7 +68,7 @@
               console.debug(`Collapsing NTS on path '${pathTitle}'`);
 
               // Remove the pathTitle
-              toExtend = new Set(Array.from(toExtend).filter((x) => x.join("-") !== pathTitle));
+              window.toExtend = new Set(Array.from(window.toExtend).filter((x) => x.join("-") !== pathTitle));
 
               // Generate the diagram again
               generateDiagram();
@@ -105,7 +104,7 @@
 			 * Handle the generation of a diagram from the entered grammar.
 			 */
 			window.handleGenerateDiagram = function() {
-				toExtend.clear();
+				window.toExtend.clear();
 				generateDiagram();
         updateURL();
 			}
@@ -117,7 +116,7 @@
 			window.onCollapseAll = function() {
 				console.debug("Collapsing all non-terminals");
 				// Remove all non-terminals to extend
-				toExtend.clear();
+				window.toExtend.clear();
 				// Generate the diagram again
 				generateDiagram();
         updateURL();
@@ -133,7 +132,7 @@
         // Replace currently "toExtend" with all IDs that are expandable
         asyncGenerateGrammar(ebnfGrammarValue).then((g) => {
           // TODO: Adjust
-          // toExtend = new Set(g.expandableIDs);
+          // window.toExtend = new Set(g.expandableIDs);
           generateDiagram();
           updateURL();
         }).catch((e) =>  console.warn(e));
@@ -186,16 +185,18 @@
           //  Encode grammar to base64URL and add to URL
           const compressedGrammar = LZString.compressToBase64(grammar);
           console.debug(`Compressed grammar from ${grammar.length} to ${compressedGrammar.length} characters`);
-          const grammarBase64 = base64ToBase64Url(compressedGrammar);
-          url.searchParams.set("grammar", grammarBase64);
+          url.searchParams.set("grammar", base64ToBase64Url(compressedGrammar));
         }
 
-        if (toExtend.size === 0) {
+        if (window.toExtend.size === 0) {
           // Remove expand numbers from URL
           url.searchParams.delete("expand");
         } else {
           // Add expand numbers to URL
-          url.searchParams.set("expand", Array.from(toExtend).join("|"));
+          const toExtendStr = Array.from(window.toExtend).join("|")
+          const compressedToExpand = LZString.compressToBase64(toExtendStr);
+          console.debug(`Compressed expand numbers from ${toExtendStr.length} to ${compressedToExpand.length} characters`);
+          url.searchParams.set("expand", base64ToBase64Url(compressedToExpand));
         }
 
         // Replace URL
@@ -229,26 +230,28 @@
       if(urlGrammar) {
         const grammar = LZString.decompressFromBase64(base64UrlToBase64(urlGrammar));
         document.querySelector("textarea[name=ebnf_grammar]").value = grammar;
+        console.log(`Loaded grammar with ${grammar.length} chars from URL`)
       }
 
       // Try to get toExpand numbers from URL
-      let urlToExpandNumbers = undefined;
-      // TODO: Adjust
-      /*
-      let urlToExpandNumbers = new URLSearchParams(window.location.search).get("expand");
-      if(urlToExpandNumbers) {
-        let toExpandNumbers = urlToExpandNumbers.split("|").map(Number);
-        toExtend = new Set(toExpandNumbers);
+      let urlExpand = new URLSearchParams(window.location.search).get("expand");
+      if (urlExpand) {
+        const toExpandStr = LZString.decompressFromBase64(base64UrlToBase64(urlExpand));
+        const toExpandNumbers = toExpandStr.split("|").map((x) => x.split(",").map((y) => parseInt(y)));
+        window.toExtend = new Set(toExpandNumbers);
+        console.log(`Loaded ${toExpandNumbers.length} expand parameter(s) from URL`)
+      } else {
+        window.toExtend = new Set();
       }
-      */
 
-      if (urlGrammar || urlToExpandNumbers) {
+      if (urlGrammar || urlExpand) {
         // Generate diagram when something is in the URL
         setTimeout(function() {
             if (typeof window.generateDiagram === 'function') {
-                window.generateDiagram();
+
+              window.generateDiagram();
             } else {
-                console.error('generateDiagram function is not available');
+              console.error('generateDiagram function is not available');
             }
         }, 100); // 100ms delay
       }
