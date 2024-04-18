@@ -68,9 +68,8 @@
               // TODO: Adjust
               console.debug(`Collapsing NTS on path '${pathTitle}'`);
 
-              // Remove the pathTitle and all children that start with it from the set
-              // TODO: Either remove all children or the entry for the path itself
-              toExtend = new Set(Array.from(toExtend).filter((x) => !x.join('-').startsWith(pathTitle)));
+              // Remove the pathTitle
+              toExtend = new Set(Array.from(toExtend).filter((x) => x.join("-") !== pathTitle));
 
               // Generate the diagram again
               generateDiagram();
