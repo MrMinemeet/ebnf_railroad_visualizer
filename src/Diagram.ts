@@ -15,6 +15,11 @@ import { Factor, FactorType } from "./wsn/Factor.js";
 import { isUppercase } from "./ChooChoo.js";
 
 export class Diagram {
+	// Don't expand NTS deeper than this value.
+	// DON'T INCREASE THIS VALUE! IT WILL BREAK THE DIAGRAM GENERATION AND YOUR BROWSER!
+	// TODO: This is a workarround for now. The recursive detection is not yet implemented.
+	private readonly MAX_EXPANSION_DEPTH: number = 30;
+
 	private readonly grammar: Grammar;
 	private readonly pathStack: number[]; // Tracks the current path based on the sym.ids. E.g. [1, 3, 2] references the path from Sym with id 1 to sym with id 2 over sym with id 3
 	private expandingNtsPaths: number[][]; // Holds the paths for all NTS that should be expanded
@@ -125,10 +130,11 @@ export class Diagram {
 
 					// Path of the identifier
 					const identPath = this.pathStack.join("-");
-					// Get production-number for identifier
-					// FIXME: The Path may change when parts before "curPath" get expanded
-					if (this.expandingNtsPaths
-						.some(path => path.join("-") === identPath )) {
+
+					// Expand in in expandingNtsPaths or if the depth is reached
+					if ((this.pathStack.length < this.MAX_EXPANSION_DEPTH) ||
+						this.expandingNtsPaths
+							.some(path => path.join("-") === identPath )) {
 						// Expand NTS
 						const identProduction = this.getProductionFromName(sym.toString());
 						val = rr.Group(this.generateFrom(identProduction.expr), sym.name, identPath);
@@ -147,6 +153,8 @@ export class Diagram {
 				break;
 		}
 
+		// Pop the last path when returning
+		this.pathStack.pop();
 		return val;
 	}
 
