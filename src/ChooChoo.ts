@@ -4,7 +4,6 @@
 
 import { Diagram } from "./Diagram.js";
 import { Grammar } from "./Grammar.js";
-
 /*
  *     ooOOOO
  *    oo      _____
