@@ -16,9 +16,13 @@ import { isUppercase } from "./ChooChoo.js";
 
 export class Diagram {
 	private readonly grammar: Grammar;
+	private readonly pathStack: number[]; // Tracks the current path based on the sym.ids. E.g. [1, 3, 2] references the path from Sym with id 1 to sym with id 2 over sym with id 3
+	private expandingNtsPaths: number[][]; // Holds the paths for all NTS that should be expanded
 
 	private constructor(grammar: Grammar) {
 		this.grammar = grammar;
+		this.pathStack = [];
+		this.expandingNtsPaths = [];
 	}
 
 	/**
@@ -34,21 +38,21 @@ export class Diagram {
 	 * Generate a diagram from a production
 	 * @returns {any} The diagram
 	 */
-	private generateDiagram(toExpandIDs: number[] = []): any {
+	private generateDiagram(): any {
 		const firstProd = this.grammar.syntax.productions[0];
-		const diagram = rr.Diagram(this.generateFrom(firstProd, toExpandIDs));
+		const diagram = rr.Diagram(this.generateFrom(firstProd));
 		return diagram;
 	}
 
-	private forProduction(prod: Production, toExpandIDs: number[] = []): any {
-		const idk = this.generateFrom(prod.expr, toExpandIDs);
+	private forProduction(prod: Production): any {
+		const idk = this.generateFrom(prod.expr);
 		return rr.Sequence(idk);
 	}
 
-	private forExpression(expr: Expression, toExpandIDs: number[] = []): any {
+	private forExpression(expr: Expression): any {
 		const terms = [];
 		for (const term of expr.terms) {
-			terms.push(this.generateFrom(term, toExpandIDs));
+			terms.push(this.generateFrom(term));
 		}
 
 		const first = terms.shift();
@@ -59,10 +63,10 @@ export class Diagram {
 		}
 	}
 
-	private forTerm(term: Term, toExpandIDs: number[] = []): any {
+	private forTerm(term: Term): any {
 		const factors = [];
 		for (const factor of term.factors) {
-			factors.push(this.generateFrom(factor, toExpandIDs));
+			factors.push(this.generateFrom(factor));
 		}
 
 		const first = factors.shift();
@@ -73,8 +77,8 @@ export class Diagram {
 		}
 	}
 
-	private forFactor(factor: Factor, toExpandIDs: number[] = []): any {
-		const generated = this.generateFrom(factor.value, toExpandIDs);
+	private forFactor(factor: Factor): any {
+		const generated = this.generateFrom(factor.value);
 		switch (factor.type) {
 			case FactorType.Identifier:
 			case FactorType.Literal:
@@ -94,50 +98,52 @@ export class Diagram {
 		}
 	}
 
-	private generateFrom(sym: Sym, toExpandIDs: number[] = []): any {
+	private generateFrom(sym: Sym): any {
+		this.pathStack.push(sym.id);
+
 		let val: any;
 		switch (true) {
 			case sym instanceof Production:
-				val = this.forProduction(sym, toExpandIDs);
+				val = this.forProduction(sym);
 				break;
 
 			case sym instanceof Expression:
-				val = this.forExpression(sym, toExpandIDs);
+				val = this.forExpression(sym,);
 				break;
 
 			case sym instanceof Term:
-				val = this.forTerm(sym, toExpandIDs);
+				val = this.forTerm(sym);
 				break;
 
 			case sym instanceof Factor:
-				val =  this.forFactor(sym, toExpandIDs);
+				val =  this.forFactor(sym);
 				break;
 
 			case sym instanceof Identifier:
 				if (isUppercase(sym.toString())) {
-					// Non-terminal
-					if (toExpandIDs.some(id => id === sym.id)) {
-						// Remove ID from list to not expand it again in recursion
-						toExpandIDs.splice(toExpandIDs.indexOf(sym.id), 1);
+					// Non-terminal Symbol
 
+					// Path of the identifier
+					const identPath = this.pathStack.join("-");
+					// Get production-number for identifier
+					// FIXME: The Path may change when parts before "curPath" get expanded
+					if (this.expandingNtsPaths
+						.some(path => path.join("-") === identPath )) {
 						// Expand NTS
-						const innerProd = this.getProductionFromName(sym.toString());
-						val = rr.Group(this.generateFrom(innerProd.expr, toExpandIDs), sym.name, sym.id);
-
-						// Re-add ID
-						toExpandIDs.push(sym.id);
+						const identProduction = this.getProductionFromName(sym.toString());
+						val = rr.Group(this.generateFrom(identProduction.expr), sym.name, identPath);
 					} else {
 						// No NTS expansion
-						val = rr.NonTerminal(sym.toString(), { title: sym.id });
+						val = rr.NonTerminal(sym.toString(), { title: identPath });
 					}
 				} else {
 					// Terminal
-					val = rr.Terminal(sym.toString(), { title: sym.id });
+					val = rr.Terminal(sym.toString());
 				}
 				break;
 
 			case sym instanceof Literal:
-				val =  rr.Terminal(sym.toString(), { title: sym.id });
+				val =  rr.Terminal(sym.toString());
 				break;
 		}
 
@@ -158,13 +164,15 @@ export class Diagram {
 		throw new Error(`Production '${name}' not found`);
 	}
 
+
 	/**
 	 * A diagram in SVG format
-	 * @param toExpandIDs The IDs of the non-terminals to expand
+	 * @param expandingNtsPaths The paths of the NTS that should be expanded
 	 * @returns {string} The diagram in SVG format
 	 */
-	toSvg(toExpandIDs: number[] = []): string {
-		return this.generateDiagram(toExpandIDs).toString() as string;
+	toSvg(expandingNtsPaths: Set<[]> = new Set()): string {
+		this.expandingNtsPaths = [...expandingNtsPaths];
+		return this.generateDiagram().toString() as string;
 	}
 
 	/**

@@ -11,7 +11,7 @@
     <script src="./out/external/lz-string.js"></script>
     <script type="module">
       import { Diagram } from "./out/Diagram.js";
-      import { asyncGenerateDiagram, asyncGenerateGrammar, asyncCssToString, base64ToBase64Url, getNonAsciiChars } from "./out/ChooChoo.js";
+      import { asyncGenerateDiagram, asyncGenerateGrammar, asyncCssToString, base64ToBase64Url, getNonAsciiChars, titleToPath } from "./out/ChooChoo.js";
       let toExtend = new Set();
 
 
@@ -44,11 +44,12 @@
             element.addEventListener("click", (event) => {
               // Get ID from inner child with tag "title"
               const title = event.currentTarget.querySelector("title");
-              const id = title.textContent.trim();
+              const pathTitle = title.textContent.trim();
 
               // Add the ID to the set of non-terminals to extend
-              toExtend.add(parseInt(id));
-              console.debug(`Expanding NTS with ID '${id}'`);
+              // TODO: Adjust
+              toExtend.add(titleToPath(pathTitle));
+              console.debug(`Expanding NTS on path '${pathTitle}'`);
 
               // Generate the diagram again
               generateDiagram();
@@ -61,11 +62,13 @@
             element.addEventListener("click", (event) => {
               // Get ID from inner child with tag "title"
               const title = event.currentTarget.querySelector("title");
-              const id = title.textContent.trim();
+              const pathTitle = title.textContent.trim();
 
               // Add the ID to the set of non-terminals to extend
-              toExtend.delete(parseInt(id));
-              console.debug(`Collapsing group with ID '${id}'`);
+              // TODO: Adjust
+              // FIXME: The removal from the set is not working
+              toExtend.delete(titleToPath(pathTitle));
+              console.debug(`Collapsing NTS on path '${pathTitle}'`);
 
               // Generate the diagram again
               generateDiagram();
@@ -128,7 +131,8 @@
         console.debug("Expanding all non-erminals");		
         // Replace currently "toExtend" with all IDs that are expandable
         asyncGenerateGrammar(ebnfGrammarValue).then((g) => {
-          toExtend = new Set(g.expandableIDs);
+          // TODO: Adjust
+          // toExtend = new Set(g.expandableIDs);
           generateDiagram();
           updateURL();
         }).catch((e) =>  console.warn(e));
@@ -227,11 +231,15 @@
       }
 
       // Try to get toExpand numbers from URL
+      let urlToExpandNumbers = undefined;
+      // TODO: Adjust
+      /*
       let urlToExpandNumbers = new URLSearchParams(window.location.search).get("expand");
       if(urlToExpandNumbers) {
         let toExpandNumbers = urlToExpandNumbers.split("|").map(Number);
         toExtend = new Set(toExpandNumbers);
       }
+      */
 
       if (urlGrammar || urlToExpandNumbers) {
         // Generate diagram when something is in the URL

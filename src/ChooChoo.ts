@@ -151,3 +151,12 @@ export function getNonAsciiChars(str: string, extended: boolean = false): Set<st
 		.split('')
 		.filter(char => char.charCodeAt(0) > (extended ? 255 : 127)));
 }
+
+/**
+ * Converts the string used for the path in svg titels into an array of numbers representing the path.
+ * @param title The title string to convert
+ * @returns The path as an array of numbers
+ */
+export function titleToPath(title: string): number[] {
+	return title.split('-').map(Number);
+}
