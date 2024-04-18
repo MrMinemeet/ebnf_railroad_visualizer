@@ -55,7 +55,7 @@ export class Diagram {
 		if (terms.length === 0) {
 			return first;
 		} else {
-			return rr.Choice( (terms.length + 1) / 2, first, ...terms);
+			return rr.Choice( Math.floor((terms.length + 1) / 2), first, ...terms);
 		}
 	}
 
