@@ -8,10 +8,9 @@
     <link rel="icon" href="./images/favicon.svg" />
     <link rel="stylesheet" type="text/css" href="./css/railroad.css">
     <link rel="stylesheet" href="./css/styles.css">
-    <script src="./out/external/lz-string.js"></script>
     <script type="module">
       import { Diagram } from "./out/Diagram.js";
-      import { asyncGenerateDiagram, asyncGenerateGrammar, asyncCssToString, base64ToBase64Url, getNonAsciiChars, titleToPath } from "./out/ChooChoo.js";
+      import { asyncGenerateDiagram, asyncGenerateGrammar, asyncCssToString, base64ToBase64Url, getNonAsciiChars, titleToPath, addValuesToUrl } from "./out/ChooChoo.js";
 
 
 			window.generateDiagram = function() {
@@ -175,32 +174,9 @@
 
       // Update URL with grammar and expand numbers
       window.updateURL = function() {
-        let url = new URL(window.location.href)
-
-        let grammar = document.querySelector("textarea[name=ebnf_grammar]").value;
-        if (grammar.trim() === "") {
-          // Remove grammar from URL
-          url.searchParams.delete("grammar");
-        } else {
-          //  Encode grammar to base64URL and add to URL
-          const compressedGrammar = LZString.compressToBase64(grammar);
-          console.debug(`Compressed grammar from ${grammar.length} to ${compressedGrammar.length} characters`);
-          url.searchParams.set("grammar", base64ToBase64Url(compressedGrammar));
-        }
-
-        if (window.toExtend.size === 0) {
-          // Remove expand numbers from URL
-          url.searchParams.delete("expand");
-        } else {
-          // Add expand numbers to URL
-          const toExtendStr = Array.from(window.toExtend).join("|")
-          const compressedToExpand = LZString.compressToBase64(toExtendStr);
-          console.debug(`Compressed expand numbers from ${toExtendStr.length} to ${compressedToExpand.length} characters`);
-          url.searchParams.set("expand", base64ToBase64Url(compressedToExpand));
-        }
-
+        const grammar = document.querySelector("textarea[name=ebnf_grammar]").value;
         // Replace URL
-        window.history.replaceState({}, "", url.toString());
+        window.history.replaceState({}, "", addValuesToUrl(window.location.href, grammar, window.toExtend));
       }
     </script>
   </head>
@@ -224,27 +200,18 @@
     </div>
 
     <script type="module" async defer>
-      import { base64UrlToBase64 } from "./out/ChooChoo.js";
+      import { getValuesFromUrl } from "./out/ChooChoo.js";
       // Try to get grammar from URL
       let urlGrammar = new URLSearchParams(window.location.search).get("grammar");
-      if(urlGrammar) {
-        const grammar = LZString.decompressFromBase64(base64UrlToBase64(urlGrammar));
-        document.querySelector("textarea[name=ebnf_grammar]").value = grammar;
-        console.log(`Loaded grammar with ${grammar.length} chars from URL`)
-      }
 
-      // Try to get toExpand numbers from URL
-      let urlExpand = new URLSearchParams(window.location.search).get("expand");
-      if (urlExpand) {
-        const toExpandStr = LZString.decompressFromBase64(base64UrlToBase64(urlExpand));
-        const toExpandNumbers = toExpandStr.split("|").map((x) => x.split(",").map((y) => parseInt(y)));
-        window.toExtend = new Set(toExpandNumbers);
-        console.log(`Loaded ${toExpandNumbers.length} expand parameter(s) from URL`)
-      } else {
-        window.toExtend = new Set();
-      }
+      const [ grammar, urlExpand ] = getValuesFromUrl(window.location.href);
 
-      if (urlGrammar || urlExpand) {
+      // Update grammar and expand numbers
+      document.querySelector("textarea[name=ebnf_grammar]").value = grammar;
+      window.toExtend = urlExpand;
+      
+
+      if (grammar !== "" || urlExpand.size > 0) {
         // Generate diagram when something is in the URL
         setTimeout(function() {
             if (typeof window.generateDiagram === 'function') {
