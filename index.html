@@ -8,11 +8,9 @@
     <link rel="icon" href="./images/favicon.svg" />
     <link rel="stylesheet" type="text/css" href="./css/railroad.css">
     <link rel="stylesheet" href="./css/styles.css">
-    <script src="./out/external/lz-string.js"></script>
     <script type="module">
       import { Diagram } from "./out/Diagram.js";
-      import { asyncGenerateDiagram, asyncGenerateGrammar, asyncCssToString, base64ToBase64Url, getNonAsciiChars } from "./out/ChooChoo.js";
-      let toExtend = new Set();
+      import { asyncGenerateDiagram, asyncGenerateGrammar, asyncCssToString, base64ToBase64Url, getNonAsciiChars, titleToPath, addValuesToUrl } from "./out/ChooChoo.js";
 
 
 			window.generateDiagram = function() {
@@ -37,18 +35,18 @@
 				asyncGenerateDiagram(ebnfGrammarValue).then((diagram) =>
 				{
 					// Insert the diagram into the HTML
-					diagram_container.innerHTML = diagram.toSvg(Array.from(toExtend));
+					diagram_container.innerHTML = diagram.toSvg(Array.from(window.window.toExtend));
 
           // Add a click event listener to the NTS to extend
           document.querySelectorAll(".non-terminal").forEach((element) => {
             element.addEventListener("click", (event) => {
               // Get ID from inner child with tag "title"
               const title = event.currentTarget.querySelector("title");
-              const id = title.textContent.trim();
+              const pathTitle = title.textContent.trim();
 
               // Add the ID to the set of non-terminals to extend
-              toExtend.add(parseInt(id));
-              console.debug(`Expanding NTS with ID '${id}'`);
+              toExtend.add(titleToPath(pathTitle));
+              console.debug(`Expanding NTS on path '${pathTitle}'`);
 
               // Generate the diagram again
               generateDiagram();
@@ -61,11 +59,13 @@
             element.addEventListener("click", (event) => {
               // Get ID from inner child with tag "title"
               const title = event.currentTarget.querySelector("title");
-              const id = title.textContent.trim();
+              const pathTitle = title.textContent.trim();
 
               // Add the ID to the set of non-terminals to extend
-              toExtend.delete(parseInt(id));
-              console.debug(`Collapsing group with ID '${id}'`);
+              console.debug(`Collapsing NTS on path '${pathTitle}'`);
+
+              // Remove the pathTitle
+              window.toExtend = new Set(Array.from(window.toExtend).filter((x) => x.join("-") !== pathTitle));
 
               // Generate the diagram again
               generateDiagram();
@@ -101,7 +101,7 @@
 			 * Handle the generation of a diagram from the entered grammar.
 			 */
 			window.handleGenerateDiagram = function() {
-				toExtend.clear();
+				window.toExtend.clear();
 				generateDiagram();
         updateURL();
 			}
@@ -113,7 +113,7 @@
 			window.onCollapseAll = function() {
 				console.debug("Collapsing all non-terminals");
 				// Remove all non-terminals to extend
-				toExtend.clear();
+				window.toExtend.clear();
 				// Generate the diagram again
 				generateDiagram();
         updateURL();
@@ -128,7 +128,8 @@
         console.debug("Expanding all non-erminals");		
         // Replace currently "toExtend" with all IDs that are expandable
         asyncGenerateGrammar(ebnfGrammarValue).then((g) => {
-          toExtend = new Set(g.expandableIDs);
+          const diag = new Diagram(g);
+          window.toExtend = diag.getAllNtsPaths();
           generateDiagram();
           updateURL();
         }).catch((e) =>  console.warn(e));
@@ -171,30 +172,9 @@
 
       // Update URL with grammar and expand numbers
       window.updateURL = function() {
-        let url = new URL(window.location.href)
-
-        let grammar = document.querySelector("textarea[name=ebnf_grammar]").value;
-        if (grammar.trim() === "") {
-          // Remove grammar from URL
-          url.searchParams.delete("grammar");
-        } else {
-          //  Encode grammar to base64URL and add to URL
-          const compressedGrammar = LZString.compressToBase64(grammar);
-          console.debug(`Compressed grammar from ${grammar.length} to ${compressedGrammar.length} characters`);
-          const grammarBase64 = base64ToBase64Url(compressedGrammar);
-          url.searchParams.set("grammar", grammarBase64);
-        }
-
-        if (toExtend.size === 0) {
-          // Remove expand numbers from URL
-          url.searchParams.delete("expand");
-        } else {
-          // Add expand numbers to URL
-          url.searchParams.set("expand", Array.from(toExtend).join("|"));
-        }
-
+        const grammar = document.querySelector("textarea[name=ebnf_grammar]").value;
         // Replace URL
-        window.history.replaceState({}, "", url.toString());
+        window.history.replaceState({}, "", addValuesToUrl(window.location.href, grammar, window.toExtend));
       }
     </script>
   </head>
@@ -218,28 +198,23 @@
     </div>
 
     <script type="module" async defer>
-      import { base64UrlToBase64 } from "./out/ChooChoo.js";
+      import { getValuesFromUrl } from "./out/ChooChoo.js";
+      console.info("Retrieving data from URL parameters…");
       // Try to get grammar from URL
-      let urlGrammar = new URLSearchParams(window.location.search).get("grammar");
-      if(urlGrammar) {
-        const grammar = LZString.decompressFromBase64(base64UrlToBase64(urlGrammar));
-        document.querySelector("textarea[name=ebnf_grammar]").value = grammar;
-      }
+      const [ grammar, urlExpand ] = getValuesFromUrl(window.location.search);
 
-      // Try to get toExpand numbers from URL
-      let urlToExpandNumbers = new URLSearchParams(window.location.search).get("expand");
-      if(urlToExpandNumbers) {
-        let toExpandNumbers = urlToExpandNumbers.split("|").map(Number);
-        toExtend = new Set(toExpandNumbers);
-      }
+      // Update grammar and expand numbers
+      document.querySelector("textarea[name=ebnf_grammar]").value = grammar;
+      window.toExtend = urlExpand;
 
-      if (urlGrammar || urlToExpandNumbers) {
+      if (grammar !== "" || urlExpand.size > 0) {
         // Generate diagram when something is in the URL
         setTimeout(function() {
             if (typeof window.generateDiagram === 'function') {
-                window.generateDiagram();
+
+              window.generateDiagram();
             } else {
-                console.error('generateDiagram function is not available');
+              console.error('generateDiagram function is not available');
             }
         }, 100); // 100ms delay
       }
