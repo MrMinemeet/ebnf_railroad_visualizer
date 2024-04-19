@@ -128,8 +128,8 @@
         console.debug("Expanding all non-erminals");		
         // Replace currently "toExtend" with all IDs that are expandable
         asyncGenerateGrammar(ebnfGrammarValue).then((g) => {
-          // TODO: Adjust
-          // window.toExtend = new Set(g.expandableIDs);
+          const diag = new Diagram(g);
+          window.toExtend = diag.getAllNtsPaths();
           generateDiagram();
           updateURL();
         }).catch((e) =>  console.warn(e));

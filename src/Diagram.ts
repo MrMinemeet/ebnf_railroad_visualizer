@@ -23,11 +23,13 @@ export class Diagram {
 	private readonly grammar: Grammar;
 	private readonly pathStack: number[]; // Tracks the current path based on the sym.ids. E.g. [1, 3, 2] references the path from Sym with id 1 to sym with id 2 over sym with id 3
 	private expandingNtsPaths: number[][]; // Holds the paths for all NTS that should be expanded
+	private collectPaths: boolean;
 
 	private constructor(grammar: Grammar) {
 		this.grammar = grammar;
 		this.pathStack = [];
 		this.expandingNtsPaths = [];
+		this.collectPaths = false;
 	}
 
 	/**
@@ -127,6 +129,10 @@ export class Diagram {
 			case sym instanceof Identifier:
 				if (isUppercase(sym.toString())) {
 					// Non-terminal Symbol
+					if (this.collectPaths) {
+						// Collect the path
+						this.expandingNtsPaths.push(this.pathStack.slice());
+					}
 
 					// Path of the identifier
 					const identPath = this.pathStack.join("-");
@@ -181,6 +187,18 @@ export class Diagram {
 	toSvg(expandingNtsPaths: Set<[]> = new Set()): string {
 		this.expandingNtsPaths = [...expandingNtsPaths];
 		return this.generateDiagram().toString() as string;
+	}
+
+	/**
+	 * Get all NTS paths that should be expanded.
+	 * Still adhears to the MAX_EXPANSION_DEPTH limit.
+	 * @returns {Set<number[]>} The paths of the NTS that should be expanded
+	 */
+	getAllNtsPaths(): Set<number[]> {
+		this.collectPaths = true;
+		this.generateDiagram();
+		this.collectPaths = false;
+		return new Set(this.expandingNtsPaths);
 	}
 
 	/**
