@@ -45,7 +45,6 @@
               const pathTitle = title.textContent.trim();
 
               // Add the ID to the set of non-terminals to extend
-              // TODO: Adjust
               toExtend.add(titleToPath(pathTitle));
               console.debug(`Expanding NTS on path '${pathTitle}'`);
 
@@ -63,7 +62,6 @@
               const pathTitle = title.textContent.trim();
 
               // Add the ID to the set of non-terminals to extend
-              // TODO: Adjust
               console.debug(`Collapsing NTS on path '${pathTitle}'`);
 
               // Remove the pathTitle
@@ -201,15 +199,13 @@
 
     <script type="module" async defer>
       import { getValuesFromUrl } from "./out/ChooChoo.js";
+      console.info("Retrieving data from URL parameters…");
       // Try to get grammar from URL
-      let urlGrammar = new URLSearchParams(window.location.search).get("grammar");
-
-      const [ grammar, urlExpand ] = getValuesFromUrl(window.location.href);
+      const [ grammar, urlExpand ] = getValuesFromUrl(window.location.search);
 
       // Update grammar and expand numbers
       document.querySelector("textarea[name=ebnf_grammar]").value = grammar;
       window.toExtend = urlExpand;
-      
 
       if (grammar !== "" || urlExpand.size > 0) {
         // Generate diagram when something is in the URL
