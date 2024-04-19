@@ -18,7 +18,7 @@ Name = an { an } .
 ```
 ![Example railroad diagram for given grammar](./images/basic_railroad_diagram.svg)
 
-Try it out yourself with this [LINK](https://wtf-my-code.works/rr-diagram/?grammar=AoQwLgFgBAvFAiBLATlA3glUC-UByIAtgKZQB0AUEqnABT5GkA-UARGa1ANpsdQC6UAJRsA9J0oESsKCAB26WQtxkgA).
+Try it out yourself with this [LINK](https://wtf-my-code.works/rr-diagram/?grammar=UGF0aCA9IERpciB7IERpciB9IE5hbWUgLgpEaXIgPSAoIE5hbWUgfCAiLiIgWyAiLiIgXSApICIvIiAuCk5hbWUgPSBhbiB7IGFuIH0gLg).
 
 ## Features
 * **Error Information:** In the case that an error occurs during scanning or parsing of the input grammar, a small description is written below the grammar as shown:  
