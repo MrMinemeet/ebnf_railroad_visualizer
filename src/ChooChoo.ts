@@ -4,6 +4,8 @@
 
 import { Diagram } from "./Diagram.js";
 import { Grammar } from "./Grammar.js";
+
+import LZString from "./external/lz-string.js";
 /*
  *     ooOOOO
  *    oo      _____
@@ -15,7 +17,13 @@ import { Grammar } from "./Grammar.js";
  * else and/or is not provided my TS/JS per default.
  */
 
-const GENERATION_TIMEOUT = 100;
+const GENERATION_TIMEOUT: number = 100;
+const COMPRESSION_THRESHOLD: number = 100;
+
+const COMPRESSED_GRAMMAR_PARAM: string = "grammarlz";
+const GRAMMAR_PARAM: string = "grammar";
+const COMPRESSED_EXPAND_PARAM: string = "expandlz";
+const EXPAND_PARAM: string = "expand";
 
 /**
  * Checks if a word starts with an uppercase letter.
@@ -159,4 +167,97 @@ export function getNonAsciiChars(str: string, extended: boolean = false): Set<st
  */
 export function titleToPath(title: string): number[] {
 	return title.split('-').map(Number);
+}
+
+
+/**
+ * Add the values of the grammar and expand paths to a URL.
+ * The values are added as base64URL encoded strings. If the values are over a certain threshold, they are compressed using LZString. If they are below the threshold, they are only encoded in order to avoid the overhead of compression.
+ * @param url The URL to add the values to
+ * @param grammar The grammar
+ * @param expandPath The expand paths
+ * @returns The URL with the values added
+ */
+export function addValuesToUrl(urlHref: string, grammar: string, expandPath: Set<number[]>): URL {
+	const newUrl = new URL(urlHref);
+
+	// Drop existing parameters
+	newUrl.searchParams.delete(COMPRESSED_GRAMMAR_PARAM);
+	newUrl.searchParams.delete(GRAMMAR_PARAM);
+	newUrl.searchParams.delete(COMPRESSED_EXPAND_PARAM);
+	newUrl.searchParams.delete(EXPAND_PARAM);
+
+	if (grammar.trim() !== "") {
+		if (grammar.length > COMPRESSION_THRESHOLD) {
+			// Compress the grammar
+			const compressedGrammar = LZString.compressToBase64(grammar);
+			newUrl.searchParams.set(COMPRESSED_GRAMMAR_PARAM, base64ToBase64Url(compressedGrammar));
+		} else {
+			// Set the grammar
+			const base64Grammar = btoa(grammar);
+			newUrl.searchParams.set(GRAMMAR_PARAM, base64ToBase64Url(base64Grammar));
+		}
+	}
+
+	if (expandPath.size !== 0) {
+		const joinedPath = Array.from(expandPath).map(path => path.join("-")).join("|");
+		if (joinedPath.length > COMPRESSION_THRESHOLD) {
+			// Compress the expand paths
+			const compressedExpand = LZString.compressToBase64(joinedPath);
+			newUrl.searchParams.set(COMPRESSED_EXPAND_PARAM, base64ToBase64Url(compressedExpand));
+		} else {
+			// Set the expand paths
+			const base64Expand = btoa(joinedPath);
+			newUrl.searchParams.set(EXPAND_PARAM, base64ToBase64Url(base64Expand));
+		}
+	}
+
+	return newUrl;
+}
+
+export function getValuesFromUrl(searchParams: string): [string, Set<number[]>] {
+	const urlSearchparams = new URLSearchParams(searchParams);
+	let grammar: string = "";
+	let expandPaths: Set<number[]> = new Set();
+
+	// Grammar
+	const compressedGrammar = urlSearchparams.get(COMPRESSED_GRAMMAR_PARAM);
+	const base64Grammar = urlSearchparams.get(GRAMMAR_PARAM);
+	if (compressedGrammar) {
+		// Compressed grammar
+		const uncompressedGrammar = LZString.decompressFromBase64(base64UrlToBase64(compressedGrammar));
+		if (uncompressedGrammar === null) {
+			throw new Error("Decompression failed");
+		}
+		grammar = uncompressedGrammar;
+
+	} else if (base64Grammar) {
+		// Uncompressed grammar
+		grammar = atob(base64UrlToBase64(base64Grammar));
+
+	}
+
+	// Expand paths
+	const compressedExpand = urlSearchparams.get(COMPRESSED_EXPAND_PARAM);
+	const base64Expand = urlSearchparams.get(EXPAND_PARAM);
+	let expandPathString: string|undefined = undefined;
+	if (compressedExpand) {
+		// Compressed expand paths
+		const uncompressedExpand = LZString.decompressFromBase64(base64UrlToBase64(compressedExpand));
+		if (uncompressedExpand === null) {
+			throw new Error("Decompression failed");
+		}
+		expandPathString = uncompressedExpand;
+
+	} else if (base64Expand) {
+		// Uncompressed expand paths
+		expandPathString = atob(base64UrlToBase64(base64Expand));
+
+	}
+
+	if (expandPathString) {
+		expandPaths = new Set(expandPathString.split("|").map(path => path.split("-").map(Number)));
+	}
+
+	return [grammar, expandPaths];
 }
