@@ -10,8 +10,26 @@
     <link rel="stylesheet" href="./css/styles.css">
     <script type="module">
       import { Diagram } from "./out/Diagram.js";
-      import { asyncGenerateDiagram, asyncGenerateGrammar, asyncCssToString, base64ToBase64Url, getNonAsciiChars, titleToPath, addValuesToUrl } from "./out/ChooChoo.js";
+      import { asyncGenerateDiagram, asyncGenerateGrammar, asyncCssToString, base64ToBase64Url, getNonAsciiChars, titleToPath, addValuesToUrl, filterInvalidPaths } from "./out/ChooChoo.js";
 
+      const PATH_CLEANUP_TIMEOUT = 5000;
+      let timeoutId;
+
+      window.resetPathCleanupTimer = function() {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => {
+          const prevSize = window.toExtend.size;
+				  const ebnfGrammarValue = document.querySelector("textarea[name=ebnf_grammar]").value;
+          window.toExtend = filterInvalidPaths(ebnfGrammarValue, window.toExtend);
+          if (prevSize !== window.toExtend.size) {
+            console.debug(`Cleaned up ${prevSize - window.toExtend.size} paths`)
+            generateDiagram();
+            updateURL();
+          } else {
+            console.debug("No paths to clean up")
+          }
+        }, PATH_CLEANUP_TIMEOUT);
+      }
 
 			window.generateDiagram = function() {
         const error_message_container = document.getElementById("error_message");
@@ -101,11 +119,10 @@
 			 * Handle the generation of a diagram from the entered grammar.
 			 */
 			window.handleGenerateDiagram = function() {
-				window.toExtend.clear();
 				generateDiagram();
         updateURL();
+        resetPathCleanupTimer();
 			}
-
 
 			/**
 			 * Handle the click event of the "Collapse All" button.
@@ -115,7 +132,7 @@
 				// Remove all non-terminals to extend
 				window.toExtend.clear();
 				// Generate the diagram again
-				generateDiagram();
+				generateDiagram();MethodDecl
         updateURL();
 			}
 
