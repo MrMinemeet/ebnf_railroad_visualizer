@@ -267,3 +267,23 @@ export function getValuesFromUrl(searchParams: string): [string, Set<number[]>] 
 
 	return [grammar, expandPaths];
 }
+
+/**
+ * Filter out invalid paths from a set of paths.
+ * @param grammar The grammar to find the paths in
+ * @param paths The current paths
+ * @returns The current paths with invalid paths removed
+ */
+export function filterInvalidPaths(grammar:string, paths: Set<number[]>): Set<number[]> {
+	const validPaths = new Set<number[]>();
+	const allPaths = Array.from(Diagram.fromString(grammar).getAllNtsPaths());
+
+	// Return a "union" of all paths and the provided paths
+	for (const path of paths) {
+		if (allPaths.some(p => p.every((v, i) => v === path[i]))) {
+			validPaths.add(path);
+		}
+	}
+
+	return validPaths;
+}
