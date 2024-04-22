@@ -287,3 +287,41 @@ export function filterInvalidPaths(grammar:string, paths: Set<number[]>): Set<nu
 
 	return validPaths;
 }
+
+/**
+ * Export the diagram as an SVG file.
+ * @returns {void} - Nothing
+ */
+export function exportSvg(): void {
+	// Get child of "visualized_ebnf" id
+	const svgHtml = document.getElementById("visualized_ebnf")?.children[0];
+	if (svgHtml === undefined) {
+		console.warn("No diagram to store.");
+		return;
+	}
+	console.debug("Storing diagram as SVG…");
+
+	// Add XML declarations to the SVG
+	svgHtml.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+	svgHtml.setAttribute("shape-rendering", "geometricPrecision");
+	svgHtml.setAttribute("text-rendering", "geometricPrecision");
+	svgHtml.setAttribute("image-rendering", "optimizeQuality");
+
+	// Get the style of the diagram (./css/railroad.css)
+	const styleSheet = document.styleSheets[0];
+
+	asyncCssToString(styleSheet).then((cssString) => {
+		// Add the CSS to the SVG as a style element
+		const styleElement = document.createElement("style");
+		styleElement.textContent = cssString;
+		svgHtml.prepend(styleElement);
+
+		// Save SVG HTML as file
+		const blob = new Blob([svgHtml.outerHTML], {type: "image/svg+xml"});
+		const url = URL.createObjectURL(blob);
+		const a = document.createElement("a");
+		a.href = url;
+		a.download = "railroad-diagram.svg";
+		a.click();
+	});
+}

@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="./css/styles.css">
     <script type="module">
       import { Diagram } from "./out/Diagram.js";
-      import { asyncGenerateDiagram, asyncGenerateGrammar, asyncCssToString, base64ToBase64Url, getNonAsciiChars, titleToPath, addValuesToUrl, filterInvalidPaths } from "./out/ChooChoo.js";
+      import { asyncGenerateDiagram, asyncGenerateGrammar, asyncCssToString, base64ToBase64Url, getNonAsciiChars, titleToPath, addValuesToUrl, filterInvalidPaths, exportSvg } from "./out/ChooChoo.js";
 
       const PATH_CLEANUP_TIMEOUT = 5000;
       let timeoutId;
@@ -153,46 +153,14 @@
         // Generate the diagram again
       }
 
-      window.onStoreDiagram = function() {
-        // Get child of "visualized_ebnf" id
-        const svgHtml = document.getElementById("visualized_ebnf").children[0];
-        if(svgHtml === undefined) {
-          console.warn("No diagram to store.");
-          return;
-        }        
-        console.debug("Storing diagram as SVG…");
-
-        // Add XML declarations to the SVG
-        svgHtml.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-        svgHtml.setAttribute("shape-rendering", "geometricPrecision");
-        svgHtml.setAttribute("text-rendering", "geometricPrecision");
-        svgHtml.setAttribute("image-rendering", "optimizeQuality");
-
-        // Get the style of the diagram (./css/railroad.css)
-        const styleSheet = document.styleSheets[0];
-
-        asyncCssToString(styleSheet).then((cssString) => {
-          // Add the CSS to the SVG as a style element
-          const styleElement = document.createElement("style");
-          styleElement.textContent = cssString;
-          svgHtml.prepend(styleElement);
-
-          // Save SVG HTML as file
-          const blob = new Blob([svgHtml.outerHTML], {type: "image/svg+xml"});
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = "railroad-diagram.svg";
-          a.click();
-        });
-      }
-
       // Update URL with grammar and expand numbers
       window.updateURL = function() {
         const grammar = document.querySelector("textarea[name=ebnf_grammar]").value;
         // Replace URL
         window.history.replaceState({}, "", addValuesToUrl(window.location.href, grammar, window.toExtend));
       }
+
+      window.exportSVG = exportSvg;
     </script>
   </head>
   <body>
@@ -209,7 +177,7 @@
     <h2>Railroad Diagram</h2>
     <button onclick="onExpandAll();">Expand All</button>
     <button onclick="onCollapseAll();">Collapse All</button>
-    <button onclick="onStoreDiagram();">Store Diagram</button>
+    <button onclick="exportSVG();">Export as SVG</button>
     <div id="visualized_ebnf">
       <!-- Diagram will be inserted here -->
     </div>
