@@ -1,7 +1,6 @@
 /*
  * Copyright (c) 2024. Alexander Voglsperger
  */
-
 import { Diagram } from "./Diagram.js";
 import { Grammar } from "./Grammar.js";
 
@@ -286,4 +285,96 @@ export function filterInvalidPaths(grammar:string, paths: Set<number[]>): Set<nu
 	}
 
 	return validPaths;
+}
+
+/**
+ * Get the SVG of the diagram.
+ * @returns The SVG as a svg+xml string
+ */
+function getSvg(): Promise<string> {
+	return new Promise((resolve, reject) => {
+		// Get child of "visualized_ebnf" id
+		const svgHtml = document.getElementById("visualized_ebnf")?.children[0];
+		if (!svgHtml) {
+			reject("No diagram to convert");
+			return;
+		}
+
+		// Add XML declarations to the SVG
+		svgHtml.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+		svgHtml.setAttribute("shape-rendering", "geometricPrecision");
+		svgHtml.setAttribute("text-rendering", "geometricPrecision");
+		svgHtml.setAttribute("image-rendering", "optimizeQuality");
+
+		//  Get the style of the diagram (./css/railroad.css)
+		const styleSheet = document.styleSheets[0];+
+
+		asyncCssToString(styleSheet).then((cssString) => {
+			// Add the CSS to the SVG as a style element
+			const styleElement = document.createElement("style");
+			styleElement.textContent = cssString;
+			svgHtml.prepend(styleElement);
+
+			resolve(svgHtml.outerHTML);
+		}).catch((e) => {
+			reject(e);
+		});
+	});
+}
+
+/**
+ * Export the diagram as an SVG file.
+ * @returns {void} - Nothing
+ */
+export function exportSvg(): void {
+
+	getSvg().then((svgHtml) => {
+		// Save SVG HTML as file
+		const blob = new Blob([svgHtml], {type: "image/svg+xml"});
+		const blobUrl = URL.createObjectURL(blob);
+		const a = document.createElement("a");
+		a.href = blobUrl;
+		a.download = "railroad-diagram.svg";
+		a.click();
+		URL.revokeObjectURL(blobUrl);
+	});
+}
+
+/**
+ * Export the diagram as a PNG file.
+ */
+export function exportPng(): void {
+	getSvg().then((svgHtml) => {
+		// Create blob from SVG and use it to create a data URL
+		const blob = new Blob([svgHtml], {type: "image/svg+xml;charset=utf-8"});
+		const blobUrl = URL.createObjectURL(blob);
+
+		// Convert the SVG to a PNG using a canvas
+		const img = new Image();
+		img.src = blobUrl;
+		img.onload = function(): void {
+			const canvas = document.createElement("canvas");
+			canvas.width = img.width;
+			canvas.height = img.height;
+			const ctx = canvas.getContext("2d");
+			if (!ctx) {
+				console.error("Canvas not supported");
+				return;
+			}
+			ctx.drawImage(img, 0, 0);
+
+			// Save the PNG
+			const pngUrl = canvas.toDataURL("image/png");
+			const a = document.createElement("a");
+			a.href = pngUrl;
+			a.download = "railroad-diagram.png";
+			a.click();
+		};
+		img.onerror = function(): void {
+			console.error("Error loading SVG image");
+			console.log(img.src);
+		};
+	}).catch((e) => {
+		console.error(e);
+	});
 }
