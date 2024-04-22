@@ -8,7 +8,10 @@
     <link rel="icon" href="./images/favicon.svg" />
     <link rel="stylesheet" type="text/css" href="./css/railroad.css">
     <link rel="stylesheet" href="./css/styles.css">
+  </head>
+  <body>
     <script type="module">
+      import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
       import { Diagram } from "./out/Diagram.js";
       import { asyncGenerateDiagram, asyncGenerateGrammar, asyncCssToString, base64ToBase64Url, getNonAsciiChars, titleToPath, addValuesToUrl, filterInvalidPaths, exportSvg, exportPng } from "./out/ChooChoo.js";
 
@@ -54,6 +57,25 @@
 				{
 					// Insert the diagram into the HTML
 					diagram_container.innerHTML = diagram.toSvg(Array.from(window.window.toExtend));
+          const diagSvg = document.getElementsByClassName("railroad-diagram")[0];
+          const width = diagSvg.getAttribute("width");
+          const height = diagSvg.getAttribute("height");
+          diagSvg.removeAttribute("width");
+          diagSvg.removeAttribute("height");
+
+          const svg = d3.select("railroad-diagram");
+          const g = svg.append("g");
+
+          svg.call(d3.zoom()
+            .extent([[0, 0], [width, height]])
+            .scaleExtent([0.1, 8])
+            .on("zoom", zoomed));
+
+          function zoomed({transform}) {
+            g.attr("transform", transform);
+          }
+
+          //diagram_container.innerHTML = svg.node();
 
           // Add a click event listener to the NTS to extend
           document.querySelectorAll(".non-terminal").forEach((element) => {
@@ -163,8 +185,7 @@
       window.exportSVG = exportSvg;
       window.exportPNG = exportPng;
     </script>
-  </head>
-  <body>
+
     <h1>EBNF Visualizer</h1>
     <a loading="lazy" id="repository_reference" href="https://github.com/MrMinemeet/ebnf_railroad_visualizer" target="_blank"><img src="./images/github-mark.svg" alt="GitHub Invertocat linking to the repository"></a>
     
@@ -186,25 +207,22 @@
 
     <script type="module" async defer>
       import { getValuesFromUrl } from "./out/ChooChoo.js";
-      console.info("Retrieving data from URL parameters…");
-      // Try to get grammar from URL
-      const [ grammar, urlExpand ] = getValuesFromUrl(window.location.search);
+      
+      // Async defer is not a guarantee that the DOM is ready. The following event does.
+      document.addEventListener("DOMContentLoaded", function() {
+        console.info("Retrieving data from URL parameters…");
+        // Try to get grammar from URL
+        const [ grammar, urlExpand ] = getValuesFromUrl(window.location.search);
 
-      // Update grammar and expand numbers
-      document.querySelector("textarea[name=ebnf_grammar]").value = grammar;
-      window.toExtend = urlExpand;
+        // Update grammar and expand numbers
+        document.querySelector("textarea[name=ebnf_grammar]").value = grammar;
+        window.toExtend = urlExpand;
 
-      if (grammar !== "" || urlExpand.size > 0) {
-        // Generate diagram when something is in the URL
-        setTimeout(function() {
-            if (typeof window.generateDiagram === 'function') {
-
-              window.generateDiagram();
-            } else {
-              console.error('generateDiagram function is not available');
-            }
-        }, 100); // 100ms delay
-      }
+        if (grammar !== "" || urlExpand.size > 0) {
+          // Generate diagram when something is in the URL
+          window.generateDiagram();
+        }
+      });
     </script>
   </body>
 </html>

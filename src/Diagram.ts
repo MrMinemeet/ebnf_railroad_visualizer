@@ -13,7 +13,6 @@ import { Expression } from "./wsn/Expression.js";
 import { Term } from "./wsn/Term.js";
 import { Factor, FactorType } from "./wsn/Factor.js";
 import { isUppercase } from "./ChooChoo.js";
-
 export class Diagram {
 	// Don't expand NTS deeper than this value.
 	// DON'T INCREASE THIS VALUE! IT WILL BREAK THE DIAGRAM GENERATION AND YOUR BROWSER!
@@ -177,7 +176,6 @@ export class Diagram {
 		}
 		throw new Error(`Production '${name}' not found`);
 	}
-
 
 	/**
 	 * A diagram in SVG format

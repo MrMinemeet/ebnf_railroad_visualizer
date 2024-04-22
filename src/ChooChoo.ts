@@ -300,6 +300,15 @@ function getSvg(): Promise<string> {
 			return;
 		}
 
+		// Get values from viewBox attribute (_ _ width height) and inject them as width and height attributes
+		const viewBox = svgHtml.getAttribute("viewBox")?.split(" ");
+		if (!viewBox) {
+			reject("No viewBox attribute found");
+			return;
+		}
+		svgHtml.setAttribute("width", viewBox[2]);
+		svgHtml.setAttribute("height", viewBox[3]);
+
 		// Add XML declarations to the SVG
 		svgHtml.setAttribute("xmlns", "http://www.w3.org/2000/svg");
 		svgHtml.setAttribute("shape-rendering", "geometricPrecision");
