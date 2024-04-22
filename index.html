@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="./css/styles.css">
     <script type="module">
       import { Diagram } from "./out/Diagram.js";
-      import { asyncGenerateDiagram, asyncGenerateGrammar, asyncCssToString, base64ToBase64Url, getNonAsciiChars, titleToPath, addValuesToUrl, filterInvalidPaths, exportSvg } from "./out/ChooChoo.js";
+      import { asyncGenerateDiagram, asyncGenerateGrammar, asyncCssToString, base64ToBase64Url, getNonAsciiChars, titleToPath, addValuesToUrl, filterInvalidPaths, exportSvg, exportPng } from "./out/ChooChoo.js";
 
       const PATH_CLEANUP_TIMEOUT = 5000;
       let timeoutId;
@@ -161,6 +161,7 @@
       }
 
       window.exportSVG = exportSvg;
+      window.exportPNG = exportPng;
     </script>
   </head>
   <body>
@@ -178,6 +179,7 @@
     <button onclick="onExpandAll();">Expand All</button>
     <button onclick="onCollapseAll();">Collapse All</button>
     <button onclick="exportSVG();">Export as SVG</button>
+    <button onclick="exportPNG();">Export as PNG</button>
     <div id="visualized_ebnf">
       <!-- Diagram will be inserted here -->
     </div>
