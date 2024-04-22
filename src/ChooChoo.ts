@@ -215,6 +215,12 @@ export function addValuesToUrl(urlHref: string, grammar: string, expandPath: Set
 	return newUrl;
 }
 
+/**
+ * Get the values of the grammar and expand paths from a URL.
+ * The counterpart to `addValuesToUrl`.
+ * @param searchParams The search parameters of the URL
+ * @returns The grammar and expand paths
+ */
 export function getValuesFromUrl(searchParams: string): [string, Set<number[]>] {
 	const urlSearchparams = new URLSearchParams(searchParams);
 	let grammar: string = "";
