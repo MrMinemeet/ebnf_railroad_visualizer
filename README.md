@@ -36,3 +36,4 @@ Try it out yourself with this [LINK](https://wtf-my-code.works/rr-diagram/?gramm
 ## Included Dependencies / Other Resources
 - [railroad.js](https://github.com/tabatkins/railroad-diagrams) by Tab Atkins Jr. (and others) with some modifications (see comment in the file at line ~16)
 - [github-mark.svg](https://github.com/logos) by GitHub
+- [lz-string.js](https://github.com/pieroxy/lz-string) by pieroxy
