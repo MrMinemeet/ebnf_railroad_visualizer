@@ -186,7 +186,41 @@ export class Diagram {
 	 */
 	toSvg(expandingNtsPaths: Set<[]> = new Set()): string {
 		this.expandingNtsPaths = [...expandingNtsPaths];
-		return this.generateDiagram().toString() as string;
+		return this.injectMarkers(this.generateDiagram().toString() as string);
+	}
+
+	/**
+	 * Inject markers into the SVG
+	 * @param svg The SVG string with injected markers
+	 */
+	private injectMarkers(svg: string): string {
+		// Create marker
+		const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+		const marker = document.createElementNS("http://www.w3.org/2000/svg", "marker");
+		marker.setAttribute("id", "loop-arrow");
+		marker.setAttribute("viewBox", "0 0 10 10");
+		marker.setAttribute("markerWidth", "5");
+		marker.setAttribute("markerHeight", "5");
+		marker.setAttribute("markerUnits", "strokeWidth");
+		marker.setAttribute("refX", "8");
+		marker.setAttribute("refY", "5.5");
+		marker.setAttribute("orient", "300");
+		const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+		path.setAttribute("class", "arrow");
+		path.setAttribute("d", "M0,0 L7,3 L0,6 Z"); // Move to 0,0, draw line to 10,5, draw line to 0,10, go back to start
+		path.setAttribute("fill", "black");
+		marker.appendChild(path);
+		defs.appendChild(marker);
+
+		// Inject marker definition
+		const svgWithMarkerDef = svg.replace(">", `>${defs.outerHTML}`);
+
+		// Inject markers into correct paths
+		const LOOP_CURVE_REGEX = /<path d="M([\d.]+ [\d.]+)a10 10 0 0 0 -10 10v([\d.]+)a10 10 0 0 0 10 10"><\/path>/g;
+		const completeMarkerSvg = svgWithMarkerDef.replace(LOOP_CURVE_REGEX,  (_: string, p1: string, p2: string) => {
+			return `<path d="M${p1}a10 10 0 0 0 -10 10v${p2}a10 10 0 0 0 10 10" marker-start="url(#loop-arrow)"></path>`;
+		});
+		return completeMarkerSvg;
 	}
 
 	/**

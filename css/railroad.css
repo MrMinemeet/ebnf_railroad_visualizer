@@ -16,7 +16,7 @@
 svg.railroad-diagram {
 	background-color: hsl(30,20%,95%);
 }
-svg.railroad-diagram path {
+svg.railroad-diagram path:not(.arrow) { /* The ":not(.arrow)" is a hack to avoid styling the arrow paths, this is not here by default */
 	stroke-width: 3;
 	stroke: black;
 	fill: rgba(0,0,0,0);
