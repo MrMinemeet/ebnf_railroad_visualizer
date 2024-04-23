@@ -67,6 +67,7 @@ svg.railroad-diagram .non-terminal rect {
 	stroke-width: 3;
 	stroke: black;
 	fill: hsl(210,100%,90%);
+	transition: fill 0.3s ease;
 }
 svg.railroad-diagram .non-terminal:hover rect {
 	cursor: pointer;
@@ -76,9 +77,11 @@ svg.railroad-diagram .non-terminal:hover rect {
 }
 svg.railroad-diagram text:hover {
 	cursor: default;
+	transition: fill 0.3s ease;
 }
 svg.railroad-diagram .non-terminal:hover text {
 	cursor: pointer;
+	fill:hsl(210,100%,90%);
 }
 svg.railroad-diagram g.comment:hover text {
 	cursor: pointer;
