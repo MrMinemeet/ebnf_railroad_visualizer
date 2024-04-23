@@ -14,7 +14,7 @@
 
  /* These styles are contained in the original railroad.css but may have been modified */
 svg.railroad-diagram {
-	background-color: hsl(30,20%,95%);
+	background-color: white;
 }
 svg.railroad-diagram path:not(.arrow) { /* The ":not(.arrow)" is a hack to avoid styling the arrow paths, this is not here by default */
 	stroke-width: 3;
@@ -44,7 +44,7 @@ svg.railroad-diagram g.non-terminal text {
 svg.railroad-diagram rect {
 	stroke-width: 3;
 	stroke: black;
-	fill: hsl(120,100%,90%);
+	fill: rgb(234, 221, 190)
 }
 svg.railroad-diagram rect.group-box {
 	stroke: gray;
