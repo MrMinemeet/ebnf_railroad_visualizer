@@ -1,20 +1,15 @@
 <svg class="railroad-diagram" width="656" height="142" viewBox="0 0 656 142" xmlns="http://www.w3.org/2000/svg" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" image-rendering="optimizeQuality"><style>svg.railroad-diagram { background-color: rgb(245, 242, 240); }
-svg.railroad-diagram path { stroke-width: 3px; stroke: black; fill: rgba(0, 0, 0, 0); }
+svg.railroad-diagram path:not(.arrow) { stroke-width: 3px; stroke: black; fill: rgba(0, 0, 0, 0); }
 svg.railroad-diagram text { font: bold 14px monospace; text-anchor: middle; white-space: pre; }
 svg.railroad-diagram text.diagram-text { font-size: 12px; }
 svg.railroad-diagram text.diagram-arrow { font-size: 16px; }
 svg.railroad-diagram text.label { text-anchor: start; }
 svg.railroad-diagram text.comment { font: italic 12px monospace; }
+svg.railroad-diagram g.non-terminal text { }
 svg.railroad-diagram rect { stroke-width: 3px; stroke: black; fill: rgb(204, 255, 204); }
 svg.railroad-diagram rect.group-box { stroke: gray; stroke-dasharray: 10px, 5px; fill: none; }
 svg.railroad-diagram path.diagram-text { stroke-width: 3px; stroke: black; fill: white; cursor: help; }
-svg.railroad-diagram g.diagram-text:hover path.diagram-text { fill: rgb(238, 238, 238); }
-svg.railroad-diagram .non-terminal:hover rect { cursor: pointer; stroke-width: 3px; stroke: black; fill: rgb(128, 255, 128); }
-svg.railroad-diagram text:hover { cursor: default; }
-svg.railroad-diagram .non-terminal:hover text { cursor: pointer; }
-svg.railroad-diagram g.comment:hover text { cursor: pointer; }
-svg.railroad-diagram g.comment text.collapseX { display: none; }
-svg.railroad-diagram g.comment:hover text.collapseX { display: block; }</style>
+svg.railroad-diagram g.comment text.collapseX { display: none; }</style><defs><marker id="loop-arrow" viewBox="0 0 10 10" markerWidth="5" markerHeight="5" markerUnits="strokeWidth" refX="8" refY="5.5" orient="300"><path class="arrow" d="M0,0 L7,3 L0,6 Z" fill="black"></path></marker></defs>
 <g transform="translate(.5 .5)">
 <g>
 <path d="M20 84v20m10 -20v20m-10 -10h20"></path>
@@ -45,7 +40,7 @@ svg.railroad-diagram g.comment:hover text.collapseX { display: block; }</style>
 <path d="M177.5 55h43.5"></path>
 <rect x="123.5" y="44" width="54" height="22"></rect>
 <text x="150.5" y="59">Name</text>
-<title>14</title>
+<title>12-11-10-2-1-30-29-26-25-16-15-14</title>
 </g>
 <path d="M221 55a10 10 0 0 1 10 10v19a10 10 0 0 0 10 10"></path>
 <path d="M60 94h20"></path>
@@ -57,7 +52,6 @@ svg.railroad-diagram g.comment:hover text.collapseX { display: block; }</style>
 <path d="M125.5 94h0"></path>
 <rect x="80" y="83" width="45.5" height="22" rx="10" ry="10"></rect>
 <text x="102.75" y="98">"."</text>
-<title>17</title>
 </g>
 <path d="M125.5 94h10"></path>
 <g>
@@ -74,7 +68,6 @@ svg.railroad-diagram g.comment:hover text.collapseX { display: block; }</style>
 <path d="M201 94h0"></path>
 <rect x="155.5" y="83" width="45.5" height="22" rx="10" ry="10"></rect>
 <text x="178.25" y="98">"."</text>
-<title>19</title>
 </g>
 <path d="M201 94h20"></path>
 </g>
@@ -89,7 +82,6 @@ svg.railroad-diagram g.comment:hover text.collapseX { display: block; }</style>
 <path d="M306.5 94h0"></path>
 <rect x="261" y="83" width="45.5" height="22" rx="10" ry="10"></rect>
 <text x="283.75" y="98">"/"</text>
-<title>27</title>
 </g>
 </g>
 <g class="comment ">
@@ -97,7 +89,7 @@ svg.railroad-diagram g.comment:hover text.collapseX { display: block; }</style>
 <path d="M81 28h0"></path>
 <text x="65.5" y="33" class="comment">Dir</text>
 <text x="86" y="33" class="collapseX">⮾</text>
-<title>1</title>
+<title>12-11-10-2-1</title>
 </g>
 </g>
 <path d="M316.5 94h10"></path>
@@ -119,10 +111,10 @@ svg.railroad-diagram g.comment:hover text.collapseX { display: block; }</style>
 <path d="M402 94h0"></path>
 <rect x="356.5" y="83" width="45.5" height="22"></rect>
 <text x="379.25" y="98">Dir</text>
-<title>3</title>
+<title>12-11-10-7-6-5-4-3</title>
 </g>
 <path d="M402 94h10"></path>
-<path d="M356.5 94a10 10 0 0 0 -10 10v0a10 10 0 0 0 10 10"></path>
+<path d="M356.5 94a10 10 0 0 0 -10 10v0a10 10 0 0 0 10 10" marker-start="url(#loop-arrow)"></path>
 <g>
 <path d="M356.5 114h45.5"></path>
 </g>
@@ -143,7 +135,6 @@ svg.railroad-diagram g.comment:hover text.collapseX { display: block; }</style>
 <path d="M489 94h0"></path>
 <rect x="452" y="83" width="37" height="22" rx="10" ry="10"></rect>
 <text x="470.5" y="98">an</text>
-<title>33</title>
 </g>
 <path d="M489 94h10"></path>
 <g>
@@ -164,10 +155,9 @@ svg.railroad-diagram g.comment:hover text.collapseX { display: block; }</style>
 <path d="M566 94h0"></path>
 <rect x="529" y="83" width="37" height="22" rx="10" ry="10"></rect>
 <text x="547.5" y="98">an</text>
-<title>35</title>
 </g>
 <path d="M566 94h10"></path>
-<path d="M529 94a10 10 0 0 0 -10 10v0a10 10 0 0 0 10 10"></path>
+<path d="M529 94a10 10 0 0 0 -10 10v0a10 10 0 0 0 10 10" marker-start="url(#loop-arrow)"></path>
 <g>
 <path d="M529 114h37"></path>
 </g>
@@ -181,7 +171,7 @@ svg.railroad-diagram g.comment:hover text.collapseX { display: block; }</style>
 <path d="M480 58h0"></path>
 <text x="461" y="63" class="comment">Name</text>
 <text x="485" y="63" class="collapseX">⮾</text>
-<title>8</title>
+<title>12-11-10-9-8</title>
 </g>
 </g>
 </g>

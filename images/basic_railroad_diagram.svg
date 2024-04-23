@@ -1,5 +1,5 @@
 <svg class="railroad-diagram" width="325" height="80" viewBox="0 0 325 80" xmlns="http://www.w3.org/2000/svg" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" image-rendering="optimizeQuality"><style>svg.railroad-diagram { background-color: rgb(245, 242, 240); }
-svg.railroad-diagram path { stroke-width: 3px; stroke: black; fill: rgba(0, 0, 0, 0); }
+svg.railroad-diagram path:not(.arrow) { stroke-width: 3px; stroke: black; fill: rgba(0, 0, 0, 0); }
 svg.railroad-diagram text { font: bold 14px monospace; text-anchor: middle; white-space: pre; }
 svg.railroad-diagram text.diagram-text { font-size: 12px; }
 svg.railroad-diagram text.diagram-arrow { font-size: 16px; }
@@ -9,13 +9,7 @@ svg.railroad-diagram g.non-terminal text { }
 svg.railroad-diagram rect { stroke-width: 3px; stroke: black; fill: rgb(204, 255, 204); }
 svg.railroad-diagram rect.group-box { stroke: gray; stroke-dasharray: 10px, 5px; fill: none; }
 svg.railroad-diagram path.diagram-text { stroke-width: 3px; stroke: black; fill: white; cursor: help; }
-svg.railroad-diagram g.diagram-text:hover path.diagram-text { fill: rgb(238, 238, 238); }
-svg.railroad-diagram .non-terminal:hover rect { cursor: pointer; stroke-width: 3px; stroke: black; fill: rgb(128, 255, 128); }
-svg.railroad-diagram text:hover { cursor: default; }
-svg.railroad-diagram .non-terminal:hover text { cursor: pointer; }
-svg.railroad-diagram g.comment:hover text { cursor: pointer; }
-svg.railroad-diagram g.comment text.collapseX { display: none; }
-svg.railroad-diagram g.comment:hover text.collapseX { display: block; }</style>
+svg.railroad-diagram g.comment text.collapseX { display: none; }</style><defs><marker id="loop-arrow" viewBox="0 0 10 10" markerWidth="5" markerHeight="5" markerUnits="strokeWidth" refX="8" refY="5.5" orient="300"><path class="arrow" d="M0,0 L7,3 L0,6 Z" fill="black"></path></marker></defs>
 <g transform="translate(.5 .5)">
 <g>
 <path d="M20 30v20m10 -20v20m-10 -10h20"></path>
@@ -32,7 +26,7 @@ svg.railroad-diagram g.comment:hover text.collapseX { display: block; }</style>
 <path d="M95.5 40h0"></path>
 <rect x="50" y="29" width="45.5" height="22"></rect>
 <text x="72.75" y="44">Dir</text>
-<title>1</title>
+<title>12-11-10-2-1</title>
 </g>
 <path d="M95.5 40h10"></path>
 <g>
@@ -53,10 +47,10 @@ svg.railroad-diagram g.comment:hover text.collapseX { display: block; }</style>
 <path d="M181 40h0"></path>
 <rect x="135.5" y="29" width="45.5" height="22"></rect>
 <text x="158.25" y="44">Dir</text>
-<title>3</title>
+<title>12-11-10-7-6-5-4-3</title>
 </g>
 <path d="M181 40h10"></path>
-<path d="M135.5 40a10 10 0 0 0 -10 10v0a10 10 0 0 0 10 10"></path>
+<path d="M135.5 40a10 10 0 0 0 -10 10v0a10 10 0 0 0 10 10" marker-start="url(#loop-arrow)"></path>
 <g>
 <path d="M135.5 60h45.5"></path>
 </g>
@@ -70,7 +64,7 @@ svg.railroad-diagram g.comment:hover text.collapseX { display: block; }</style>
 <path d="M275 40h0"></path>
 <rect x="221" y="29" width="54" height="22"></rect>
 <text x="248" y="44">Name</text>
-<title>8</title>
+<title>12-11-10-9-8</title>
 </g>
 </g>
 </g>
