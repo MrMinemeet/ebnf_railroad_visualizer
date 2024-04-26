@@ -43,4 +43,4 @@ This only includes the grammar length, not the encoded expands.
 - [railroad.js](https://github.com/tabatkins/railroad-diagrams) by Tab Atkins Jr. (and others) with some modifications (see comment in the file at line ~16)
 - [github-mark.svg](https://github.com/logos) by GitHub
 - [lz-string.js](https://github.com/pieroxy/lz-string) by pieroxy
-- [D3](https://d3js.org/) by d3js.org
+- [D3]([https://d3js.org/](https://github.com/d3/d3)) by d3js.org
