@@ -18,6 +18,7 @@ import LZString from "./external/lz-string.js";
 
 const GENERATION_TIMEOUT: number = 100;
 const COMPRESSION_THRESHOLD: number = 100;
+const PNG_EXPORT_SCALE_FACTOR: number = 4;
 
 const COMPRESSED_GRAMMAR_PARAM: string = "grammarlz";
 const GRAMMAR_PARAM: string = "grammar";
@@ -289,45 +290,43 @@ export function filterInvalidPaths(grammar:string, paths: Set<number[]>): Set<nu
 
 /**
  * Get the SVG of the diagram.
+ * This does not reuse the diagram shown in the UI, but generates a new one to get a clean SVG.
  * @returns The SVG as a svg+xml string
  */
-function getSvg(): Promise<string> {
+function getSvg(toExpand: Set<number[]>): Promise<string> {
 	return new Promise((resolve, reject) => {
-		// FIXME: Width and height are messed up in the SVG due to D3-zoom
-		// Get child of "visualized-ebnf" id
-		const svgHtml = document.getElementById("visualized-ebnf")?.children[0];
-		if (!svgHtml) {
-			reject("No diagram to convert");
-			return;
+		const ebnfGrammarValue = (document.querySelector("textarea[name=ebnf_grammar]") as HTMLTextAreaElement)?.value;
+		if (ebnfGrammarValue.trim() === "") {
+			console.debug("Nothing was entered into the textarea.")
+			reject ("No grammar to visualize")
 		}
 
-		// Get values from viewBox attribute (_ _ width height) and inject them as width and height attributes
-		const viewBox = svgHtml.getAttribute("viewBox")?.split(" ");
-		if (!viewBox) {
-			reject("No viewBox attribute found");
-			return;
-		}
-		svgHtml.setAttribute("width", viewBox[2]);
-		svgHtml.setAttribute("height", viewBox[3]);
+		// Generate new diagram to get clean SVG
+		asyncGenerateDiagram(ebnfGrammarValue)
+		.then((diagram) => {
+			let svgHtml = diagram.toSvg(toExpand);
 
-		// Add XML declarations to the SVG
-		svgHtml.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-		svgHtml.setAttribute("shape-rendering", "geometricPrecision");
-		svgHtml.setAttribute("text-rendering", "geometricPrecision");
-		svgHtml.setAttribute("image-rendering", "optimizeQuality");
+			const additionalAttributes = [
+				'xmlns="http://www.w3.org/2000/svg"',
+				'shape-rendering="geometricPrecision"',
+				'text-rendering="geometricPrecision"',
+				'image-rendering="optimizeQuality"',
+			];
 
-		//  Get the style of the diagram (./css/railroad.css)
-		const styleSheet = document.styleSheets[0];
+			// Add additional attributes to the SVG
+			svgHtml = svgHtml.replace("<svg", `<svg ${additionalAttributes.join(" ")}`);
 
-		asyncCssToString(styleSheet).then((cssString) => {
-			// Add the CSS to the SVG as a style element
-			const styleElement = document.createElement("style");
-			styleElement.textContent = cssString;
-			svgHtml.prepend(styleElement);
+			//  Get the style of the diagram (./css/railroad.css)
+			const styleSheet = document.styleSheets[0];
 
-			resolve(svgHtml.outerHTML);
-		}).catch((e) => {
-			reject(e);
+			asyncCssToString(styleSheet).then((cssString) => {
+				// Add the CSS to the SVG as a style element
+				svgHtml = svgHtml.replace("</defs>", `<style>${cssString}</style></defs>`);
+
+				resolve(svgHtml);
+			}).catch((e) => {
+				reject(e);
+			});
 		});
 	});
 }
@@ -336,8 +335,8 @@ function getSvg(): Promise<string> {
  * Export the diagram as an SVG file.
  * @returns {void} - Nothing
  */
-export function exportSvg(): void {
-	getSvg().then((svgHtml) => {
+export function exportSvg(toExpand: Set<number[]>): void {
+	getSvg(toExpand).then((svgHtml) => {
 		// Save SVG HTML as file
 		const blob = new Blob([svgHtml], {type: "image/svg+xml"});
 		const blobUrl = URL.createObjectURL(blob);
@@ -352,10 +351,26 @@ export function exportSvg(): void {
 /**
  * Export the diagram as a PNG file.
  */
-export function exportPng(): void {
-	getSvg().then((svgHtml) => {
+export function exportPng(toExpand: Set<number[]>): void {
+	getSvg(toExpand).then((svgHtml) => {
+		// Get width and height of the SVG from svgs width and height attributes
+		const origWidth = parseFloat(svgHtml.match(/width="([^"]+)"/)?.[1] || "0");
+		const origHeight = parseFloat(svgHtml.match(/height="([^"]+)"/)?.[1] || "0");
+
+		// Scale the SVG but keep the aspect ratio
+		const aspectRatio = origWidth / origHeight;
+		const scaledWidth = (origWidth > origHeight) ? (origWidth * PNG_EXPORT_SCALE_FACTOR) : (origHeight * PNG_EXPORT_SCALE_FACTOR * aspectRatio);
+		const scaledHeight = (origWidth > origHeight) ? (origWidth * PNG_EXPORT_SCALE_FACTOR / aspectRatio) : (origHeight * PNG_EXPORT_SCALE_FACTOR);
+
+		console.debug(`Scaled SVG to ${scaledWidth}x${scaledHeight}px for PNG export.`);
+
+		// Update the SVG width and height
+		const scaledSvgHtml = svgHtml
+								.replace(`width="${origWidth}"`, `width="${scaledWidth}"`)
+								.replace(`height="${origHeight}"`, `height="${scaledHeight}"`);
+
 		// Create blob from SVG and use it to create a data URL
-		const blob = new Blob([svgHtml], {type: "image/svg+xml;charset=utf-8"});
+		const blob = new Blob([scaledSvgHtml], {type: "image/svg+xml;charset=utf-8"});
 		const blobUrl = URL.createObjectURL(blob);
 
 		// Convert the SVG to a PNG using a canvas
@@ -363,8 +378,8 @@ export function exportPng(): void {
 		img.src = blobUrl;
 		img.onload = function(): void {
 			const canvas = document.createElement("canvas");
-			canvas.width = img.width;
-			canvas.height = img.height;
+			canvas.width = scaledWidth;
+			canvas.height = scaledHeight;
 			const ctx = canvas.getContext("2d");
 			if (!ctx) {
 				console.error("Canvas not supported");

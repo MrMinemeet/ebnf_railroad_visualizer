@@ -56,7 +56,7 @@
 				asyncGenerateDiagram(ebnfGrammarValue).then((diagram) =>
 				{
 					// Insert the diagram into the HTML
-					diagram_container.innerHTML = diagram.toSvg(Array.from(window.window.toExtend));
+					diagram_container.innerHTML = diagram.toSvg(Array.from(window.toExtend));
           const diagSvg = document.getElementsByClassName("railroad-diagram")[0];
           diagSvg.removeAttribute("width");
           diagSvg.removeAttribute("height");
@@ -218,8 +218,8 @@
         <div>
           <button onclick="onExpandAll();">Expand All</button>
           <button onclick="onCollapseAll();">Collapse All</button>
-          <button onclick="exportSVG();">Export as SVG</button>
-          <button onclick="exportPNG();">Export as PNG</button>
+          <button onclick="exportSVG(window.toExtend);">Export as SVG</button>
+          <button onclick="exportPNG(window.toExtend);">Export as PNG</button>
         </div>
       </div>
       <div class="flex-item" id="visualized-ebnf">

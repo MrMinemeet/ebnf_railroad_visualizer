@@ -182,7 +182,7 @@ export class Diagram {
 	 * @param expandingNtsPaths The paths of the NTS that should be expanded
 	 * @returns {string} The diagram in SVG format
 	 */
-	toSvg(expandingNtsPaths: Set<[]> = new Set()): string {
+	toSvg(expandingNtsPaths: Set<number[]> = new Set()): string {
 		this.expandingNtsPaths = [...expandingNtsPaths];
 		return this.injectMarkers(this.generateDiagram().toString() as string);
 	}
