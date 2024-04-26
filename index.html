@@ -62,20 +62,18 @@
           const height = diagSvg.getAttribute("height");
           diagSvg.removeAttribute("width");
           diagSvg.removeAttribute("height");
-
-          const svg = d3.select("railroad-diagram");
-          const g = svg.append("g");
+          // FIXME: Fix random vanishing of SVG when drawing
+          // FIXME: Limit svg to be moved in a certain box and not on the whole page
+          const svg = d3.select(".railroad-diagram");
+          console.log(svg)
 
           svg.call(d3.zoom()
-            .extent([[0, 0], [width, height]])
             .scaleExtent([0.1, 8])
             .on("zoom", zoomed));
 
           function zoomed({transform}) {
-            g.attr("transform", transform);
+            svg.attr("transform", transform);
           }
-
-          //diagram_container.innerHTML = svg.node();
 
           // Add a click event listener to the NTS to extend
           document.querySelectorAll(".non-terminal").forEach((element) => {
