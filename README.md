@@ -28,7 +28,7 @@ Try it out yourself with this [LINK](https://wtf-my-code.works/rr-diagram/?gramm
 ![Example railroad diagram with expanded NTS](./images/expanded_railroad_diagram.svg)  [Link to Example](https://wtf-my-code.works/rr-diagram/?grammar=UGF0aCA9IERpciB7IERpciB9IE5hbWUgLgpEaXIgPSAoIE5hbWUgfCAiLiIgWyAiLiIgXSApICIvIiAuCk5hbWUgPSBhbiB7IGFuIH0gLg&expand=MTItMTEtMTAtMi0xfDEyLTExLTEwLTktOA)
 
 * **URL Encoded Grammar:** Grammar is base64URL encoded into the URL. This allows for easy sharing of the current grammar by copying the URL or bookmarking it. The encoding also includes the list of expanded NTS.  
-The URL encoding also utilizes `lz-string` to compress the grammar in order to reduce the length of the URL. A size comparison was perfomred on the grammar for [MicroJava](https://www.ssw.jku.at/Misc/CC/Handouts.pdf) with the following results (character count):
+The URL encoding also utilizes `lz-string` to compress the grammar and expand parameter in order to reduce their length. A size comparison was performed on the grammar for [MicroJava](https://www.ssw.jku.at/Misc/CC/Handouts.pdf) with the following results (character count):
 
 |Grammar|URL Encoded|Base64 Encoded|lz-string Compressed Base64|
 |-------|-----------|--------------|---------------------------|
