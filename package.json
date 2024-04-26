@@ -36,7 +36,7 @@
     "watch": "tsc -watch -p ./",
     "pretest": "pnpm run compile && pnpm run lint",
     "lint": "eslint src --ext ts",
-    "clear": "rm -rf ./out/* ./js.min/* ./node_modules/*",
+    "clear": "rm -rf ./out ./js.min ./node_modules ./bundle.zip",
     "minify": "pnpm run clear && pnpm i && pnpm run compile && pnpm run minifygen && pnpm run minifywsn && pnpm run minifyscannerparser && pnpm run minifyexternal",
     "minifywsn": "./node_modules/.bin/esbuild --minify ./out/wsn/*.js --outdir=./js.min/wsn/",
     "minifyscannerparser": "./node_modules/.bin/esbuild --minify ./out/scannerparser/*.js --outdir=./js.min/scannerparser/",
