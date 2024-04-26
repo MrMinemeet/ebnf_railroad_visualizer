@@ -36,7 +36,7 @@
 
 			window.generateDiagram = function() {
         const error_message_container = document.getElementById("error_message");
-        const diagram_container = document.getElementById("visualized_ebnf");
+        const diagram_container = document.getElementById("visualized-ebnf");
 				const ebnfGrammarValue = document.querySelector("textarea[name=ebnf_grammar]").value;
 
 				if (ebnfGrammarValue.trim() === "") {
@@ -58,21 +58,31 @@
 					// Insert the diagram into the HTML
 					diagram_container.innerHTML = diagram.toSvg(Array.from(window.window.toExtend));
           const diagSvg = document.getElementsByClassName("railroad-diagram")[0];
-          const width = diagSvg.getAttribute("width");
-          const height = diagSvg.getAttribute("height");
           diagSvg.removeAttribute("width");
           diagSvg.removeAttribute("height");
-          // FIXME: Fix random vanishing of SVG when drawing
-          // FIXME: Limit svg to be moved in a certain box and not on the whole page
+          
+          updateSvgViewBoxSize();
+
+          // Get the SVG element that D3-zoom should be applied to
           const svg = d3.select(".railroad-diagram");
-          console.log(svg)
+
+          // Get current childs of svg
+          const children = Array.from(svg.node().children);
+
+          // Add g node to the SVG
+          const g = svg.append("g");
+
+          // Move all children to the g node
+          children.forEach((child) => {
+            g.node().appendChild(child);
+          });
 
           svg.call(d3.zoom()
             .scaleExtent([0.1, 8])
             .on("zoom", zoomed));
 
           function zoomed({transform}) {
-            svg.attr("transform", transform);
+            g.attr("transform", transform);
           }
 
           // Add a click event listener to the NTS to extend
@@ -180,27 +190,45 @@
         window.history.replaceState({}, "", addValuesToUrl(window.location.href, grammar, window.toExtend));
       }
 
+      // Update the viewBox size of the SVG
+      function updateSvgViewBoxSize() {
+          const diagSvg = document.getElementsByClassName("railroad-diagram")[0];
+          const parent = diagSvg.parentElement;
+          const viewportWidth = parent.getBoundingClientRect().width;
+          const viewportHeight = parent.getBoundingClientRect().height;
+          console.debug(`Updating viewBox size to ${viewportWidth}x${viewportHeight}`)
+          diagSvg.setAttribute("viewBox", `0 0 ${viewportWidth} ${viewportHeight}`);
+      }
+
       window.exportSVG = exportSvg;
       window.exportPNG = exportPng;
+      window.addEventListener("resize", updateSvgViewBoxSize);
     </script>
 
-    <h1>EBNF Visualizer</h1>
-    <a loading="lazy" id="repository_reference" href="https://github.com/MrMinemeet/ebnf_railroad_visualizer" target="_blank"><img src="./images/github-mark.svg" alt="GitHub Invertocat linking to the repository"></a>
-    
-    <h2>Grammar</h2>
-      <textarea autofocus="true" id="userInput" name="ebnf_grammar" placeholder="EBNF-Grammar in Wirth Syntax Notation" oninput="handleGenerateDiagram()"></textarea>
-      <div id="error_message">
-        <!-- Error message will be inserted here -->
+    <div class="flex-container">
+      <div class="flex-item">
+        <h1>EBNF Visualizer</h1>
+        <a loading="lazy" id="repository_reference" href="https://github.com/MrMinemeet/ebnf_railroad_visualizer" target="_blank"><img src="./images/github-mark.svg" alt="GitHub Invertocat linking to the repository"></a>
       </div>
-    </div>
-
-    <h2>Railroad Diagram</h2>
-    <button onclick="onExpandAll();">Expand All</button>
-    <button onclick="onCollapseAll();">Collapse All</button>
-    <button onclick="exportSVG();">Export as SVG</button>
-    <button onclick="exportPNG();">Export as PNG</button>
-    <div id="visualized_ebnf">
-      <!-- Diagram will be inserted here -->
+      <div class="flex-item">
+      <h2>Grammar</h2>
+        <textarea autofocus="true" id="userInput" name="ebnf_grammar" placeholder="EBNF-Grammar in Wirth Syntax Notation" oninput="handleGenerateDiagram()"></textarea>
+        <div id="error_message">
+          <!-- Error message will be inserted here -->
+        </div>
+      </div>
+      <div class="flex-item">
+        <h2>Railroad Diagram</h2>
+        <div>
+          <button onclick="onExpandAll();">Expand All</button>
+          <button onclick="onCollapseAll();">Collapse All</button>
+          <button onclick="exportSVG();">Export as SVG</button>
+          <button onclick="exportPNG();">Export as PNG</button>
+        </div>
+      </div>
+      <div class="flex-item" id="visualized-ebnf">
+        <!-- Diagram will be inserted here -->
+      </div>
     </div>
 
     <script type="module" async defer>

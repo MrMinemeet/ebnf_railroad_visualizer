@@ -293,8 +293,8 @@ export function filterInvalidPaths(grammar:string, paths: Set<number[]>): Set<nu
  */
 function getSvg(): Promise<string> {
 	return new Promise((resolve, reject) => {
-		// Get child of "visualized_ebnf" id
-		const svgHtml = document.getElementById("visualized_ebnf")?.children[0];
+		// Get child of "visualized-ebnf" id
+		const svgHtml = document.getElementById("visualized-ebnf")?.children[0];
 		if (!svgHtml) {
 			reject("No diagram to convert");
 			return;

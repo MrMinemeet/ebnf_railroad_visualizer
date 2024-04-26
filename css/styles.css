@@ -1,3 +1,10 @@
+body, html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
 textarea {
   width: 90%;
   height: 100px;
@@ -22,4 +29,18 @@ textarea {
 
 #error_message {
   color: red;
+}
+
+.flex-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.flex-item {
+  flex-grow: 0;
+}
+
+#visualized_ebnf {
+  flex-grow: 1;
 }
