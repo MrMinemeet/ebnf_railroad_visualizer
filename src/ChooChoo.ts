@@ -293,6 +293,7 @@ export function filterInvalidPaths(grammar:string, paths: Set<number[]>): Set<nu
  */
 function getSvg(): Promise<string> {
 	return new Promise((resolve, reject) => {
+		// FIXME: Width and height are messed up in the SVG due to D3-zoom
 		// Get child of "visualized-ebnf" id
 		const svgHtml = document.getElementById("visualized-ebnf")?.children[0];
 		if (!svgHtml) {
@@ -316,7 +317,7 @@ function getSvg(): Promise<string> {
 		svgHtml.setAttribute("image-rendering", "optimizeQuality");
 
 		//  Get the style of the diagram (./css/railroad.css)
-		const styleSheet = document.styleSheets[0];+
+		const styleSheet = document.styleSheets[0];
 
 		asyncCssToString(styleSheet).then((cssString) => {
 			// Add the CSS to the SVG as a style element
@@ -336,7 +337,6 @@ function getSvg(): Promise<string> {
  * @returns {void} - Nothing
  */
 export function exportSvg(): void {
-
 	getSvg().then((svgHtml) => {
 		// Save SVG HTML as file
 		const blob = new Blob([svgHtml], {type: "image/svg+xml"});

@@ -193,11 +193,7 @@
       // Update the viewBox size of the SVG
       function updateSvgViewBoxSize() {
           const diagSvg = document.getElementsByClassName("railroad-diagram")[0];
-          const parent = diagSvg.parentElement;
-          const viewportWidth = parent.getBoundingClientRect().width;
-          const viewportHeight = parent.getBoundingClientRect().height;
-          console.debug(`Updating viewBox size to ${viewportWidth}x${viewportHeight}`)
-          diagSvg.setAttribute("viewBox", `0 0 ${viewportWidth} ${viewportHeight}`);
+          diagSvg.setAttribute("viewBox", `0 0 ${diagSvg.parentElement.offsetWidth} ${window.innerHeight}`);
       }
 
       window.exportSVG = exportSvg;

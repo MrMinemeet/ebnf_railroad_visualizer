@@ -2,7 +2,6 @@ body, html {
   margin: 0;
   padding: 0;
   height: 100%;
-  overflow: hidden;
 }
 
 textarea {
@@ -35,10 +34,12 @@ textarea {
   display: flex;
   flex-direction: column;
   height: 100vh;
+  overflow: hidden;
 }
 
 .flex-item {
   flex-grow: 0;
+  margin-left: 10px;
 }
 
 #visualized_ebnf {
