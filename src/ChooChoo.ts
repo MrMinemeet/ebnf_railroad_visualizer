@@ -335,7 +335,9 @@ function getSvg(toExpand: Set<number[]>): Promise<string> {
  * Export the diagram as an SVG file.
  * @returns {void} - Nothing
  */
-export function exportSvg(toExpand: Set<number[]>): void {
+export async function exportSvg(toExpand: Set<number[]>): Promise<void> {
+	const exportAsSvgButton = document.querySelector("#export-as-svg") as HTMLButtonElement;
+	buttonPressLoad(exportAsSvgButton);
 	getSvg(toExpand).then((svgHtml) => {
 		// Save SVG HTML as file
 		const blob = new Blob([svgHtml], {type: "image/svg+xml"});
@@ -345,13 +347,17 @@ export function exportSvg(toExpand: Set<number[]>): void {
 		a.download = "railroad-diagram.svg";
 		a.click();
 		URL.revokeObjectURL(blobUrl);
+		buttonPressReset(exportAsSvgButton);
 	});
 }
 
 /**
  * Export the diagram as a PNG file.
  */
-export function exportPng(toExpand: Set<number[]>): void {
+export async function exportPng(toExpand: Set<number[]>): Promise<void> {
+	const exportAsPngButton = document.querySelector("#export-as-png") as HTMLButtonElement;
+	buttonPressLoad(exportAsPngButton);
+
 	getSvg(toExpand).then((svgHtml) => {
 		// Get width and height of the SVG from svgs width and height attributes
 		const origWidth = parseFloat(svgHtml.match(/width="([^"]+)"/)?.[1] || "0");
@@ -393,12 +399,33 @@ export function exportPng(toExpand: Set<number[]>): void {
 			a.href = pngUrl;
 			a.download = "railroad-diagram.png";
 			a.click();
+			URL.revokeObjectURL(pngUrl);
+			buttonPressReset(exportAsPngButton);
 		};
 		img.onerror = function(): void {
 			console.error("Error loading SVG image");
 			console.log(img.src);
+			buttonPressReset(exportAsPngButton);
 		};
 	}).catch((e) => {
 		console.error(e);
 	});
+}
+
+/**
+ * Set a spinner cursor and disable a button.
+ * @param button The button to disable
+ */
+function buttonPressLoad(button: HTMLButtonElement): void {
+	button.style.cursor = "wait";
+	button.disabled = true;
+}
+
+/**
+ * Reset the cursor and enable a button.
+ * @param button The button to enable
+ */
+function buttonPressReset(button: HTMLButtonElement): void {
+	button.style.cursor = "default";
+	button.disabled = false;
 }
