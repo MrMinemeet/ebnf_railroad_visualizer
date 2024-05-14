@@ -45,3 +45,7 @@ textarea {
 #visualized_ebnf {
   flex-grow: 1;
 }
+
+.controls {
+  padding: 5px;
+}

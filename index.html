@@ -283,13 +283,13 @@
       </div>
       <div class="flex-item">
         <h2>Railroad Diagram</h2>
-        <div class="start-symbol-drop-down" style="display: none;">
+        <div class="start-symbol-drop-down controls" style="display: none;">
           <label for="start-symbol">Start symbol:</label>
           <select name="start-symbol" id="start-symbol" onchange="handleStartSymbolSelection()">
             <!-- Start symbols will be inserted here -->
           </select>
         </div>
-        <div>
+        <div class="controls">
           <button onclick="onExpandAll();">Expand All</button>
           <button onclick="onCollapseAll();">Collapse All</button>
           <button id="export-as-svg" onclick="exportSVG(window.toExtend);">Export as SVG</button>
