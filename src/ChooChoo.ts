@@ -248,7 +248,6 @@ export function addValuesToUrl(urlHref: string, grammar: string, expandPath: Set
  * @returns The grammar and expand paths
  */
 export function getValuesFromUrl(searchParams: string): [string, Set<number[]>, string] {
-	// TODO: Get "StartSymbol" from parameter
 	const urlSearchparams = new URLSearchParams(searchParams);
 	let grammar: string = "";
 	let expandPaths: Set<number[]> = new Set();
