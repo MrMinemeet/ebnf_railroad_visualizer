@@ -20,10 +20,12 @@ const GENERATION_TIMEOUT: number = 100;
 const COMPRESSION_THRESHOLD: number = 100;
 const PNG_EXPORT_SCALE_FACTOR: number = 4;
 
+// parameter names for URL data
 const COMPRESSED_GRAMMAR_PARAM: string = "grammarlz";
 const GRAMMAR_PARAM: string = "grammar";
 const COMPRESSED_EXPAND_PARAM: string = "expandlz";
 const EXPAND_PARAM: string = "expand";
+const START_SYMBOL_PARAM: string = "start";
 
 /**
  * Checks if a word starts with an uppercase letter.
@@ -194,17 +196,22 @@ export function title2Path(title: string): number[] {
  * @param url The URL to add the values to
  * @param grammar The grammar
  * @param expandPath The expand paths
+ * @param startSymbolName The name of the start symbol
  * @returns The URL with the values added
  */
-export function addValuesToUrl(urlHref: string, grammar: string, expandPath: Set<number[]>): URL {
-	// TODO: Add "StartSymbol" as a parameter
+export function addValuesToUrl(urlHref: string, grammar: string, expandPath: Set<number[]>, startSymbolName: string): URL {
 	const newUrl = new URL(urlHref);
 
 	// Drop existing parameters
+	newUrl.searchParams.delete(START_SYMBOL_PARAM);
 	newUrl.searchParams.delete(COMPRESSED_GRAMMAR_PARAM);
 	newUrl.searchParams.delete(GRAMMAR_PARAM);
 	newUrl.searchParams.delete(COMPRESSED_EXPAND_PARAM);
 	newUrl.searchParams.delete(EXPAND_PARAM);
+
+	if (startSymbolName.trim() !== "") {
+		newUrl.searchParams.set(START_SYMBOL_PARAM, startSymbolName);
+	}
 
 	if (grammar.trim() !== "") {
 		if (grammar.length > COMPRESSION_THRESHOLD) {
@@ -240,11 +247,13 @@ export function addValuesToUrl(urlHref: string, grammar: string, expandPath: Set
  * @param searchParams The search parameters of the URL
  * @returns The grammar and expand paths
  */
-export function getValuesFromUrl(searchParams: string): [string, Set<number[]>] {
+export function getValuesFromUrl(searchParams: string): [string, Set<number[]>, string] {
 	// TODO: Get "StartSymbol" from parameter
 	const urlSearchparams = new URLSearchParams(searchParams);
 	let grammar: string = "";
 	let expandPaths: Set<number[]> = new Set();
+
+	const startSymbolName = urlSearchparams.get(START_SYMBOL_PARAM) || "";
 
 	// Grammar
 	const compressedGrammar = urlSearchparams.get(COMPRESSED_GRAMMAR_PARAM);
@@ -285,7 +294,7 @@ export function getValuesFromUrl(searchParams: string): [string, Set<number[]>] 
 		expandPaths = new Set(expandPathString.split("|").map(path => path.split("-").map(Number)));
 	}
 
-	return [grammar, expandPaths];
+	return [grammar, expandPaths, startSymbolName];
 }
 
 /**

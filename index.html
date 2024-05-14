@@ -15,7 +15,6 @@
       import { Diagram } from "./out/Diagram.js";
       import { asyncString2Diagram, asyncGrammar2Diagram, asyncString2Grammar, asyncCss2String, base64ToBase64Url, getNonAsciiChars, title2Path, addValuesToUrl, filterInvalidPaths, exportSvg, exportPng } from "./out/ChooChoo.js";
       let timeoutId;
-      let currentStartSymbolName = "";
 
       window.resetPathCleanupTimer = function() {
         clearTimeout(timeoutId);
@@ -172,7 +171,7 @@
       window.handleStartSymbolSelection = function() {
         const startSymbolSelect = document.querySelector("#start-symbol");
         const startSymbol = startSymbolSelect.value;
-        if (startSymbol === currentStartSymbolName) {
+        if (startSymbol === window.currentStartSymbolName) {
           return;
         }
         window.currentStartSymbolName = startSymbol;
@@ -197,6 +196,8 @@
         }
         const firstSymbol = startSymbols[0];
         startSymbols.sort();
+
+        startSymbols = startSymbols.sort();
 
         // Check if the list is up-to-date (length and item wise)
         if (startSymbolSelect.options.length === startSymbols.length) {
@@ -223,9 +224,9 @@
         startSymbolDropDown.style.display = "block";
 
         // Check if current start symbol is in the list
-        if (startSymbols.includes(currentStartSymbolName)) {
+        if (startSymbols.includes(window.currentStartSymbolName)) {
           // Keep the current start symbol
-          startSymbolSelect.value = currentStartSymbolName;
+          startSymbolSelect.value = window.currentStartSymbolName;
         } else {
           // Use the first start symbol as fallback
           window.currentStartSymbolName = firstSymbol;
@@ -242,7 +243,7 @@
         if (ebnfGrammarValue.trim() === "") return;
         console.debug("Expanding all non-erminals");		
         // Replace currently "toExtend" with all IDs that are expandable
-        asyncString2Diagram(ebnfGrammarValue, currentStartSymbolName).then((diagram) => {
+        asyncString2Diagram(ebnfGrammarValue, window.currentStartSymbolName).then((diagram) => {
           window.toExtend = diagram.getAllNtsPaths();
           window.generateDiagram();
           updateURL();
@@ -254,7 +255,7 @@
       window.updateURL = function() {
         const grammar = document.querySelector("textarea[name=ebnf_grammar]").value;
         // Replace URL
-        window.history.replaceState({}, "", addValuesToUrl(window.location.href, grammar, window.toExtend));
+        window.history.replaceState({}, "", addValuesToUrl(window.location.href, grammar, window.toExtend, currentStartSymbolName));
       }
 
       // Update the viewBox size of the SVG
@@ -307,14 +308,16 @@
       document.addEventListener("DOMContentLoaded", function() {
         console.info("Retrieving data from URL parameters…");
         // Try to get grammar from URL
-        const [ grammar, urlExpand ] = getValuesFromUrl(window.location.search);
+        const [ grammar, urlExpand, startSymbolName ] = getValuesFromUrl(window.location.search);
 
         // Update grammar and expand numbers
         document.querySelector("textarea[name=ebnf_grammar]").value = grammar;
         window.toExtend = urlExpand;
+        window.currentStartSymbolName = startSymbolName;
 
-        if (grammar !== "" || urlExpand.size > 0) {
-          // Generate diagram when something is in the URL
+        if (grammar !== "") {
+          /* Try to generate when grammar is not empty. 
+          The other two values do not make sense to generate a diagram, if the grammar is empty. */
           window.generateDiagram();
         }
       });
