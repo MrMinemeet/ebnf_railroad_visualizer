@@ -15,13 +15,13 @@
       import { Diagram } from "./out/Diagram.js";
       import { asyncGrammar2Diagram, asyncGenerateGrammar, asyncCssToString, base64ToBase64Url, getNonAsciiChars, titleToPath, addValuesToUrl, filterInvalidPaths, exportSvg, exportPng } from "./out/ChooChoo.js";
       let timeoutId;
-      let currentStartSymbol = "";
+      let currentStartSymbolName = "";
 
       window.resetPathCleanupTimer = function() {
         clearTimeout(timeoutId);
         timeoutId = setTimeout(() => {
           const prevSize = window.toExtend.size;
-				  const ebnfGrammarValue = document.querySelector("textarea[name=ebnf_grammar]").value;
+          const ebnfGrammarValue = document.querySelector("textarea[name=ebnf_grammar]").value;
           window.toExtend = filterInvalidPaths(ebnfGrammarValue, window.toExtend);
           if (prevSize !== window.toExtend.size) {
             console.debug(`Cleaned up ${prevSize - window.toExtend.size} paths`)
@@ -33,17 +33,18 @@
         }, 5000);
       }
 
-			window.generateDiagram = function() {
+      window.generateDiagram = function() {
         const error_message_container = document.getElementById("error_message");
         const diagram_container = document.getElementById("visualized-ebnf");
-				const ebnfGrammarValue = document.querySelector("textarea[name=ebnf_grammar]").value;
+        const ebnfGrammarValue = document.querySelector("textarea[name=ebnf_grammar]").value;
 
-				if (ebnfGrammarValue.trim() === "") {
-					console.debug("Nothing was entered into the textarea.")
+        if (ebnfGrammarValue.trim() === "") {
+          console.debug("Nothing was entered into the textarea.")
           diagram_container.style.display = "none";
-					return;
-				}
-        let nonAscii = getNonAsciiChars(ebnfGrammarValue);
+          return;
+        }
+
+        const nonAscii = getNonAsciiChars(ebnfGrammarValue);
         if (nonAscii.size > 0) {
           console.warn("The following non-ASCII characters were detected in the grammar: ", nonAscii);
           error_message_container.innerHTML = `<p>Non-ASCII character(s) detected: ${Array.from(nonAscii).join(", ")}</p>`;
@@ -53,16 +54,15 @@
         }
 
         asyncGenerateGrammar(ebnfGrammarValue).then((grammar) => {
-            // Get all nts start symbols
-            const startSymbols = grammar.getStartSymbols();
-            window.setStartSymbols(startSymbols);
+          // Get all nts start symbols
+          const startSymbols = grammar.getStartSymbols();
+          window.setStartSymbols(startSymbols);
 
 
           return asyncGrammar2Diagram(grammar);
-        }).then((diagram) =>
-				{
-					// Insert the diagram into the HTML
-					diagram_container.innerHTML = diagram.toSvg(Array.from(window.toExtend));
+        }).then((diagram) => {
+          // Insert the diagram into the HTML
+          diagram_container.innerHTML = diagram.toSvg(Array.from(window.toExtend));
           const diagSvg = document.getElementsByClassName("railroad-diagram")[0];
           diagSvg.removeAttribute("width");
           diagSvg.removeAttribute("height");
@@ -71,13 +71,10 @@
 
           // Get the SVG element that D3-zoom should be applied to
           const svg = d3.select(".railroad-diagram");
-
           // Get current childs of svg
           const children = Array.from(svg.node().children);
-
           // Add g node to the SVG
           const g = svg.append("g");
-
           // Move all children to the g node
           children.forEach((child) => {
             g.node().appendChild(child);
@@ -130,7 +127,7 @@
           // Hide the error message container
           error_message_container.style.display = "none";
           diagram_container.style.display = "block";
-				}).catch(e => {
+        }).catch(e => {
           const PRODUCTION_NOT_FOUND_REGEX = /^Production '([^']*)' not found$/
 
           console.warn(`An error occurred while generating the diagram: ${e}`)
@@ -149,47 +146,51 @@
             diagram_container.style.display = "none";
           }
         });
-			}
+      }
 
-			/**
-			 * Handle the generation of a diagram from the entered grammar.
-			 */
-			window.handleGenerateDiagram = function() {
-				generateDiagram();
+      /**
+       * Handle the generation of a diagram from the entered grammar.
+       */
+      window.handleGenerateDiagram = function() {
+        generateDiagram();
         updateURL();
         resetPathCleanupTimer();
-			}
+      }
 
-			/**
-			 * Handle the click event of the "Collapse All" button.
-			 */
-			window.onCollapseAll = function() {
-				console.debug("Collapsing all non-terminals");
-				// Remove all non-terminals to extend
-				window.toExtend.clear();
-				// Generate the diagram again
-				generateDiagram();
+      /**
+       * Handle the click event of the "Collapse All" button.
+       */
+      window.onCollapseAll = function() {
+        console.debug("Collapsing all non-terminals");
+        // Remove all non-terminals to extend
+        window.toExtend.clear();
+        // Generate the diagram again
+        generateDiagram();
         updateURL();
-			}
+      }
+      
+      /**
+       * Set the start symbols in the dropdown.
+       * @param {Array<string>} startSymbols The start symbols to set.
+       */
+      window.setStartSymbols = function(startSymbols) {
+        const startSymbolDropDown = document.querySelector(".start-symbol-drop-down");
+        const startSymbolSelect = document.querySelector("#start-symbol");
+        if (startSymbols.length === 0) {
+          const startSymbolDropDown = document.querySelector(".start-symbol-drop-down");
+          startSymbolDropDown.style.display = "none";
+          return;
+        }
 
-            window.setStartSymbols = function(startSymbols) {
-                const startSymbolDropDown = document.querySelector(".start-symbol-drop-down");
-                const startSymbolSelect = document.querySelector("#start-symbol");
-                if (startSymbols.length === 0) {
-                  const startSymbolDropDown = document.querySelector(".start-symbol-drop-down");
-                  startSymbolDropDown.style.display = "none";
-                  return;
-                }
-
-                startSymbolSelect.innerHTML = "";
-                startSymbols.forEach((startSymbol) => {
-                    const option = document.createElement("option");
-                    option.value = startSymbol;
-                    option.text = startSymbol;
-                    startSymbolSelect.appendChild(option);
-                });
-                startSymbolDropDown.style.display = "block";
-            }
+        startSymbolSelect.innerHTML = "";
+        startSymbols.forEach((startSymbol) => {
+          const option = document.createElement("option");
+          option.value = startSymbol;
+          option.text = startSymbol;
+          startSymbolSelect.appendChild(option);
+        });
+        startSymbolDropDown.style.display = "block";
+      }
 
       /**
        * Handle the click event of the "Expand All" button.
