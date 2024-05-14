@@ -53,7 +53,7 @@ export function isQuote(char: string): boolean {
 * @returns {Promise<Diagram>} - The generated diagram.
 * @throws {Error} - If the diagram could not be generated or took longer than the timeout.
 */
-export async function asyncGenerateDiagram(grammar: string): Promise<Diagram> {
+export async function asyncString2Diagram(grammar: string): Promise<Diagram> {
 	console.debug("Generating diagram…");
 	return new Promise((resolve, reject) => {
 	   // Timeout to prevent blocking the UI or freezing the browser
@@ -64,10 +64,32 @@ export async function asyncGenerateDiagram(grammar: string): Promise<Diagram> {
 
 	   	try {
 			// Generate the diagram
-			const d = Diagram.fromString(grammar);
+			const diagram = Diagram.fromString(grammar);
 			console.debug("Diagram generated successfully.");
 			clearTimeout(timeoutID);
-			resolve(d);
+			resolve(diagram);
+	   	} catch (e) {
+			clearTimeout(timeoutID);
+			reject(e);
+	   	}
+	});
+}
+
+export async function asyncGrammar2Diagram(grammar: Grammar): Promise<Diagram> {
+	console.debug("Generating diagram…");
+	return new Promise((resolve, reject) => {
+	   // Timeout to prevent blocking the UI or freezing the browser
+	   	const timeoutID = setTimeout(() => {
+			console.debug("Generation Timeout");
+			reject();
+	   	}, GENERATION_TIMEOUT);
+
+	   	try {
+			// Generate the diagram
+			const diagram = Diagram.fromGrammar(grammar);
+			console.debug("Diagram generated successfully.");
+			clearTimeout(timeoutID);
+			resolve(diagram);
 	   	} catch (e) {
 			clearTimeout(timeoutID);
 			reject(e);
@@ -302,7 +324,7 @@ function getSvg(toExpand: Set<number[]>): Promise<string> {
 		}
 
 		// Generate new diagram to get clean SVG
-		asyncGenerateDiagram(ebnfGrammarValue)
+		asyncString2Diagram(ebnfGrammarValue)
 		.then((diagram) => {
 			let svgHtml = diagram.toSvg(toExpand);
 

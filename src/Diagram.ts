@@ -41,6 +41,15 @@ export class Diagram {
 	}
 
 	/**
+	 * Generate a diagram from a grammar
+	 * @param grammar The grammar
+	 * @returns {Diagram} The diagram
+	 */
+	static fromGrammar(grammar: Grammar): Diagram {
+		return new Diagram(grammar);
+	}
+
+	/**
 	 * Generate a diagram from a production
 	 * @returns {any} The diagram
 	 */
