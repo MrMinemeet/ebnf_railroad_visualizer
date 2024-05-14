@@ -48,34 +48,30 @@ export function isQuote(char: string): boolean {
 }
 
 /**
-* Asynchronously generate a diagram from a given grammar.
+* Asynchronously generate a diagram from a given grammar string.
 * @param {string} grammar - The grammar to generate a diagram from.
+* @param {string} startSymbolName - The name of the start symbol. If not provided the first production is used.
 * @returns {Promise<Diagram>} - The generated diagram.
 * @throws {Error} - If the diagram could not be generated or took longer than the timeout.
 */
-export async function asyncString2Diagram(grammar: string): Promise<Diagram> {
+export async function asyncString2Diagram(grammar: string, startSymbolName?: string): Promise<Diagram> {
 	console.debug("Generating diagram…");
 	return new Promise((resolve, reject) => {
 	   // Timeout to prevent blocking the UI or freezing the browser
-	   	const timeoutID = setTimeout(() => {
-			console.debug("Generation Timeout");
-			reject();
-	   	}, GENERATION_TIMEOUT);
-
-	   	try {
-			// Generate the diagram
-			const diagram = Diagram.fromString(grammar);
-			console.debug("Diagram generated successfully.");
-			clearTimeout(timeoutID);
-			resolve(diagram);
-	   	} catch (e) {
-			clearTimeout(timeoutID);
-			reject(e);
-	   	}
+	   asyncString2Grammar(grammar).then((grammar: Grammar) => {
+			resolve(asyncGrammar2Diagram(grammar, startSymbolName));
+	   }).catch(reject);
 	});
 }
 
-export async function asyncGrammar2Diagram(grammar: Grammar): Promise<Diagram> {
+/**
+ * Asynchronously generate a diagram from a given grammar.
+ * @param {Grammar} grammar - The grammar to generate a diagram from.
+ * @param {string} startSymbolName - The name of the start symbol. If not provided the first production is used.
+ * @param {string} startSymbolName - The name of the start symbol. If not provided the first production is used. 
+ * @returns {Promise<Diagram>} - The generated diagram.
+ */
+export async function asyncGrammar2Diagram(grammar: Grammar, startSymbolName?: string): Promise<Diagram> {
 	console.debug("Generating diagram…");
 	return new Promise((resolve, reject) => {
 	   // Timeout to prevent blocking the UI or freezing the browser
@@ -86,7 +82,7 @@ export async function asyncGrammar2Diagram(grammar: Grammar): Promise<Diagram> {
 
 	   	try {
 			// Generate the diagram
-			const diagram = Diagram.fromGrammar(grammar);
+			const diagram = Diagram.fromGrammar(grammar, startSymbolName);
 			console.debug("Diagram generated successfully.");
 			clearTimeout(timeoutID);
 			resolve(diagram);
@@ -102,7 +98,7 @@ export async function asyncGrammar2Diagram(grammar: Grammar): Promise<Diagram> {
  * @param {string} grammar - The grammar string to generate from
  * @returns {Promise<Diagram>} - The generated grammar
  */
-export async function asyncGenerateGrammar(grammar: string): Promise<Grammar> {
+export async function asyncString2Grammar(grammar: string): Promise<Grammar> {
 	console.debug("Scanning/Parsing grammar");
 	return new Promise((resolve, reject) => {
 		// Timeout to prevent blocking the UI or freezing the browser
@@ -129,7 +125,7 @@ export async function asyncGenerateGrammar(grammar: string): Promise<Grammar> {
  * @param styleSheet The CSSStyleSheet to convert.
  * @returns A promise that resolves to the CSSStyleSheet as a string.
  */
-export async function asyncCssToString(styleSheet: CSSStyleSheet): Promise<string> {
+export async function asyncCss2String(styleSheet: CSSStyleSheet): Promise<string> {
 	return new Promise((resolve, reject) => {
 		try {
 			resolve(Array.from(styleSheet.cssRules)
@@ -187,7 +183,7 @@ export function getNonAsciiChars(str: string, extended: boolean = false): Set<st
  * @param title The title string to convert
  * @returns The path as an array of numbers
  */
-export function titleToPath(title: string): number[] {
+export function title2Path(title: string): number[] {
 	return title.split('-').map(Number);
 }
 
@@ -343,7 +339,7 @@ function getSvg(toExpand: Set<number[]>): Promise<string> {
 			//  Get the style of the diagram (./css/railroad.css)
 			const styleSheet = document.styleSheets[0];
 
-			asyncCssToString(styleSheet).then((cssString) => {
+			asyncCss2String(styleSheet).then((cssString) => {
 				// Add the CSS to the SVG as a style element
 				svgHtml = svgHtml.replace("</defs>", `<style>${cssString}</style></defs>`);
 

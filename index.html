@@ -13,7 +13,7 @@
     <script type="module">
       import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
       import { Diagram } from "./out/Diagram.js";
-      import { asyncGrammar2Diagram, asyncGenerateGrammar, asyncCssToString, base64ToBase64Url, getNonAsciiChars, titleToPath, addValuesToUrl, filterInvalidPaths, exportSvg, exportPng } from "./out/ChooChoo.js";
+      import { asyncString2Diagram, asyncGrammar2Diagram, asyncString2Grammar, asyncCss2String, base64ToBase64Url, getNonAsciiChars, title2Path, addValuesToUrl, filterInvalidPaths, exportSvg, exportPng } from "./out/ChooChoo.js";
       let timeoutId;
       let currentStartSymbolName = "";
 
@@ -25,7 +25,7 @@
           window.toExtend = filterInvalidPaths(ebnfGrammarValue, window.toExtend);
           if (prevSize !== window.toExtend.size) {
             console.debug(`Cleaned up ${prevSize - window.toExtend.size} paths`)
-            generateDiagram();
+            window.generateDiagram();
             updateURL();
           } else {
             console.debug("No paths to clean up")
@@ -53,13 +53,10 @@
           return;
         }
 
-        asyncGenerateGrammar(ebnfGrammarValue).then((grammar) => {
+        asyncString2Grammar(ebnfGrammarValue).then((grammar) => {
           // Get all nts start symbols
-          const startSymbols = grammar.getStartSymbols();
-          window.setStartSymbols(startSymbols);
-
-
-          return asyncGrammar2Diagram(grammar);
+          window.setStartSymbols(grammar.getStartSymbols());
+          return asyncGrammar2Diagram(grammar, currentStartSymbolName);
         }).then((diagram) => {
           // Insert the diagram into the HTML
           diagram_container.innerHTML = diagram.toSvg(Array.from(window.toExtend));
@@ -96,11 +93,11 @@
               const pathTitle = title.textContent.trim();
 
               // Add the ID to the set of non-terminals to extend
-              toExtend.add(titleToPath(pathTitle));
+              toExtend.add(title2Path(pathTitle));
               console.debug(`Expanding NTS on path '${pathTitle}'`);
 
               // Generate the diagram again
-              generateDiagram();
+              window.generateDiagram();
               updateURL();
             });
           });
@@ -198,6 +195,8 @@
           startSymbolDropDown.style.display = "none";
           return;
         }
+        const firstSymbol = startSymbols[0];
+        startSymbols.sort();
 
         // Check if the list is up-to-date (length and item wise)
         if (startSymbolSelect.options.length === startSymbols.length) {
@@ -229,8 +228,9 @@
           startSymbolSelect.value = currentStartSymbolName;
         } else {
           // Use the first start symbol as fallback
-          currentStartSymbolName = startSymbols[0];
-          startSymbolSelect.value = startSymbols[0];
+          window.currentStartSymbolName = firstSymbol;
+          startSymbolSelect.value = firstSymbol;
+          updateURL();
         }
       }
 
@@ -242,10 +242,9 @@
         if (ebnfGrammarValue.trim() === "") return;
         console.debug("Expanding all non-erminals");		
         // Replace currently "toExtend" with all IDs that are expandable
-        asyncGenerateGrammar(ebnfGrammarValue).then((g) => {
-          const diag = new Diagram(g);
-          window.toExtend = diag.getAllNtsPaths();
-          generateDiagram();
+        asyncString2Diagram(ebnfGrammarValue, currentStartSymbolName).then((diagram) => {
+          window.toExtend = diagram.getAllNtsPaths();
+          window.generateDiagram();
           updateURL();
         }).catch((e) =>  console.warn(e));
         // Generate the diagram again

@@ -17,36 +17,42 @@ export class Diagram {
 	// Don't expand NTS deeper than this value.
 	// DON'T INCREASE THIS VALUE! IT WILL BREAK THE DIAGRAM GENERATION AND YOUR BROWSER!
 	// TODO: This is a workarround for now. The recursive detection is not yet implemented.
-	private readonly MAX_EXPANSION_DEPTH: number = 30;
+	private static readonly MAX_EXPANSION_DEPTH: number = 30;
 
 	private readonly grammar: Grammar;
 	private readonly pathStack: number[]; // Tracks the current path based on the sym.ids. E.g. [1, 3, 2] references the path from Sym with id 1 to sym with id 2 over sym with id 3
 	private expandingNtsPaths: number[][]; // Holds the paths for all NTS that should be expanded
 	private collectPaths: boolean;
 
-	private constructor(grammar: Grammar) {
+	private startSymbolName: string; // The name of the start symbol for the creation of the diagram
+
+	private constructor(grammar: Grammar, startSymbolName: string) {
 		this.grammar = grammar;
 		this.pathStack = [];
 		this.expandingNtsPaths = [];
 		this.collectPaths = false;
+		this.startSymbolName = startSymbolName;
 	}
 
 	/**
 	 * Generate a diagram from a grammar
-	 * @param grammarString The grammar as a string
+	 * @param {string} grammarString The grammar as a string
+	 * @param {string?} startSymbolName The name of the start symbol. If not provided the first production is used
 	 * @returns	{Diagram} The diagram
 	 */
-	static fromString(grammarString: string): Diagram {
-		return new Diagram(Grammar.fromString(grammarString));
+	static fromString(grammarString: string, startSymbolName?: string): Diagram {
+		return this.fromGrammar(Grammar.fromString(grammarString), startSymbolName);
 	}
 
 	/**
 	 * Generate a diagram from a grammar
-	 * @param grammar The grammar
+	 * @param {Grammar} grammar The grammar
+	 * @param {string?} startSymbolName The name of the start symbol. If not provided the first production is used
+	 * @param startSymbolName The name of the start symbol. If not provided the first production is used
 	 * @returns {Diagram} The diagram
 	 */
-	static fromGrammar(grammar: Grammar): Diagram {
-		return new Diagram(grammar);
+	static fromGrammar(grammar: Grammar, startSymbolName?: string): Diagram {
+		return new Diagram(grammar, startSymbolName || "");
 	}
 
 	/**
@@ -54,7 +60,11 @@ export class Diagram {
 	 * @returns {any} The diagram
 	 */
 	private generateDiagram(): any {
-		const firstProd = this.grammar.syntax.productions[0];
+		// Get the use the specified start symbol or the first production as a fallback
+		const  firstProd = (this.startSymbolName.length > 0) ? 
+			this.getProductionFromName(this.startSymbolName) : 
+			this.grammar.syntax.productions[0];
+
 		const diagram = rr.Diagram(this.generateFrom(firstProd));
 		return diagram;
 	}
@@ -146,7 +156,7 @@ export class Diagram {
 					const identPath = this.pathStack.join("-");
 
 					// Expand in in expandingNtsPaths or if the depth is reached
-					if ((this.pathStack.length < this.MAX_EXPANSION_DEPTH) &&
+					if ((this.pathStack.length < Diagram.MAX_EXPANSION_DEPTH) &&
 						this.expandingNtsPaths
 							.some(path => path.join("-") === identPath )) {
 						// Expand NTS
@@ -174,7 +184,7 @@ export class Diagram {
 
 	/**
 	 * Get a production from its name
-	 * @param name The name of the production
+	 * @param {String} name The name of the production
 	 * @returns {Production} The production corresponding to the name
 	 * */
 	private getProductionFromName(name: string): Production {
@@ -188,7 +198,7 @@ export class Diagram {
 
 	/**
 	 * A diagram in SVG format
-	 * @param expandingNtsPaths The paths of the NTS that should be expanded
+	 * @param {Set<number[]>} expandingNtsPaths The paths of the NTS that should be expanded
 	 * @returns {string} The diagram in SVG format
 	 */
 	toSvg(expandingNtsPaths: Set<number[]> = new Set()): string {
@@ -198,7 +208,8 @@ export class Diagram {
 
 	/**
 	 * Inject markers into the SVG
-	 * @param svg The SVG string with injected markers
+	 * @param {string} svg The SVG string with injected markers
+	 * @returns {string} The SVG string with injected markers
 	 */
 	private injectMarkers(svg: string): string {
 		// Create marker
