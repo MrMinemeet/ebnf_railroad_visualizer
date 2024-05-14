@@ -199,6 +199,21 @@
           return;
         }
 
+        // Check if the list is up-to-date (length and item wise)
+        if (startSymbolSelect.options.length === startSymbols.length) {
+          let allMatch = true;
+          for (let i = 0; i < startSymbols.length; i++) {
+            if (startSymbolSelect.options[i].value !== startSymbols[i]) {
+              allMatch = false;
+              break;
+            }
+          }
+          if (allMatch) {
+            return;
+          }
+        }
+
+        console.debug("Updating start symbols in dropdown.")
         startSymbolSelect.innerHTML = "";
         startSymbols.forEach((startSymbol) => {
           const option = document.createElement("option");
@@ -207,6 +222,16 @@
           startSymbolSelect.appendChild(option);
         });
         startSymbolDropDown.style.display = "block";
+
+        // Check if current start symbol is in the list
+        if (startSymbols.includes(currentStartSymbolName)) {
+          // Keep the current start symbol
+          startSymbolSelect.value = currentStartSymbolName;
+        } else {
+          // Use the first start symbol as fallback
+          currentStartSymbolName = startSymbols[0];
+          startSymbolSelect.value = startSymbols[0];
+        }
       }
 
       /**
@@ -260,7 +285,7 @@
         <h2>Railroad Diagram</h2>
         <div class="start-symbol-drop-down" style="display: none;">
           <label for="start-symbol">Start symbol:</label>
-          <select name="start-symbol" id="start-symbol" onchange="handleGenerateDiagram()">
+          <select name="start-symbol" id="start-symbol" onchange="handleStartSymbolSelection()">
             <!-- Start symbols will be inserted here -->
           </select>
         </div>
