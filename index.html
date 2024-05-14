@@ -59,30 +59,7 @@
         }).then((diagram) => {
           // Insert the diagram into the HTML
           diagram_container.innerHTML = diagram.toSvg(Array.from(window.toExtend));
-          const diagSvg = document.getElementsByClassName("railroad-diagram")[0];
-          diagSvg.removeAttribute("width");
-          diagSvg.removeAttribute("height");
-          
-          updateSvgViewBoxSize();
-
-          // Get the SVG element that D3-zoom should be applied to
-          const svg = d3.select(".railroad-diagram");
-          // Get current childs of svg
-          const children = Array.from(svg.node().children);
-          // Add g node to the SVG
-          const g = svg.append("g");
-          // Move all children to the g node
-          children.forEach((child) => {
-            g.node().appendChild(child);
-          });
-
-          svg.call(d3.zoom()
-            .scaleExtent([0.1, 8])
-            .on("zoom", zoomed));
-
-          function zoomed({transform}) {
-            g.attr("transform", transform);
-          }
+          window.injectD3();
 
           // Add a click event listener to the NTS to extend
           document.querySelectorAll(".non-terminal").forEach((element) => {
@@ -98,6 +75,9 @@
               // Generate the diagram again
               window.generateDiagram();
               updateURL();
+
+              // Center the clicked element
+              window.focusElementSVG(event.currentTarget);
             });
           });
 
@@ -238,7 +218,7 @@
       /**
        * Handle the click event of the "Expand All" button.
        */
-      window.onExpandAll = function() {		
+      window.onExpandAll = function() {
         const ebnfGrammarValue = document.querySelector("textarea[name=ebnf_grammar]").value;
         if (ebnfGrammarValue.trim() === "") return;
         console.debug("Expanding all non-erminals");		
@@ -258,15 +238,61 @@
         window.history.replaceState({}, "", addValuesToUrl(window.location.href, grammar, window.toExtend, currentStartSymbolName));
       }
 
+      window.focusElementSVG = function(elementToFocus) {
+        if (!elementToFocus) {
+          console.warn("No element to focus on was passed");
+        }
+        const svg = d3.select(".railroad-diagram")
+        const innerG = svg.selectChild("g");
+        const bbox = elementToFocus.getBBox();
+        const currentTransform = d3.zoomTransform(svg);
+        
+        const viewBox = svg.attr("viewBox").split(" ");
+        // Calculat center of element in SVG
+        const centerX = parseInt(viewBox[2]) / 2 - (bbox.x + bbox.width / 2);
+        const centerY = parseInt(viewBox[3]) / 2 - (bbox.y + bbox.height / 2);
+        console.debug(`Centering element at x: ${centerX}, y: ${centerY}`)
+        // FIXME: This gets reset at the moment. Likely the 3D-zoom not working nicely with my shit-code
+        innerG.attr("transform", `translate(${centerX}, ${centerY}) scale(${currentTransform.k})`);
+        debugger;
+      }
+
+      // Inject D3 into the SVG
+      window.injectD3 = function() {
+          const diagramSvg = document.getElementsByClassName("railroad-diagram")[0];
+          diagramSvg.removeAttribute("width");
+          diagramSvg.removeAttribute("height");
+          window.updateSvgViewBoxSize();
+
+          // Get the SVG element that D3-zoom should be applied to
+          const svg = d3.select(".railroad-diagram");
+          // Get current childs of svg
+          const children = Array.from(svg.node().children);
+          // Add g node to the SVG
+          const g = svg.append("g");
+          // Move all children to the g node
+          children.forEach((child) => {
+            g.node().appendChild(child);
+          });
+
+          svg.call(d3.zoom()
+            .scaleExtent([0.1, 8])
+            .on("zoom", zoomed));
+
+          function zoomed({transform}) {
+            g.attr("transform", transform);
+          }
+      }
+
       // Update the viewBox size of the SVG
-      function updateSvgViewBoxSize() {
+      window.updateSvgViewBoxSize = function() {
           const diagSvg = document.getElementsByClassName("railroad-diagram")[0];
           diagSvg.setAttribute("viewBox", `0 0 ${diagSvg.parentElement.offsetWidth} ${window.innerHeight}`);
       }
 
       window.exportSVG = exportSvg;
       window.exportPNG = exportPng;
-      window.addEventListener("resize", updateSvgViewBoxSize);
+      window.addEventListener("resize", window.updateSvgViewBoxSize);
     </script>
 
     <div class="flex-container">
