@@ -30,4 +30,16 @@ export class Grammar {
 	toString(): string {
 		return this.syntax.toString();
 	}
+
+	/**
+	 * Returns the potential start identifiers of the grammar.
+	 * @returns The names of the start symbols.
+	 */
+	getStartSymbols(): string[] {
+		const startSymbols: string[] = [];
+		for (const prod of this.syntax.productions) {
+			startSymbols.push(prod.ident.toString());
+		}
+		return startSymbols;
+	}
 }

@@ -20,10 +20,12 @@ const GENERATION_TIMEOUT: number = 100;
 const COMPRESSION_THRESHOLD: number = 100;
 const PNG_EXPORT_SCALE_FACTOR: number = 4;
 
+// parameter names for URL data
 const COMPRESSED_GRAMMAR_PARAM: string = "grammarlz";
 const GRAMMAR_PARAM: string = "grammar";
 const COMPRESSED_EXPAND_PARAM: string = "expandlz";
 const EXPAND_PARAM: string = "expand";
+const START_SYMBOL_PARAM: string = "start";
 
 /**
  * Checks if a word starts with an uppercase letter.
@@ -48,12 +50,30 @@ export function isQuote(char: string): boolean {
 }
 
 /**
-* Asynchronously generate a diagram from a given grammar.
+* Asynchronously generate a diagram from a given grammar string.
 * @param {string} grammar - The grammar to generate a diagram from.
+* @param {string} startSymbolName - The name of the start symbol. If not provided the first production is used.
 * @returns {Promise<Diagram>} - The generated diagram.
 * @throws {Error} - If the diagram could not be generated or took longer than the timeout.
 */
-export async function asyncGenerateDiagram(grammar: string): Promise<Diagram> {
+export async function asyncString2Diagram(grammar: string, startSymbolName?: string): Promise<Diagram> {
+	console.debug("Generating diagram…");
+	return new Promise((resolve, reject) => {
+	   // Timeout to prevent blocking the UI or freezing the browser
+	   asyncString2Grammar(grammar).then((grammar: Grammar) => {
+			resolve(asyncGrammar2Diagram(grammar, startSymbolName));
+	   }).catch(reject);
+	});
+}
+
+/**
+ * Asynchronously generate a diagram from a given grammar.
+ * @param {Grammar} grammar - The grammar to generate a diagram from.
+ * @param {string} startSymbolName - The name of the start symbol. If not provided the first production is used.
+ * @param {string} startSymbolName - The name of the start symbol. If not provided the first production is used. 
+ * @returns {Promise<Diagram>} - The generated diagram.
+ */
+export async function asyncGrammar2Diagram(grammar: Grammar, startSymbolName?: string): Promise<Diagram> {
 	console.debug("Generating diagram…");
 	return new Promise((resolve, reject) => {
 	   // Timeout to prevent blocking the UI or freezing the browser
@@ -64,10 +84,10 @@ export async function asyncGenerateDiagram(grammar: string): Promise<Diagram> {
 
 	   	try {
 			// Generate the diagram
-			const d = Diagram.fromString(grammar);
+			const diagram = Diagram.fromGrammar(grammar, startSymbolName);
 			console.debug("Diagram generated successfully.");
 			clearTimeout(timeoutID);
-			resolve(d);
+			resolve(diagram);
 	   	} catch (e) {
 			clearTimeout(timeoutID);
 			reject(e);
@@ -80,7 +100,7 @@ export async function asyncGenerateDiagram(grammar: string): Promise<Diagram> {
  * @param {string} grammar - The grammar string to generate from
  * @returns {Promise<Diagram>} - The generated grammar
  */
-export async function asyncGenerateGrammar(grammar: string): Promise<Grammar> {
+export async function asyncString2Grammar(grammar: string): Promise<Grammar> {
 	console.debug("Scanning/Parsing grammar");
 	return new Promise((resolve, reject) => {
 		// Timeout to prevent blocking the UI or freezing the browser
@@ -107,7 +127,7 @@ export async function asyncGenerateGrammar(grammar: string): Promise<Grammar> {
  * @param styleSheet The CSSStyleSheet to convert.
  * @returns A promise that resolves to the CSSStyleSheet as a string.
  */
-export async function asyncCssToString(styleSheet: CSSStyleSheet): Promise<string> {
+export async function asyncCss2String(styleSheet: CSSStyleSheet): Promise<string> {
 	return new Promise((resolve, reject) => {
 		try {
 			resolve(Array.from(styleSheet.cssRules)
@@ -165,7 +185,7 @@ export function getNonAsciiChars(str: string, extended: boolean = false): Set<st
  * @param title The title string to convert
  * @returns The path as an array of numbers
  */
-export function titleToPath(title: string): number[] {
+export function title2Path(title: string): number[] {
 	return title.split('-').map(Number);
 }
 
@@ -176,16 +196,22 @@ export function titleToPath(title: string): number[] {
  * @param url The URL to add the values to
  * @param grammar The grammar
  * @param expandPath The expand paths
+ * @param startSymbolName The name of the start symbol
  * @returns The URL with the values added
  */
-export function addValuesToUrl(urlHref: string, grammar: string, expandPath: Set<number[]>): URL {
+export function addValuesToUrl(urlHref: string, grammar: string, expandPath: Set<number[]>, startSymbolName: string): URL {
 	const newUrl = new URL(urlHref);
 
 	// Drop existing parameters
+	newUrl.searchParams.delete(START_SYMBOL_PARAM);
 	newUrl.searchParams.delete(COMPRESSED_GRAMMAR_PARAM);
 	newUrl.searchParams.delete(GRAMMAR_PARAM);
 	newUrl.searchParams.delete(COMPRESSED_EXPAND_PARAM);
 	newUrl.searchParams.delete(EXPAND_PARAM);
+
+	if (startSymbolName.trim() !== "") {
+		newUrl.searchParams.set(START_SYMBOL_PARAM, startSymbolName);
+	}
 
 	if (grammar.trim() !== "") {
 		if (grammar.length > COMPRESSION_THRESHOLD) {
@@ -221,10 +247,13 @@ export function addValuesToUrl(urlHref: string, grammar: string, expandPath: Set
  * @param searchParams The search parameters of the URL
  * @returns The grammar and expand paths
  */
-export function getValuesFromUrl(searchParams: string): [string, Set<number[]>] {
+export function getValuesFromUrl(searchParams: string): [string, Set<number[]>, string] {
+	// TODO: Get "StartSymbol" from parameter
 	const urlSearchparams = new URLSearchParams(searchParams);
 	let grammar: string = "";
 	let expandPaths: Set<number[]> = new Set();
+
+	const startSymbolName = urlSearchparams.get(START_SYMBOL_PARAM) || "";
 
 	// Grammar
 	const compressedGrammar = urlSearchparams.get(COMPRESSED_GRAMMAR_PARAM);
@@ -265,7 +294,7 @@ export function getValuesFromUrl(searchParams: string): [string, Set<number[]>] 
 		expandPaths = new Set(expandPathString.split("|").map(path => path.split("-").map(Number)));
 	}
 
-	return [grammar, expandPaths];
+	return [grammar, expandPaths, startSymbolName];
 }
 
 /**
@@ -302,7 +331,7 @@ function getSvg(toExpand: Set<number[]>): Promise<string> {
 		}
 
 		// Generate new diagram to get clean SVG
-		asyncGenerateDiagram(ebnfGrammarValue)
+		asyncString2Diagram(ebnfGrammarValue)
 		.then((diagram) => {
 			let svgHtml = diagram.toSvg(toExpand);
 
@@ -319,7 +348,7 @@ function getSvg(toExpand: Set<number[]>): Promise<string> {
 			//  Get the style of the diagram (./css/railroad.css)
 			const styleSheet = document.styleSheets[0];
 
-			asyncCssToString(styleSheet).then((cssString) => {
+			asyncCss2String(styleSheet).then((cssString) => {
 				// Add the CSS to the SVG as a style element
 				svgHtml = svgHtml.replace("</defs>", `<style>${cssString}</style></defs>`);
 
