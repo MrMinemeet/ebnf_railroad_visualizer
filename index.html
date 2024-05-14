@@ -168,6 +168,23 @@
         generateDiagram();
         updateURL();
       }
+
+      /**
+       * Handle the selection of a new start symbol.
+       */
+      window.handleStartSymbolSelection = function() {
+        const startSymbolSelect = document.querySelector("#start-symbol");
+        const startSymbol = startSymbolSelect.value;
+        if (startSymbol === currentStartSymbolName) {
+          return;
+        }
+        window.currentStartSymbolName = startSymbol;
+        // Clear "toExtend" as start symbol changed
+        window.toExtend.clear();
+        console.debug(`Setting start symbol to '${startSymbol}' and creating new diagram.`);
+        generateDiagram();
+        updateURL();
+      }
       
       /**
        * Set the start symbols in the dropdown.

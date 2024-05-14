@@ -201,6 +201,7 @@ export function titleToPath(title: string): number[] {
  * @returns The URL with the values added
  */
 export function addValuesToUrl(urlHref: string, grammar: string, expandPath: Set<number[]>): URL {
+	// TODO: Add "StartSymbol" as a parameter
 	const newUrl = new URL(urlHref);
 
 	// Drop existing parameters
@@ -244,6 +245,7 @@ export function addValuesToUrl(urlHref: string, grammar: string, expandPath: Set
  * @returns The grammar and expand paths
  */
 export function getValuesFromUrl(searchParams: string): [string, Set<number[]>] {
+	// TODO: Get "StartSymbol" from parameter
 	const urlSearchparams = new URLSearchParams(searchParams);
 	let grammar: string = "";
 	let expandPaths: Set<number[]> = new Set();
