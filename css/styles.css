@@ -38,12 +38,12 @@ textarea {
 }
 
 .flex-item {
-  flex-grow: 0;
+  flex: 0;
   margin-left: 10px;
 }
 
 #visualized_ebnf {
-  flex-grow: 1;
+  flex: 1;
 }
 
 .controls {

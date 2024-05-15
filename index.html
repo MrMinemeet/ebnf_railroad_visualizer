@@ -254,8 +254,13 @@
         const svg = d3.select(".railroad-diagram");
         const curTransform = d3.zoomTransform(svg.node());
         // Select "title" element with the path as inner text
-        const bbox = Array.from(svg.node().querySelectorAll(`title`))
-                            .filter((title) => title.innerHTML === focusElementPath)[0].parentNode.getBBox();
+        let parent = Array.from(svg.node().querySelectorAll(`title`))
+                            .filter((title) => title.innerHTML === focusElementPath)[0].parentNode;
+        // If parent is a comment, get the parent of the parent
+        if (parent.tagName === "g" && parent.classList.contains("comment")) {
+          parent = parent.parentNode;
+        }
+        const bbox = parent.getBBox();
         const currentscale = curTransform.k;
 
         // Center of bbox
@@ -268,6 +273,9 @@
           viewBox.width / 2 - bboxCenterX,
           viewBox.height / 2 - bboxCenterY
         );
+
+        console.debug(`Box center: (${bboxCenterX}, ${bboxCenterY})`);
+        console.debug(`New transform: ${newTransform}`);
 
         // Apply transform
         svg.call(zoom.transform, newTransform);
@@ -307,8 +315,13 @@
       // Update the viewBox size of the SVG
       window.updateSvgViewBoxSize = function() {
           const diagSvg = document.getElementsByClassName("railroad-diagram")[0];
+          const flexContainer = document.getElementsByClassName("flex-container")[0].children;
+          const totalHeightNonEbnfElems = Array.from(flexContainer).slice(0, flexContainer.length - 1).reduce((acc, elem) => acc + elem.clientHeight, 0);
+
+          const leftoverHeight = window.innerHeight - totalHeightNonEbnfElems;
+
           // FIXME: The height is messed up. Therefore the centering feature is off on the vertical axis.
-          diagSvg.setAttribute("viewBox", `0 0 ${diagSvg.parentElement.offsetWidth} ${window.innerHeight}`);
+          diagSvg.setAttribute("viewBox", `0 0 ${diagSvg.parentElement.offsetWidth} ${leftoverHeight}`);
       }
 
       window.exportSVG = exportSvg;
