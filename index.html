@@ -16,6 +16,7 @@
       import { asyncString2Diagram, asyncGrammar2Diagram, asyncString2Grammar, asyncCss2String, base64ToBase64Url, getNonAsciiChars, title2Path, addValuesToUrl, filterInvalidPaths, exportSvg, exportPng } from "./out/ChooChoo.js";
       let timeoutId;
       let zoom;
+      let focusElementPath = undefined;
 
       window.resetPathCleanupTimer = function() {
         clearTimeout(timeoutId);
@@ -73,12 +74,12 @@
               toExtend.add(title2Path(pathTitle));
               console.debug(`Expanding NTS on path '${pathTitle}'`);
 
+              // Get "title" child of the clicked element and set the path as the focus element
+              focusElementPath = event.currentTarget.querySelector("title").innerHTML;
+
               // Generate the diagram again
               window.generateDiagram();
               updateURL();
-
-              // Center the clicked element
-              window.focusElementSVG(event);
             });
           });
 
@@ -95,11 +96,17 @@
               // Remove the pathTitle
               window.toExtend = new Set(Array.from(window.toExtend).filter((x) => x.join("-") !== pathTitle));
 
+              // Get "title" child of the clicked element and set the path as the focus element
+              focusElementPath = event.currentTarget.querySelector("title").innerHTML;
+
               // Generate the diagram again
               generateDiagram();
               updateURL();
             });
           });
+
+          // Set the focus to the element
+          window.focusElementSVG();
 
           // Hide the error message container
           error_message_container.style.display = "none";
@@ -233,26 +240,40 @@
       }
 
       // Update URL with grammar and expand numbers
+      // Loosely based on https://stackoverflow.com/a/27993650/8527195
       window.updateURL = function() {
         const grammar = document.querySelector("textarea[name=ebnf_grammar]").value;
         // Replace URL
         window.history.replaceState({}, "", addValuesToUrl(window.location.href, grammar, window.toExtend, currentStartSymbolName));
       }
 
-      window.focusElementSVG = function(event) {
-        // TODO: Add the "click listener" from this guy's example https://stackoverflow.com/a/27993650/8527195
+      window.focusElementSVG = function() {
+        if (!focusElementPath || focusElementPath.trim().length === 0) {
+          return;
+        }
         const svg = d3.select(".railroad-diagram");
-        const bbox = event.currentTarget.getBBox();
-        const scale = 4;
+        const curTransform = d3.zoomTransform(svg.node());
+        // Select "title" element with the path as inner text
+        const bbox = Array.from(svg.node().querySelectorAll(`title`))
+                            .filter((title) => title.innerHTML === focusElementPath)[0].parentNode.getBBox();
+        const currentscale = curTransform.k;
 
-        svg.transition()
-          .call(zoom // FIXME: "zoom" doesn't have a ".translate" (getting error)
-            .translate([(- bbox.x - bbox.width / 2) * scale, (- bbox.y - bbox.height / 2) * scale])
-              .scale(scale).event
-          )
+        // Center of bbox
+        const bboxCenterX = bbox.x + bbox.width / 2;
+        const bboxCenterY = bbox.y + bbox.height / 2;
 
+        // Calculate new transform based on bbox center and current svg size
+        const viewBox = svg.node().viewBox.baseVal;
+        const newTransform = d3.zoomIdentity.translate(
+          viewBox.width / 2 - bboxCenterX,
+          viewBox.height / 2 - bboxCenterY
+        );
 
-        debugger;
+        // Apply transform
+        svg.call(zoom.transform, newTransform);
+
+        // Reset focus element
+        focusElementPath = undefined;
       }
 
       // Inject D3 into the SVG
@@ -286,6 +307,7 @@
       // Update the viewBox size of the SVG
       window.updateSvgViewBoxSize = function() {
           const diagSvg = document.getElementsByClassName("railroad-diagram")[0];
+          // FIXME: The height is messed up. Therefore the centering feature is off on the vertical axis.
           diagSvg.setAttribute("viewBox", `0 0 ${diagSvg.parentElement.offsetWidth} ${window.innerHeight}`);
       }
 
