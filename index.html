@@ -15,6 +15,7 @@
       import { Diagram } from "./out/Diagram.js";
       import { asyncString2Diagram, asyncGrammar2Diagram, asyncString2Grammar, asyncCss2String, base64ToBase64Url, getNonAsciiChars, title2Path, addValuesToUrl, filterInvalidPaths, exportSvg, exportPng } from "./out/ChooChoo.js";
       let timeoutId;
+      let zoom;
 
       window.resetPathCleanupTimer = function() {
         clearTimeout(timeoutId);
@@ -239,9 +240,16 @@
       }
 
       window.focusElementSVG = function(event) {
-
         // TODO: Add the "click listener" from this guy's example https://stackoverflow.com/a/27993650/8527195
-        const bbox = event.getBBox();
+        const svg = d3.select(".railroad-diagram");
+        const bbox = event.currentTarget.getBBox();
+        const scale = 4;
+
+        svg.transition()
+          .call(zoom // FIXME: "zoom" doesn't have a ".translate" (getting error)
+            .translate([(- bbox.x - bbox.width / 2) * scale, (- bbox.y - bbox.height / 2) * scale])
+              .scale(scale).event
+          )
 
 
         debugger;
@@ -265,7 +273,7 @@
             g.node().appendChild(child);
           });
 
-          window.zoom = d3.zoom()
+          zoom = d3.zoom()
             .scaleExtent([0.1, 8])
             .on("zoom", zoomed);
           svg.call(zoom);
