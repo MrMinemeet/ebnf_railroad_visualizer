@@ -40,7 +40,7 @@ This only includes the grammar length, not the encoded expands.
 * Make UI nicer and a bit more user-friendly. Maybe also add some instructions and a dark mode 🌕
 
 ## Included Dependencies / Other Resources
-- [railroad.js](https://github.com/tabatkins/railroad-diagrams) by Tab Atkins Jr. (and others) with some modifications (see comment in the file at line ~16)
+- [railroad.js](https://github.com/tabatkins/railroad-diagrams) by Tab Atkins Jr. et. al (with some modifications, see comment in the file at line ~16) | Provided as MIT (according to Github Repository) and CC0 (according to file itself)
 - [github-mark.svg](https://github.com/logos) by GitHub
-- [lz-string.js](https://github.com/pieroxy/lz-string) by pieroxy
-- [D3](https://github.com/d3/d3) by d3js.org
+- [lz-string.js](https://github.com/pieroxy/lz-string) by pieroxy | Provided as MIT
+- [D3](https://github.com/d3/d3) by Mike Bostock et. al | Provided as ISC
