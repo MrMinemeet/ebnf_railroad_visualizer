@@ -15,6 +15,8 @@
       import { Diagram } from "./out/Diagram.js";
       import { asyncString2Diagram, asyncGrammar2Diagram, asyncString2Grammar, asyncCss2String, base64ToBase64Url, getNonAsciiChars, title2Path, addValuesToUrl, filterInvalidPaths, exportSvg, exportPng } from "./out/ChooChoo.js";
       let timeoutId;
+      let zoom;
+      let focusElementPath = undefined;
 
       window.resetPathCleanupTimer = function() {
         clearTimeout(timeoutId);
@@ -59,30 +61,7 @@
         }).then((diagram) => {
           // Insert the diagram into the HTML
           diagram_container.innerHTML = diagram.toSvg(Array.from(window.toExtend));
-          const diagSvg = document.getElementsByClassName("railroad-diagram")[0];
-          diagSvg.removeAttribute("width");
-          diagSvg.removeAttribute("height");
-          
-          updateSvgViewBoxSize();
-
-          // Get the SVG element that D3-zoom should be applied to
-          const svg = d3.select(".railroad-diagram");
-          // Get current childs of svg
-          const children = Array.from(svg.node().children);
-          // Add g node to the SVG
-          const g = svg.append("g");
-          // Move all children to the g node
-          children.forEach((child) => {
-            g.node().appendChild(child);
-          });
-
-          svg.call(d3.zoom()
-            .scaleExtent([0.1, 8])
-            .on("zoom", zoomed));
-
-          function zoomed({transform}) {
-            g.attr("transform", transform);
-          }
+          window.injectD3();
 
           // Add a click event listener to the NTS to extend
           document.querySelectorAll(".non-terminal").forEach((element) => {
@@ -94,6 +73,9 @@
               // Add the ID to the set of non-terminals to extend
               toExtend.add(title2Path(pathTitle));
               console.debug(`Expanding NTS on path '${pathTitle}'`);
+
+              // Get "title" child of the clicked element and set the path as the focus element
+              focusElementPath = event.currentTarget.querySelector("title").innerHTML;
 
               // Generate the diagram again
               window.generateDiagram();
@@ -114,11 +96,17 @@
               // Remove the pathTitle
               window.toExtend = new Set(Array.from(window.toExtend).filter((x) => x.join("-") !== pathTitle));
 
+              // Get "title" child of the clicked element and set the path as the focus element
+              focusElementPath = event.currentTarget.querySelector("title").innerHTML;
+
               // Generate the diagram again
               generateDiagram();
               updateURL();
             });
           });
+
+          // Set the focus to the element
+          window.focusElementSVG();
 
           // Hide the error message container
           error_message_container.style.display = "none";
@@ -238,7 +226,7 @@
       /**
        * Handle the click event of the "Expand All" button.
        */
-      window.onExpandAll = function() {		
+      window.onExpandAll = function() {
         const ebnfGrammarValue = document.querySelector("textarea[name=ebnf_grammar]").value;
         if (ebnfGrammarValue.trim() === "") return;
         console.debug("Expanding all non-erminals");		
@@ -252,21 +240,93 @@
       }
 
       // Update URL with grammar and expand numbers
+      // Loosely based on https://stackoverflow.com/a/27993650/8527195
       window.updateURL = function() {
         const grammar = document.querySelector("textarea[name=ebnf_grammar]").value;
         // Replace URL
         window.history.replaceState({}, "", addValuesToUrl(window.location.href, grammar, window.toExtend, currentStartSymbolName));
       }
 
+      window.focusElementSVG = function() {
+        if (!focusElementPath || focusElementPath.trim().length === 0) {
+          return;
+        }
+        const svg = d3.select(".railroad-diagram");
+        const curTransform = d3.zoomTransform(svg.node());
+        // Select "title" element with the path as inner text
+        let parent = Array.from(svg.node().querySelectorAll(`title`))
+                            .filter((title) => title.innerHTML === focusElementPath)[0].parentNode;
+        // If parent is a comment, get the parent of the parent
+        if (parent.tagName === "g" && parent.classList.contains("comment")) {
+          parent = parent.parentNode;
+        }
+        const bbox = parent.getBBox();
+        const currentscale = curTransform.k;
+
+        // Center of bbox
+        const bboxCenterX = bbox.x + bbox.width / 2;
+        const bboxCenterY = bbox.y + bbox.height / 2;
+
+        // Calculate new transform based on bbox center and current svg size
+        const viewBox = svg.node().viewBox.baseVal;
+        const newTransform = d3.zoomIdentity.translate(
+          viewBox.width / 2 - bboxCenterX,
+          viewBox.height / 2 - bboxCenterY
+        );
+
+        console.debug(`Box center: (${bboxCenterX}, ${bboxCenterY})`);
+        console.debug(`New transform: ${newTransform}`);
+
+        // Apply transform
+        svg.call(zoom.transform, newTransform);
+
+        // Reset focus element
+        focusElementPath = undefined;
+      }
+
+      // Inject D3 into the SVG
+      window.injectD3 = function() {
+          const diagramSvg = document.getElementsByClassName("railroad-diagram")[0];
+          diagramSvg.removeAttribute("width");
+          diagramSvg.removeAttribute("height");
+          window.updateSvgViewBoxSize();
+
+          // Get the SVG element that D3-zoom should be applied to
+          const svg = d3.select(".railroad-diagram");
+          // Get current childs of svg
+          const children = Array.from(svg.node().children);
+          // Add g node to the SVG
+          const g = svg.append("g");
+          // Move all children to the g node
+          children.forEach((child) => {
+            g.node().appendChild(child);
+          });
+
+          zoom = d3.zoom()
+            .scaleExtent([0.1, 8])
+            .on("zoom", zoomed);
+          svg.call(zoom);
+
+          function zoomed({transform}) {
+            g.attr("transform", transform);
+          }
+      }
+
       // Update the viewBox size of the SVG
-      function updateSvgViewBoxSize() {
+      window.updateSvgViewBoxSize = function() {
           const diagSvg = document.getElementsByClassName("railroad-diagram")[0];
-          diagSvg.setAttribute("viewBox", `0 0 ${diagSvg.parentElement.offsetWidth} ${window.innerHeight}`);
+          const flexContainer = document.getElementsByClassName("flex-container")[0].children;
+          const totalHeightNonEbnfElems = Array.from(flexContainer).slice(0, flexContainer.length - 1).reduce((acc, elem) => acc + elem.clientHeight, 0);
+
+          const leftoverHeight = window.innerHeight - totalHeightNonEbnfElems;
+
+          // FIXME: The height is messed up. Therefore the centering feature is off on the vertical axis.
+          diagSvg.setAttribute("viewBox", `0 0 ${diagSvg.parentElement.offsetWidth} ${leftoverHeight}`);
       }
 
       window.exportSVG = exportSvg;
       window.exportPNG = exportPng;
-      window.addEventListener("resize", updateSvgViewBoxSize);
+      window.addEventListener("resize", window.updateSvgViewBoxSize);
     </script>
 
     <div class="flex-container">
