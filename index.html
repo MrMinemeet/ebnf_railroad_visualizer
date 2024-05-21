@@ -315,6 +315,9 @@
       // Update the viewBox size of the SVG
       window.updateSvgViewBoxSize = function() {
           const diagSvg = document.getElementsByClassName("railroad-diagram")[0];
+          if (!diagSvg) {
+            return;
+          }
           const flexContainer = document.getElementsByClassName("flex-container")[0].children;
           const totalHeightNonEbnfElems = Array.from(flexContainer).slice(0, flexContainer.length - 1).reduce((acc, elem) => acc + elem.clientHeight, 0);
 
@@ -365,7 +368,10 @@
       import { getValuesFromUrl } from "./out/ChooChoo.js";
       
       // Async defer is not a guarantee that the DOM is ready. The following event does.
-      document.addEventListener("DOMContentLoaded", function() {
+      // document.addEventListener("DOMContentLoaded", function() { // Doesn't work reliably in Chrome
+      document.onreadystatechange = function() {
+        if (document.readyState !== "complete") return;
+
         console.info("Retrieving data from URL parameters…");
         // Try to get grammar from URL
         const [ grammar, urlExpand, startSymbolName ] = getValuesFromUrl(window.location.search);
@@ -376,11 +382,12 @@
         window.currentStartSymbolName = startSymbolName;
 
         if (grammar !== "") {
+          console.info("Generating diagram from URL parameters…");
           /* Try to generate when grammar is not empty. 
           The other two values do not make sense to generate a diagram, if the grammar is empty. */
           window.generateDiagram();
         }
-      });
+      };
     </script>
   </body>
 </html>
