@@ -22,4 +22,8 @@ export abstract class Sym {
 	toString(): string {
 		return this.name;
 	}
+
+	equals(other: Sym): boolean {
+		return this.name == other.name;
+	}
 }

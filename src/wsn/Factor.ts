@@ -3,6 +3,9 @@
  */
 
 import { Sym } from '../scannerparser/Sym.js';
+import { Identifier } from './Identifier.js';
+import { Literal } from './Literal.js';
+import { Expression } from './Expression.js';
 
 export enum FactorType {
 	Identifier,
@@ -25,9 +28,9 @@ export enum FactorType {
  */
 export class Factor extends Sym {
 	readonly type: FactorType;
-	readonly value: Sym;
+	readonly value: Identifier|Literal|Expression;
 
-	constructor(type: FactorType, value: Sym, id: number = -1) {
+	constructor(type: FactorType, value: Identifier|Literal|Expression, id: number = -1) {
 		let strRepr: string;
 		switch (type) {
 			case FactorType.Group: strRepr = `(${value})`; break;

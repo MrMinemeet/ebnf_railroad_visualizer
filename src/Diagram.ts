@@ -13,6 +13,7 @@ import { Expression } from "./wsn/Expression.js";
 import { Term } from "./wsn/Term.js";
 import { Factor, FactorType } from "./wsn/Factor.js";
 import { isUppercase } from "./ChooChoo.js";
+
 export class Diagram {
 	// Don't expand NTS deeper than this value.
 	// DON'T INCREASE THIS VALUE! IT WILL BREAK THE DIAGRAM GENERATION AND YOUR BROWSER!
@@ -89,16 +90,15 @@ export class Diagram {
 	}
 
 	private forTerm(term: Term): any {
-		const factors = [];
-		for (const factor of term.factors) {
-			factors.push(this.generateFrom(factor));
-		}
-
-		const first = factors.shift();
-		if (factors.length === 0) {
-			return first;
+		if (term.factors.length === 1) {
+			// The Term only consists of one factor
+			return this.generateFrom(term.factors[0]);
 		} else {
-			return rr.Sequence(first, ...factors);
+			let factors = [];
+			for (const factor of term.factors) {
+				factors.push(this.generateFrom(factor));
+			}
+			return rr.Sequence(...factors);
 		}
 	}
 
