@@ -5,6 +5,7 @@
 import { Syntax } from "./wsn/Syntax.js";
 import { Scanner } from "./scannerparser/Scanner.js";
 import { Parser } from "./scannerparser/Parser.js";
+import { Production } from "./wsn/Production.js";
 
 /**
  * Represents the parsed grammar.
@@ -41,5 +42,13 @@ export class Grammar {
 			startSymbols.push(prod.ident.toString());
 		}
 		return startSymbols;
+	}
+
+	getProductionFromName(name: string): Production {
+		const prod = this.syntax.productions.find(p => p.ident.name === name);
+		if (prod) {
+			return prod;
+		}
+		throw new Error(`Production '${name}' not found`);
 	}
 }

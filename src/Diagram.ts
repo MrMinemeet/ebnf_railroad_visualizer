@@ -63,7 +63,7 @@ export class Diagram {
 	private generateDiagram(): any {
 		// Get the use the specified start symbol or the first production as a fallback
 		const  firstProd = (this.startSymbolName.length > 0) ? 
-			this.getProductionFromName(this.startSymbolName) : 
+			this.grammar.getProductionFromName(this.startSymbolName) : 
 			this.grammar.syntax.productions[0];
 
 		const diagram = rr.Diagram(this.generateFrom(firstProd));
@@ -160,7 +160,7 @@ export class Diagram {
 						this.expandingNtsPaths
 							.some(path => path.join("-") === identPath )) {
 						// Expand NTS
-						const identProduction = this.getProductionFromName(sym.toString());
+						const identProduction = this.grammar.getProductionFromName(sym.toString());
 						val = rr.Group(this.generateFrom(identProduction.expr), sym.name, identPath);
 					} else {
 						// No NTS expansion
@@ -180,20 +180,6 @@ export class Diagram {
 		// Pop the last path when returning
 		this.pathStack.pop();
 		return val;
-	}
-
-	/**
-	 * Get a production from its name
-	 * @param {String} name The name of the production
-	 * @returns {Production} The production corresponding to the name
-	 * */
-	private getProductionFromName(name: string): Production {
-		for (const prod of this.grammar.syntax.productions) {
-			if (prod.ident.name === name) {
-				return prod;
-			}
-		}
-		throw new Error(`Production '${name}' not found`);
 	}
 
 	/**
