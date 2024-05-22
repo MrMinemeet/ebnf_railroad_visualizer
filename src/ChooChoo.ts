@@ -193,48 +193,55 @@ export function title2Path(title: string): number[] {
 /**
  * Add the values of the grammar and expand paths to a URL.
  * The values are added as base64URL encoded strings. If the values are over a certain threshold, they are compressed using LZString. If they are below the threshold, they are only encoded in order to avoid the overhead of compression.
+ * If a value is empty, it is removed from the URL. If a value is not provided, it will not be added/removed, nor will it be updated.
  * @param url The URL to add the values to
  * @param grammar The grammar
  * @param expandPath The expand paths
  * @param startSymbolName The name of the start symbol
  * @returns The URL with the values added
  */
-export function addValuesToUrl(urlHref: string, grammar: string, expandPath: Set<number[]>, startSymbolName: string): URL {
+export function addValuesToUrl(urlHref: string, grammar?: string, expandPath?: Set<number[]>, startSymbolName?: string): URL {
 	const newUrl = new URL(urlHref);
 
-	// Drop existing parameters
-	newUrl.searchParams.delete(START_SYMBOL_PARAM);
-	newUrl.searchParams.delete(COMPRESSED_GRAMMAR_PARAM);
-	newUrl.searchParams.delete(GRAMMAR_PARAM);
-	newUrl.searchParams.delete(COMPRESSED_EXPAND_PARAM);
-	newUrl.searchParams.delete(EXPAND_PARAM);
-
-	if (startSymbolName.trim() !== "") {
-		newUrl.searchParams.set(START_SYMBOL_PARAM, startSymbolName);
-	}
-
-	if (grammar.trim() !== "") {
-		if (grammar.length > COMPRESSION_THRESHOLD) {
-			// Compress the grammar
-			const compressedGrammar = LZString.compressToBase64(grammar);
-			newUrl.searchParams.set(COMPRESSED_GRAMMAR_PARAM, base64ToBase64Url(compressedGrammar));
-		} else {
-			// Set the grammar
-			const base64Grammar = btoa(grammar);
-			newUrl.searchParams.set(GRAMMAR_PARAM, base64ToBase64Url(base64Grammar));
+	if (startSymbolName && startSymbolName.trim() !== "") {
+		newUrl.searchParams.delete(START_SYMBOL_PARAM);
+		if (startSymbolName.trim() !== "") {
+			newUrl.searchParams.set(START_SYMBOL_PARAM, startSymbolName);
 		}
 	}
 
-	if (expandPath.size !== 0) {
-		const joinedPath = Array.from(expandPath).map(path => path.join("-")).join("|");
-		if (joinedPath.length > COMPRESSION_THRESHOLD) {
-			// Compress the expand paths
-			const compressedExpand = LZString.compressToBase64(joinedPath);
-			newUrl.searchParams.set(COMPRESSED_EXPAND_PARAM, base64ToBase64Url(compressedExpand));
-		} else {
-			// Set the expand paths
-			const base64Expand = btoa(joinedPath);
-			newUrl.searchParams.set(EXPAND_PARAM, base64ToBase64Url(base64Expand));
+	if (grammar) {
+		newUrl.searchParams.delete(COMPRESSED_GRAMMAR_PARAM);
+		newUrl.searchParams.delete(GRAMMAR_PARAM);
+
+		if (grammar.trim() !== "") {
+			if (grammar.length > COMPRESSION_THRESHOLD) {
+				// Compress the grammar
+				const compressedGrammar = LZString.compressToBase64(grammar);
+				newUrl.searchParams.set(COMPRESSED_GRAMMAR_PARAM, base64ToBase64Url(compressedGrammar));
+			} else {
+				// Set the grammar
+				const base64Grammar = btoa(grammar);
+				newUrl.searchParams.set(GRAMMAR_PARAM, base64ToBase64Url(base64Grammar));
+			}
+		}
+	}
+
+	if (expandPath) {
+		newUrl.searchParams.delete(COMPRESSED_EXPAND_PARAM);
+		newUrl.searchParams.delete(EXPAND_PARAM);
+
+		if (expandPath.size !== 0) {
+			const joinedPath = Array.from(expandPath).map(path => path.join("-")).join("|");
+			if (joinedPath.length > COMPRESSION_THRESHOLD) {
+				// Compress the expand paths
+				const compressedExpand = LZString.compressToBase64(joinedPath);
+				newUrl.searchParams.set(COMPRESSED_EXPAND_PARAM, base64ToBase64Url(compressedExpand));
+			} else {
+				// Set the expand paths
+				const base64Expand = btoa(joinedPath);
+				newUrl.searchParams.set(EXPAND_PARAM, base64ToBase64Url(base64Expand));
+			}
 		}
 	}
 
@@ -456,4 +463,122 @@ function buttonPressLoad(button: HTMLButtonElement): void {
 function buttonPressReset(button: HTMLButtonElement): void {
 	button.style.cursor = "default";
 	button.disabled = false;
+}
+
+/**
+ * Update the URL with the current grammar and expand paths.
+ * @param toExtend The paths to extend
+ * @param currentStartSymbolName The name of the current start symbol
+ * @returns {void} - Nothing
+ */
+export function updateUrl(toExtend?: Set<number[]>, currentStartSymbolName?:string): void {
+	const grammar = document.querySelector("textarea[name=ebnf_grammar]") as HTMLTextAreaElement;
+	if (!grammar) return;
+
+	// Replace URL
+	window.history.replaceState({}, "", addValuesToUrl(window.location.href, grammar.value, toExtend, currentStartSymbolName));
+}
+
+/**
+ * Update the Viewbox size of the SVG.
+ * @returns {void} - Nothing
+ */
+export function updateSvgViewBoxSize(): void {
+	const diagSvg = document.getElementsByClassName("railroad-diagram")[0];
+	if (!diagSvg) {
+	  return;
+	}
+	const flexContainer = document.getElementsByClassName("flex-container")[0].children;
+	const totalHeightNonEbnfElems = Array.from(flexContainer).slice(0, flexContainer.length - 1).reduce((acc, elem) => acc + elem.clientHeight, 0);
+
+	const leftoverHeight = window.innerHeight - totalHeightNonEbnfElems;
+
+	// Check if parent element is present
+	if (!diagSvg.parentElement) return;
+
+	// FIXME: The height is messed up. Therefore the centering feature is off on the vertical axis.
+	diagSvg.setAttribute("viewBox", `0 0 ${diagSvg.parentElement.offsetWidth} ${leftoverHeight}`);
+}
+
+/**
+ * Update the start symbols in the dropdown.
+ * @param  {Array<string>} startSymbols The start symbols to set
+ * @returns {void} - Nothing
+ */
+export function setStartSymbols(startSymbols: string[], currentStartSymbolName: string): string | undefined {
+	const startSymbolDropDown = document.querySelector(".start-symbol-drop-down") as HTMLElement;
+	if (!startSymbolDropDown) {
+		console.warn("Failed to find start symbol drop down.");
+		return undefined;
+	}
+
+	if (startSymbols.length === 0) {
+		startSymbolDropDown.style.display = "none";
+		return undefined;
+	}
+	const firstSymbol = startSymbols[0];
+	startSymbols.sort();
+
+	startSymbols = startSymbols.sort();
+
+	const startSymbolSelect = document.querySelector("#start-symbol") as HTMLSelectElement;
+	if (!startSymbolSelect) {
+		console.warn("Failed to find start symbol select.");
+	 	return undefined;
+	}
+
+	// Check if the list is up-to-date (length and item wise)
+	if (startSymbolSelect.options.length === startSymbols.length) {
+		let allMatch = true;
+		for (let i = 0; i < startSymbols.length; i++) {
+			if (startSymbolSelect.options[i].value !== startSymbols[i]) {
+				allMatch = false;
+		 		break;
+			}
+		}
+		if (allMatch) {
+			return undefined;
+		}
+	}
+
+	console.debug("Updating start symbols in dropdown.");
+	startSymbolSelect.innerHTML = "";
+	startSymbols.forEach((startSymbol) => {
+	  const option = document.createElement("option");
+	  option.value = startSymbol;
+	  option.text = startSymbol;
+	  startSymbolSelect.appendChild(option);
+	});
+	startSymbolDropDown.style.display = "block";
+
+	// Check if current start symbol is in the list
+	if (startSymbols.includes(currentStartSymbolName)) {
+	  // Keep the current start symbol
+	  startSymbolSelect.value = currentStartSymbolName;
+	  return currentStartSymbolName;
+	} else {
+	  // Use the first start symbol as fallback
+	  startSymbolSelect.value = firstSymbol;
+	  updateUrl( undefined, firstSymbol);
+	  return firstSymbol;
+	}
+}
+
+export function handleStartSymbolSelection(toExtend: Set<number[]>): void {
+	const startSymbolSelect = document.querySelector("#start-symbol") as HTMLSelectElement;
+	if (!startSymbolSelect) {
+		console.warn("Failed to find start symbol select.");
+		return;
+	}
+
+	const startSymbol = startSymbolSelect.value;
+	if (startSymbol === (window as any).currentStartSymbolName) {
+	  return;
+	}
+	(window as any).currentStartSymbolName = startSymbol;
+	// Clear "toExtend" as start symbol changed
+	window.toExtend.clear();
+	console.debug(`Setting start symbol to '${startSymbol}' and creating new diagram.`);
+	(window as any).generateDiagram();
+	updateURL();
 }

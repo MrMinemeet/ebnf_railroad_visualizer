@@ -18,7 +18,7 @@
     <script type="module">
       import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
       import { Diagram } from "./out/Diagram.js";
-      import { asyncString2Diagram, asyncGrammar2Diagram, asyncString2Grammar, asyncCss2String, base64ToBase64Url, getNonAsciiChars, title2Path, addValuesToUrl, filterInvalidPaths, exportSvg, exportPng } from "./out/ChooChoo.js";
+      import { asyncString2Diagram, asyncGrammar2Diagram, asyncString2Grammar, asyncCss2String, base64ToBase64Url, getNonAsciiChars, title2Path, addValuesToUrl, filterInvalidPaths, exportSvg, exportPng, updateUrl, updateSvgViewBoxSize, setStartSymbols } from "./out/ChooChoo.js";
       let timeoutId;
       let zoom;
       let focusElementPath = undefined;
@@ -65,7 +65,7 @@
 
         asyncString2Grammar(ebnfGrammarValue).then((grammar) => {
           // Get all nts start symbols
-          window.setStartSymbols(grammar.getStartSymbols());
+          window.setStartSymbol(grammar.getStartSymbols());
           return asyncGrammar2Diagram(grammar, currentStartSymbolName);
         }).then((diagram) => {
           // Insert the diagram into the HTML
@@ -196,59 +196,8 @@
         generateDiagram();
         updateURL();
       }
-      
-      /**
-       * Set the start symbols in the dropdown.
-       * @param {Array<string>} startSymbols The start symbols to set.
-       */
-      window.setStartSymbols = function(startSymbols) {
-        const startSymbolDropDown = document.querySelector(".start-symbol-drop-down");
-        const startSymbolSelect = document.querySelector("#start-symbol");
-        if (startSymbols.length === 0) {
-          const startSymbolDropDown = document.querySelector(".start-symbol-drop-down");
-          startSymbolDropDown.style.display = "none";
-          return;
-        }
-        const firstSymbol = startSymbols[0];
-        startSymbols.sort();
 
-        startSymbols = startSymbols.sort();
-
-        // Check if the list is up-to-date (length and item wise)
-        if (startSymbolSelect.options.length === startSymbols.length) {
-          let allMatch = true;
-          for (let i = 0; i < startSymbols.length; i++) {
-            if (startSymbolSelect.options[i].value !== startSymbols[i]) {
-              allMatch = false;
-              break;
-            }
-          }
-          if (allMatch) {
-            return;
-          }
-        }
-
-        console.debug("Updating start symbols in dropdown.")
-        startSymbolSelect.innerHTML = "";
-        startSymbols.forEach((startSymbol) => {
-          const option = document.createElement("option");
-          option.value = startSymbol;
-          option.text = startSymbol;
-          startSymbolSelect.appendChild(option);
-        });
-        startSymbolDropDown.style.display = "block";
-
-        // Check if current start symbol is in the list
-        if (startSymbols.includes(window.currentStartSymbolName)) {
-          // Keep the current start symbol
-          startSymbolSelect.value = window.currentStartSymbolName;
-        } else {
-          // Use the first start symbol as fallback
-          window.currentStartSymbolName = firstSymbol;
-          startSymbolSelect.value = firstSymbol;
-          updateURL();
-        }
-      }
+      window.setStartSymbol = (startSymbols) => window.currentStartSymbolName = setStartSymbols(startSymbols, window.currentStartSymbolName);
 
       /**
        * Handle the click event of the "Expand All" button.
@@ -268,11 +217,7 @@
 
       // Update URL with grammar and expand numbers
       // Loosely based on https://stackoverflow.com/a/27993650/8527195
-      window.updateURL = function() {
-        const grammar = document.querySelector("textarea[name=ebnf_grammar]").value;
-        // Replace URL
-        window.history.replaceState({}, "", addValuesToUrl(window.location.href, grammar, window.toExtend, currentStartSymbolName));
-      }
+      window.updateURL = () => updateUrl(window.toExtend, currentStartSymbolName);
 
       window.focusElementSVG = function() {
         if (!focusElementPath || focusElementPath.trim().length === 0) {
@@ -340,19 +285,7 @@
       }
 
       // Update the viewBox size of the SVG
-      window.updateSvgViewBoxSize = function() {
-          const diagSvg = document.getElementsByClassName("railroad-diagram")[0];
-          if (!diagSvg) {
-            return;
-          }
-          const flexContainer = document.getElementsByClassName("flex-container")[0].children;
-          const totalHeightNonEbnfElems = Array.from(flexContainer).slice(0, flexContainer.length - 1).reduce((acc, elem) => acc + elem.clientHeight, 0);
-
-          const leftoverHeight = window.innerHeight - totalHeightNonEbnfElems;
-
-          // FIXME: The height is messed up. Therefore the centering feature is off on the vertical axis.
-          diagSvg.setAttribute("viewBox", `0 0 ${diagSvg.parentElement.offsetWidth} ${leftoverHeight}`);
-      }
+      window.updateSvgViewBoxSize = updateSvgViewBoxSize;
 
       window.exportSVG = exportSvg;
       window.exportPNG = exportPng;
