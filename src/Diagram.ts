@@ -18,7 +18,7 @@ export class Diagram {
 	// Don't expand NTS deeper than this value.
 	// DON'T INCREASE THIS VALUE! IT WILL BREAK THE DIAGRAM GENERATION AND YOUR BROWSER!
 	// TODO: This is a workarround for now. The recursive detection is not yet implemented.
-	private static readonly MAX_EXPANSION_DEPTH: number = 30;
+	public static readonly MAX_EXPANSION_DEPTH: number = 30;
 
 	private readonly grammar: Grammar;
 	private readonly pathStack: number[]; // Tracks the current path based on the sym.ids. E.g. [1, 3, 2] references the path from Sym with id 1 to sym with id 2 over sym with id 3

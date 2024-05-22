@@ -74,6 +74,12 @@
               const title = event.currentTarget.querySelector("title");
               const pathTitle = title.textContent.trim();
 
+              if (pathTitle.length >= Diagram.MAX_EXPANSION_DEPTH) {
+                console.warn(`Cannot expand NTS on path '${pathTitle}'. Depth limit reached!`);
+                alert("Max. expansion depth reached!");
+                return;
+              }
+
               // Add the ID to the set of non-terminals to extend
               toExtend.add(title2Path(pathTitle));
               console.debug(`Expanding NTS on path '${pathTitle}'`);
