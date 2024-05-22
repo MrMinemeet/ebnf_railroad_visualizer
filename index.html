@@ -116,7 +116,7 @@
           error_message_container.style.display = "none";
           diagram_container.style.display = "block";
         }).catch(e => {
-          const PRODUCTION_NOT_FOUND_REGEX = /^Production '([^']*)' not found$/
+          const PRODUCTION_NOT_FOUND_REGEX = /^Production '([^']*)' not found, but required for expansion$/
 
           console.warn(`An error occurred while generating the diagram: ${e}`)
           if (!e.message.includes("but found") && 

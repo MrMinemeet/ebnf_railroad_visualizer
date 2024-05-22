@@ -160,8 +160,12 @@ export class Diagram {
 						this.expandingNtsPaths
 							.some(path => path.join("-") === identPath )) {
 						// Expand NTS
-						const identProduction = this.grammar.getProductionFromName(sym.toString());
-						val = rr.Group(this.generateFrom(identProduction.expr), sym.name, identPath);
+						try {
+							const identProduction = this.grammar.getProductionFromName(sym.toString());
+							val = rr.Group(this.generateFrom(identProduction.expr), sym.name, identPath);
+						} catch (e) {
+							throw new Error(`Production '${sym.toString()}' not found, but required for expansion`);
+						}
 					} else {
 						// No NTS expansion
 						val = rr.NonTerminal(sym.toString(), { title: identPath });

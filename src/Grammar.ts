@@ -37,11 +37,7 @@ export class Grammar {
 	 * @returns The names of the start symbols.
 	 */
 	getStartSymbols(): string[] {
-		const startSymbols: string[] = [];
-		for (const prod of this.syntax.productions) {
-			startSymbols.push(prod.ident.toString());
-		}
-		return startSymbols;
+		return this.syntax.productions.map(p => p.ident.toString());
 	}
 
 	getProductionFromName(name: string): Production {
