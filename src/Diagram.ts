@@ -98,44 +98,65 @@ export class Diagram {
 
 		// Search if factors of type repetition
 		const repIdx = term.factors.findIndex((f) => f.type === FactorType.Repetition);
-		if (repIdx !== -1) {
-			// There exists some repetition factor
-			const repetitionExpr = term.factors[repIdx].value as Expression;
+		if (repIdx === -1) {
+			// No repetition factor found. Generate a sequence
+			let factors = [];
+			for (const factor of term.factors) {
+				factors.push(this.generateFrom(factor));
+			}
+			return rr.Sequence(...factors);
+		}
 
-			// Check if all the content of the expression occurs before. I.e., can be compacted into a 1…n repetition instead of 0…n
-			let canBeCompacted = true;
+		// Repetition factor found -> Check if it can be compacted
+		const repExpr = term.factors[repIdx].value as Expression;
 
-			for (let i = repIdx - 1, j = 0; (i >= 0) && (j < repetitionExpr.terms.length); i--, j++) { // Check backwards
-				if (!term.factors[i].value.equals(repetitionExpr)) {
+		// Check if all the content of the expression occurs before. I.e., can be compacted into a 1…n repetition instead of 0…n
+		let canBeCompacted = true;
+
+		if (repExpr.terms.length !== 1) {
+			// Don't support multiple terms in a repetition
+			canBeCompacted = false;
+		}
+
+		// Skip search for compactable elements, if already found that it can't be compacted
+		if (canBeCompacted) {
+			/*
+				Run Backwards and check if the repetition can be compacted
+				Example:
+				a b C { b C } …
+				start at directly before the repetition and at the end of the repetition and then compare.
+				I.e. in this case check 'C' and then 'b'. 'a' is not checked as the repetition is at the beginning.
+			*/
+			for (let i = repIdx - 1, j = repExpr.terms[0].factors.length - 1; (i >= 0) && (j >= 0); i--, j--) {
+				const repTerm = repExpr.terms[0].factors[j].value as Term;
+				const beforeTerm = term.factors[i].value as Term;
+
+				if (!repTerm.equals(beforeTerm)) {
 					canBeCompacted = false;
 					break;
 				}
 			}
+		}
 
-			if (canBeCompacted) {
-				// Can be compacted. Generate sequence with "OneOrMore" flag
-				// FIXME: Some stuff here doesn't work yet. It only adds one NTS without some repetition.
-				console.debug(`Can be compacted: ${canBeCompacted}`);
-				const factors = [];
-				for (let i = 0; i < repIdx; i++) {
-					factors.push(this.forFactor(term.factors[i], repIdx === i));
+		if (canBeCompacted) {
+			// Can be compacted. Generate sequence with "OneOrMore" flag. This requires "ignoring" the terms before the repetition, that are already in the repetition
+			console.debug(`Can be compacted: ${canBeCompacted}`);
+			const factors = [];
+			for (let i = 0; i < term.factors.length; i++) {
+				// Skip data that is already in the repetition but keep stuff before and after
+				if (repIdx - repExpr.terms[0].factors.length <= i && i < repIdx) {
+					continue;
 				}
 
-				return rr.Sequence(...factors);				
-
-			} else {
-				// Can't be compacted. Generate sequence
-				console.debug(`Can't be compacted: ${canBeCompacted}`)
-				const factors = [];
-				for (const factor of term.factors) {
-					factors.push(this.generateFrom(factor));
-				}
-				return rr.Sequence(...factors);
+				factors.push(this.forFactor(term.factors[i], repExpr.id === term.factors[i].value.id));
 			}
 
+			return rr.Sequence(...factors);				
+
 		} else {
-			// No repetition factor found. Generate a sequence
-			let factors = [];
+			// Can't be compacted. Generate sequence
+			console.debug(`Can't be compacted: ${canBeCompacted}`)
+			const factors = [];
 			for (const factor of term.factors) {
 				factors.push(this.generateFrom(factor));
 			}
