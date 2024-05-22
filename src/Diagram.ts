@@ -93,7 +93,48 @@ export class Diagram {
 		if (term.factors.length === 1) {
 			// The Term only consists of one factor
 			return this.generateFrom(term.factors[0]);
+		}
+		// Term has multiple factors. search for repetition that can be compacted
+
+		// Search if factors of type repetition
+		const repIdx = term.factors.findIndex((f) => f.type === FactorType.Repetition);
+		if (repIdx !== -1) {
+			// There exists some repetition factor
+			const repetitionExpr = term.factors[repIdx].value as Expression;
+
+			// Check if all the content of the expression occurs before. I.e., can be compacted into a 1…n repetition instead of 0…n
+			let canBeCompacted = true;
+
+			for (let i = repIdx - 1, j = 0; (i >= 0) && (j < repetitionExpr.terms.length); i--, j++) { // Check backwards
+				if (!term.factors[i].value.equals(repetitionExpr)) {
+					canBeCompacted = false;
+					break;
+				}
+			}
+
+			if (canBeCompacted) {
+				// Can be compacted. Generate sequence with "OneOrMore" flag
+				// FIXME: Some stuff here doesn't work yet. It only adds one NTS without some repetition.
+				console.debug(`Can be compacted: ${canBeCompacted}`);
+				const factors = [];
+				for (let i = 0; i < repIdx; i++) {
+					factors.push(this.forFactor(term.factors[i], repIdx === i));
+				}
+
+				return rr.Sequence(...factors);				
+
+			} else {
+				// Can't be compacted. Generate sequence
+				console.debug(`Can't be compacted: ${canBeCompacted}`)
+				const factors = [];
+				for (const factor of term.factors) {
+					factors.push(this.generateFrom(factor));
+				}
+				return rr.Sequence(...factors);
+			}
+
 		} else {
+			// No repetition factor found. Generate a sequence
 			let factors = [];
 			for (const factor of term.factors) {
 				factors.push(this.generateFrom(factor));
@@ -102,7 +143,7 @@ export class Diagram {
 		}
 	}
 
-	private forFactor(factor: Factor): any {
+	private forFactor(factor: Factor, oneOrMore: boolean = false): any {
 		const generated = this.generateFrom(factor.value);
 		switch (factor.type) {
 			case FactorType.Identifier:
@@ -113,7 +154,11 @@ export class Diagram {
 				return rr.Sequence(generated);
 
 			case FactorType.Repetition:
-				return rr.ZeroOrMore(generated);
+				if (oneOrMore) {
+					return rr.OneOrMore(generated);
+				} else {
+					return rr.ZeroOrMore(generated);
+				}
 
 			case FactorType.Optionally:
 				return rr.Optional(generated);
