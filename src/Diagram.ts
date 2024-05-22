@@ -113,8 +113,13 @@ export class Diagram {
 		// Check if all the content of the expression occurs before. I.e., can be compacted into a 1…n repetition instead of 0…n
 		let canBeCompacted = true;
 
+		// Don't support multiple terms in a repetition for compacting
 		if (repExpr.terms.length !== 1) {
-			// Don't support multiple terms in a repetition
+			canBeCompacted = false;
+		}
+
+		// Skip if the length of the repetition's expr stuff is longer than the index of the repetition expression
+		if (repExpr.terms[0].factors.length > repIdx) {
 			canBeCompacted = false;
 		}
 
