@@ -93,8 +93,70 @@ export class Diagram {
 		if (term.factors.length === 1) {
 			// The Term only consists of one factor
 			return this.generateFrom(term.factors[0]);
-		} else {
+		}
+		// Term has multiple factors. search for repetition that can be compacted
+
+		// Search if factors of type repetition
+		const repIdx = term.factors.findIndex((f) => f.type === FactorType.Repetition);
+		if (repIdx === -1) {
+			// No repetition factor found. Generate a sequence
 			let factors = [];
+			for (const factor of term.factors) {
+				factors.push(this.generateFrom(factor));
+			}
+			return rr.Sequence(...factors);
+		}
+
+		// Repetition factor found -> Check if it can be compacted
+		const repExpr = term.factors[repIdx].value as Expression;
+
+		// Check if all the content of the expression occurs before. I.e., can be compacted into a 1…n repetition instead of 0…n
+		let canBeCompacted = true;
+
+		if (repExpr.terms.length !== 1) {
+			// Don't support multiple terms in a repetition
+			canBeCompacted = false;
+		}
+
+		// Skip search for compactable elements, if already found that it can't be compacted
+		if (canBeCompacted) {
+			/*
+				Run Backwards and check if the repetition can be compacted
+				Example:
+				a b C { b C } …
+				start at directly before the repetition and at the end of the repetition and then compare.
+				I.e. in this case check 'C' and then 'b'. 'a' is not checked as the repetition is at the beginning.
+			*/
+			for (let i = repIdx - 1, j = repExpr.terms[0].factors.length - 1; (i >= 0) && (j >= 0); i--, j--) {
+				const repTerm = repExpr.terms[0].factors[j].value as Term;
+				const beforeTerm = term.factors[i].value as Term;
+
+				if (!repTerm.equals(beforeTerm)) {
+					canBeCompacted = false;
+					break;
+				}
+			}
+		}
+
+		if (canBeCompacted) {
+			// Can be compacted. Generate sequence with "OneOrMore" flag. This requires "ignoring" the terms before the repetition, that are already in the repetition
+			console.debug(`Can be compacted: ${canBeCompacted}`);
+			const factors = [];
+			for (let i = 0; i < term.factors.length; i++) {
+				// Skip data that is already in the repetition but keep stuff before and after
+				if (repIdx - repExpr.terms[0].factors.length <= i && i < repIdx) {
+					continue;
+				}
+
+				factors.push(this.forFactor(term.factors[i], repExpr.id === term.factors[i].value.id));
+			}
+
+			return rr.Sequence(...factors);				
+
+		} else {
+			// Can't be compacted. Generate sequence
+			console.debug(`Can't be compacted: ${canBeCompacted}`)
+			const factors = [];
 			for (const factor of term.factors) {
 				factors.push(this.generateFrom(factor));
 			}
@@ -102,7 +164,7 @@ export class Diagram {
 		}
 	}
 
-	private forFactor(factor: Factor): any {
+	private forFactor(factor: Factor, oneOrMore: boolean = false): any {
 		const generated = this.generateFrom(factor.value);
 		switch (factor.type) {
 			case FactorType.Identifier:
@@ -113,7 +175,11 @@ export class Diagram {
 				return rr.Sequence(generated);
 
 			case FactorType.Repetition:
-				return rr.ZeroOrMore(generated);
+				if (oneOrMore) {
+					return rr.OneOrMore(generated);
+				} else {
+					return rr.ZeroOrMore(generated);
+				}
 
 			case FactorType.Optionally:
 				return rr.Optional(generated);
