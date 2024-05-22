@@ -21,15 +21,19 @@
       window.resetPathCleanupTimer = function() {
         clearTimeout(timeoutId);
         timeoutId = setTimeout(() => {
-          const prevSize = window.toExtend.size;
-          const ebnfGrammarValue = document.querySelector("textarea[name=ebnf_grammar]").value;
-          window.toExtend = filterInvalidPaths(ebnfGrammarValue, window.toExtend);
-          if (prevSize !== window.toExtend.size) {
-            console.debug(`Cleaned up ${prevSize - window.toExtend.size} paths`)
-            window.generateDiagram();
-            updateURL();
-          } else {
-            console.debug("No paths to clean up")
+          try {
+            const prevSize = window.toExtend.size;
+            const ebnfGrammarValue = document.querySelector("textarea[name=ebnf_grammar]").value;
+            window.toExtend = filterInvalidPaths(ebnfGrammarValue, window.toExtend);
+            if (prevSize !== window.toExtend.size) {
+              console.debug(`Cleaned up ${prevSize - window.toExtend.size} paths`)
+              window.generateDiagram();
+              updateURL();
+            } else {
+              console.debug("No paths to clean up")
+            }
+          } catch (e) {
+            console.warn(`An error occurred while cleaning up paths (this can likely be ignored): ${e}`)
           }
         }, 5000);
       }
