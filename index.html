@@ -70,26 +70,37 @@
           // Add a click event listener to the NTS to extend
           document.querySelectorAll(".non-terminal").forEach((element) => {
             element.addEventListener("click", (event) => {
-              // Get ID from inner child with tag "title"
-              const title = event.currentTarget.querySelector("title");
-              const pathTitle = title.textContent.trim();
 
-              if (pathTitle.length >= Diagram.MAX_EXPANSION_DEPTH) {
-                console.warn(`Cannot expand NTS on path '${pathTitle}'. Depth limit reached!`);
-                alert("Max. expansion depth reached!");
-                return;
+              if (event.ctrlKey) {
+                // Use the pressed NTS as the start symbol
+                const ntsName = event.currentTarget.querySelector("text").textContent;
+                const startSymbolSelect = document.querySelector("#start-symbol");
+                startSymbolSelect.value = ntsName;
+                handleStartSymbolSelection();
+                
+              } else {
+                // Get ID from inner child with tag "title"
+                const title = event.currentTarget.querySelector("title");
+                const pathTitle = title.textContent.trim();
+
+                // Expand the NTS
+                if (pathTitle.length >= Diagram.MAX_EXPANSION_DEPTH) {
+                  console.warn(`Cannot expand NTS on path '${pathTitle}'. Depth limit reached!`);
+                  alert("Max. expansion depth reached!");
+                  return;
+                }
+
+                // Add the ID to the set of non-terminals to extend
+                toExtend.add(title2Path(pathTitle));
+                console.debug(`Expanding NTS on path '${pathTitle}'`);
+
+                // Get "title" child of the clicked element and set the path as the focus element
+                focusElementPath = event.currentTarget.querySelector("title").innerHTML;
+
+                // Generate the diagram again
+                window.generateDiagram();
+                updateURL();
               }
-
-              // Add the ID to the set of non-terminals to extend
-              toExtend.add(title2Path(pathTitle));
-              console.debug(`Expanding NTS on path '${pathTitle}'`);
-
-              // Get "title" child of the clicked element and set the path as the focus element
-              focusElementPath = event.currentTarget.querySelector("title").innerHTML;
-
-              // Generate the diagram again
-              window.generateDiagram();
-              updateURL();
             });
           });
 
