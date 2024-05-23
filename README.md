@@ -36,6 +36,11 @@ The URL encoding also utilizes `lz-string` to compress the grammar and expand pa
 |   100%|     185,7%|        133.4%|                      73,8%|
 
 This only includes the grammar length, not the encoded expands. 
+
+* **Selectable Start Symbols:** The start symbol can be selected by either choosing the desired NTS in the dropdown menu or by performing a *CTRL + L-Click* on it in the railroad diagram. By default the declared NTS of the first production is used. The selected start symbol is also encoded in the URL for easy sharing.
+
+* **1…n Repetition detection:** If a production contains elements such as `… x { x } …`, then the x outside the loop is absorbed. This is done as the repetition can be displayed as a *1…n* instead of the default *0…n*.
+
 ## TODOs
 * Make UI nicer and a bit more user-friendly. Maybe also add some instructions and a dark mode 🌕
 
