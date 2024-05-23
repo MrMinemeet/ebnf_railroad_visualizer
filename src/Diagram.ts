@@ -20,7 +20,7 @@ export class Diagram {
 	// TODO: This is a workarround for now. The recursive detection is not yet implemented.
 	public static readonly MAX_EXPANSION_DEPTH: number = 30;
 
-	private readonly grammar: Grammar;
+	readonly grammar: Grammar;
 	private readonly pathStack: number[]; // Tracks the current path based on the sym.ids. E.g. [1, 3, 2] references the path from Sym with id 1 to sym with id 2 over sym with id 3
 	private expandingNtsPaths: number[][]; // Holds the paths for all NTS that should be expanded
 	private collectPaths: boolean;
