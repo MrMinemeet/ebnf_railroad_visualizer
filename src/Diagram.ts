@@ -169,11 +169,30 @@ export class Diagram {
 		 * Utilize a "OneOrMore" loop
 		 */
 		// TODO
+		// Check if all symbols in the repetition are TS
+		const areAllTS = repExpr.terms[0].factors.every((f) => f.value.isTS());
+		if (areAllTS) {
+			// Can be compacted by moving symbols in the repetition to the backedge and using a empty line in the forward edge. The rest before and after the repetition is kept.
+			console.debug("All symbols in the repetition are TS. Generating compacted sequence with empty line in forward edge.");
+			const factors = [];
+			let curIdx = 0;
+			for (const factor of term.factors) {
+				if (curIdx === repIdx) {
+					// Repetition, treat it specially by creating a "OneOrMore" loop with a skip and the TS as the "separator"
+					const repFactors = [];
+					for (const repFactor of repExpr.terms[0].factors.slice().reverse()) {
+						repFactors.push(this.generateFrom(repFactor));
+					}
+					factors.push(rr.OneOrMore(rr.Skip(), rr.Sequence(repFactors)));
 
 
-		
+				} else {
+					// Normal factor, generate normally
+					factors.push(this.generateFrom(factor));
+				}
+			}
 
-
+		}
 
 		console.debug("Can't be compacted or visually prepared. Generating basic sequence.");
 		return this.generateBasicSequence(term.factors);	

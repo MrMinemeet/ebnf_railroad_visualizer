@@ -1,6 +1,7 @@
 /*
  * Copyright (c) 2024. Alexander Voglsperger
  */
+import { isUppercase } from "../ChooChoo.js";
 
 /**
  * Base class for all parts of a grammar (terminal symbols and non-terminal symbols).
@@ -25,5 +26,13 @@ export abstract class Sym {
 
 	equals(other: Sym): boolean {
 		return this.name == other.name;
+	}
+
+	/**
+	 * Returns true if the symbol is a terminal symbol.
+	 * @returns true if the symbol is a literal or a lower case identifier
+	 */
+	isTS(): boolean {
+		return !isUppercase(this.name) || this.name.startsWith('"');
 	}
 }
