@@ -296,38 +296,65 @@ export class Diagram {
 	}
 
 	/**
-	 * Inject markers into the SVG
+	 * Inject markers into the SVG.
+	 * It includes some SVG madness to inject markers into the correct paths. With quite a bunch of magic values that I found out by trial and error.
 	 * @param {string} svg The SVG string with injected markers
 	 * @returns {string} The SVG string with injected markers
 	 */
 	private injectMarkers(svg: string): string {
 		// Create marker
 		const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
-		const marker = document.createElementNS("http://www.w3.org/2000/svg", "marker");
-		marker.setAttribute("id", "loop-arrow");
-		marker.setAttribute("viewBox", "0 0 10 10");
-		marker.setAttribute("markerWidth", "5");
-		marker.setAttribute("markerHeight", "5");
-		marker.setAttribute("markerUnits", "strokeWidth");
-		marker.setAttribute("refX", "8");
-		marker.setAttribute("refY", "5.5");
-		marker.setAttribute("orient", "300");
-		const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-		path.setAttribute("class", "arrow");
-		path.setAttribute("d", "M0,0 L7,3 L0,6 Z"); // Move to 0,0, draw line to 10,5, draw line to 0,10, go back to start
-		path.setAttribute("fill", "black");
-		marker.appendChild(path);
-		defs.appendChild(marker);
+		// Outgoing file marker and arrow definitions
+		{
+			const outgoingMarker = document.createElementNS("http://www.w3.org/2000/svg", "marker");
+			outgoingMarker.setAttribute("id", "outgoing-loop-arrow");
+			outgoingMarker.setAttribute("viewBox", "0 0 10 10");
+			outgoingMarker.setAttribute("markerWidth", "10");
+			outgoingMarker.setAttribute("markerHeight", "10");
+			outgoingMarker.setAttribute("markerUnits", "strokeWidth");
+			outgoingMarker.setAttribute("refX", "10.7");
+			outgoingMarker.setAttribute("refY", "3.2");
+			const outgoingMarkerElem = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+			outgoingMarkerElem.setAttribute("class", "outgoing-arrow");
+			outgoingMarkerElem.setAttribute("points", "2.5,5 8,2.5 8,7.5");
+			outgoingMarkerElem.setAttribute("style", "fill:black;stroke:black;stroke-width:2");
+			outgoingMarkerElem.setAttribute("transform", "rotate(130, 5, 5), scale(0.5)");
+			outgoingMarker.appendChild(outgoingMarkerElem);
+			defs.appendChild(outgoingMarker);
+		}
+
+		// Incoming file marker and arrow definitions
+		{
+			const incomingMarker = document.createElementNS("http://www.w3.org/2000/svg", "marker");
+			incomingMarker.setAttribute("id", "incoming-loop-arrow");
+			incomingMarker.setAttribute("viewBox", "0 0 10 10");
+			incomingMarker.setAttribute("markerWidth", "10");
+			incomingMarker.setAttribute("markerHeight", "10");
+			incomingMarker.setAttribute("markerUnits", "strokeWidth");
+			incomingMarker.setAttribute("refX", "0.4");
+			incomingMarker.setAttribute("refY", "4.75");
+			const incomingMarkerElem = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+			incomingMarkerElem.setAttribute("class", "incoming-arrow");
+			incomingMarkerElem.setAttribute("points", "2.5,5 8,2.5 8,7.5");
+			incomingMarkerElem.setAttribute("style", "fill:black;stroke:black;stroke-width:2");
+			incomingMarkerElem.setAttribute("transform", "rotate(-30, 5, 5), scale(0.5)");
+			incomingMarker.appendChild(incomingMarkerElem);
+			defs.appendChild(incomingMarker);
+		}
 
 		// Inject marker definition
 		const svgWithMarkerDef = svg.replace(">", `>${defs.outerHTML}`);
 
 		// Inject markers into correct paths
-		const LOOP_CURVE_REGEX = /<path d="M([\d.]+ [\d.]+)a10 10 0 0 0 -10 10v([\d.]+)a10 10 0 0 0 10 10"><\/path>/g;
-		const completeMarkerSvg = svgWithMarkerDef.replace(LOOP_CURVE_REGEX,  (_: string, p1: string, p2: string) => {
-			return `<path d="M${p1}a10 10 0 0 0 -10 10v${p2}a10 10 0 0 0 10 10" marker-start="url(#loop-arrow)"></path>`;
-		});
-		return completeMarkerSvg;
+		const OUTGOING_LOOP_CURVE_REGEX = /<path d="M([\d.]+ [\d.]+)a10 10 0 0 0 -10 10v([\d.]+)a10 10 0 0 0 10 10"><\/path>/g;
+		const INCOMING_LOOP_CURVE_REGEX = /<path d="M([\d.]+ [\d.]+)a10 10 0 0 0 10 -10v(-?[\d.]+)a10 10 0 0 0 -10 -10"><\/path>/g;
+		let injectedMarkerSvg = svgWithMarkerDef
+			.replace(OUTGOING_LOOP_CURVE_REGEX,  (_: string, p1: string, p2: string) => {
+				return `<path d="M${p1}a10 10 0 0 0 -10 10v${p2}a10 10 0 0 0 10 10" marker-start="url(#outgoing-loop-arrow)"></path>`;
+			}).replace(INCOMING_LOOP_CURVE_REGEX, (_: string, p1: string, p2: string) => {
+				return `<path d="M${p1}a10 10 0 0 0 10 -10v${p2}a10 10 0 0 0 -10 -10" marker-start="url(#incoming-loop-arrow)"></path>`;
+			});
+		return injectedMarkerSvg;
 	}
 
 	/**
