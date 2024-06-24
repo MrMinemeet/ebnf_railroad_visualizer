@@ -39,8 +39,12 @@ This only includes the grammar length, not the encoded expands.
 
 * **Selectable Start Symbols:** The start symbol can be selected by either choosing the desired NTS in the dropdown menu or by performing a *CTRL + L-Click* on it in the railroad diagram. By default the declared NTS of the first production is used. The selected start symbol is also encoded in the URL for easy sharing.
 
+* **Compacted 0…n Repetition:**
+If the repetition only contains of TS, then the content is compacted onto the back-edge and the forward-edge is kept empty. This is shown in the following picture:  
+![Example railroad diagram with compacted repetition](./images/ts_only_optional_loop.svg) [Link to Example](https://wtf-my-code.works/rr-diagram/?start=Example&grammar=RXhhbXBsZSA9IHsgIiwiIHggfSAu)
+
 * **1…n Repetition detection:** 
-The repetition detection has two versions that are applied 
+The repetition detection has two versions that are applied
 	1. *Advanced Repetition Detection* - for e.g. `x { "," x }`, which removes the `x` in front of the repetition and converts the repetition to a `ZeroOrMore` repetition. The inner `x` is on the forward edge of the repetition and the `","` being on the backward edge as shown in the following picture:  
 	![Example railroad diagram with advanced repetition](./images/advanced_repetition.svg) [Link to Example](https://wtf-my-code.works/rr-diagram/?start=Example&grammar=RXhhbXBsZSA9IHggeyAiLCIgeCB9IC4&expand=MTItMTEtMTAtNi01LTQtM3wxMi0xMS0xMC04)
 
