@@ -63,4 +63,5 @@ The repetition detection has two versions that are applied
 ---
 ## License
 EBNF Railroad Diagram Visualizer © 2024 by Alexander Voglsperger is licensed under CC BY 4.0. To view a copy of this license, see [LICENSE](./LICENSE) or visit https://creativecommons.org/licenses/by/4.0/.
+
 ![CC BY 4.0](./images/cc-by.svg)
