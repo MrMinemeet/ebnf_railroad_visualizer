@@ -3,6 +3,7 @@
  */
 import { Diagram } from "./Diagram.js";
 import { Grammar } from "./Grammar.js";
+import * as d3 from 'https://cdn.jsdelivr.net/npm/d3@7/+esm';
 
 import LZString from "./external/lz-string.js";
 /*
@@ -26,6 +27,347 @@ const GRAMMAR_PARAM: string = "grammar";
 const COMPRESSED_EXPAND_PARAM: string = "expandlz";
 const EXPAND_PARAM: string = "expand";
 const START_SYMBOL_PARAM: string = "start";
+
+interface Window extends globalThis.Window{
+	currentStartSymbolName: string;
+	toExtend: Set<number[]>;
+
+	generateDiagram: () => void;
+	handleGenerateDiagram: () => void;
+	handleStartSymbolSelection: () => void;
+	onCollapseAll: () => void;
+	onExpandAll: () => void;
+	updateSvgViewBoxSize: () => void;
+	exportSvg: () => void;
+	exportPng: () => void;
+}
+declare const window: Window & typeof globalThis;
+
+let errorMessageContainer: HTMLElement;
+let diagramContainer: HTMLElement;
+let ebnfGrammarArea: HTMLTextAreaElement;
+let startSymbolDropDown: HTMLElement | undefined;
+let startSymbolSelect: HTMLSelectElement;
+let zoom: d3.ZoomBehavior<Element, unknown>;
+let focusElementPath: string = "";
+let timeoutId: unknown;
+
+/**
+ * Installs provided functions into `window`, initializes global variables and adds listeners.
+ * Provided functions:
+ * - `generateDiagram` - Generate the diagram from the entered grammar.
+ * - `handleGenerateDiagram` - Handle the generation of a diagram from the entered grammar.
+ * - `handleStartSymbolSelection` - Handle the selection of a new start symbol.
+ * - `onCollapseAll` - Handle the collapse of all non-terminal-symbols.
+ * - `onExpandAll` - Handle the expansion of all non-terminal-symbols.
+ * - `exportSvg ` - Export the diagram as an SVG file.
+ * - `exportPng` - Export the diagram as a PNG file.
+ * Expected DOM elements:
+ * - `error_message` - Container for error messages.
+ * - `visualized-ebnf` - Container for the diagram.
+ * - `ebnf_grammar` - Textarea for the EBNF grammar.
+ * - `.start-symbol-drop-down` - Container for the start symbol dropdown.
+ * - `start-symbol` - Select for the start symbol.
+ * @param window The window object to install the functions into.
+ */
+export function install(window: Window): void {
+	let elem = document.getElementById("error_message");
+
+	if (elem == null) throw new Error("Failed to find 'error_message' container");
+	else errorMessageContainer = elem;
+	elem = document.getElementById("visualized-ebnf");
+
+	if (elem == null) throw new Error("Failed to find 'visualized-ebnf' container");
+	else diagramContainer = elem;
+	elem = document.querySelector("textarea[name=ebnf_grammar]");
+
+	if (elem == null) throw new Error("Failed to find 'ebnf_grammar' textarea");
+	else ebnfGrammarArea = elem as HTMLTextAreaElement;
+	elem = document.querySelector("#start-symbol");
+
+	if (elem == null) throw new Error("Failed to find 'start-symbol' select");
+	else startSymbolSelect = elem as HTMLSelectElement;
+	startSymbolDropDown = document.querySelector(".start-symbol-drop-down") as HTMLElement;
+
+	// Initialize global variables
+	window.currentStartSymbolName = "";
+	window.toExtend = new Set<number[]>();
+
+	// Initialize provided functions
+	window.generateDiagram = generateDiagram;
+	window.handleGenerateDiagram = handleGenerateDiagram;
+	window.handleStartSymbolSelection = handleStartSymbolSelection;
+	window.onCollapseAll = onCollapseAll;
+	window.onExpandAll = onExpandAll;
+	window.exportSvg = (): Promise<void> => exportSvg(window.toExtend);
+	window.exportPng = (): Promise<void> => exportPng(window.toExtend);
+
+	// Add listeners
+	window.addEventListener("resize", window.updateSvgViewBoxSize);
+}
+
+/**
+ * Focus the element with the path stored in `focusElementPath`.
+ */
+function focusElementSvg(): void {
+	if (focusElementPath.trim().length === 0) {
+		return;
+	}
+	const svg = d3.select(".railroad-diagram");
+
+	// Select "title" element with the path as inner text
+	let parent = Array.from((svg.node() as Element)?.querySelectorAll(`title`))
+		.filter((title) => title.innerHTML === focusElementPath)[0].parentNode as SVGGElement;
+
+	if (parent == null) throw new Error("Failed to find parent of focus element");
+
+	// If parent is a comment, get the parent of the parent
+	if (parent.tagName === "g" && parent.classList.contains("comment")) {
+		parent = parent.parentNode as SVGGElement;
+	}
+	const bbox = parent.getBBox();
+
+	// Center of bbox
+	const bboxCenterX = bbox.x + bbox.width / 2;
+	const bboxCenterY = bbox.y + bbox.height / 2;
+
+	// Calculate new transform based on bbox center and current svg size
+	const viewBox = (svg.node() as any).viewBox.baseVal as DOMRect;
+	const newTransform = d3.zoomIdentity.translate(
+		viewBox.width / 2 - bboxCenterX,
+		viewBox.height / 2 - bboxCenterY
+	);
+
+	console.debug(`Box center: (${bboxCenterX}, ${bboxCenterY})`);
+	console.debug(`New transform: ${newTransform}`);
+
+	// Apply transform
+	svg.call(zoom.transform as any, newTransform);
+
+	// Reset focus element
+	focusElementPath = "";
+}
+
+/**
+ * Handle the generation of a diagram from the entered grammar.
+ */
+function handleGenerateDiagram(): void {
+	generateDiagram();
+	updateUrl();
+	resetPathCleanupTimer();
+}
+
+/**
+ * Handle the collapse of all non-terminal-symbols.
+ */
+function onCollapseAll(): void {
+	// Remove all non-terminals to extend
+	window.toExtend.clear();
+	// Generate the diagram again
+	generateDiagram();
+	updateUrl();
+}
+
+/**
+ * Handle the expansion of all non-terminal-symbols.
+ */
+function onExpandAll(): void {
+	const ebnfGrammarValue = ebnfGrammarArea.value;
+	if (ebnfGrammarValue.trim() === "") return;
+	console.debug("Expanding all non-erminals");
+	// Replace currently "window.toExtend" with all IDs that are expandable
+	asyncString2Diagram(ebnfGrammarValue, window.currentStartSymbolName).then((diagram) => {
+	  window.toExtend = diagram.getAllNtsPaths();
+	  generateDiagram();
+	  updateUrl();
+	}).catch((e) =>  console.warn(e));
+	// Generate the diagram again
+}
+
+/**
+ * Inject D3 zoom into the SVG.
+ */
+function injectD3(): void {
+	const diagramSvg = document.getElementsByClassName("railroad-diagram")[0];
+	diagramSvg.removeAttribute("width");
+	diagramSvg.removeAttribute("height");
+	updateSvgViewBoxSize();
+
+	// Get the SVG element that D3-zoom should be applied to
+	const svg = d3.select(".railroad-diagram");
+	// Get current childs of svg
+	const children = Array.from((svg.node() as Element)?.children);
+	// Add g node to the SVG
+	const g = svg.append("g");
+	// Move all children to the g node
+	children.forEach((child) => {
+		g.node()?.appendChild(child);
+	});
+
+	zoom = d3.zoom()
+		.scaleExtent([0.1, 8])
+		.on("zoom", zoomed);
+	svg.call(zoom as any);
+
+	function zoomed({transform}: { transform: d3.ZoomTransform }): void {
+		g.attr("transform", transform.toString());
+	}
+}
+
+/**
+ * Generate the diagram from the entered grammar.
+ */
+function generateDiagram(): void {
+	if (ebnfGrammarArea.value.trim() === "") {
+		console.debug("Nothing was entered into the textarea.");
+		diagramContainer.style.display = "none";
+		return;
+	}
+
+	const grammarVal = ebnfGrammarArea.value;
+	const nonAscii = getNonAsciiChars(grammarVal);
+	if (nonAscii.size > 0) {
+		console.warn("The following non-ASCII characters were detected in the grammar: ", nonAscii);
+		errorMessageContainer.innerHTML = `<p>Non-ASCII character(s) detected: ${Array.from(nonAscii).join(", ")}</p>`;
+		errorMessageContainer.style.display = "block";
+		diagramContainer.style.display = "none";
+		return;
+	}
+
+	asyncString2Grammar(grammarVal).then((grammar) => {
+		// Get all nts start symbols
+		window.currentStartSymbolName = setStartSymbols(grammar.getStartSymbols(), window.currentStartSymbolName) || "";
+		return asyncGrammar2Diagram(grammar, window.currentStartSymbolName);
+	}).then((diagram) => {
+		diagramContainer.innerHTML = diagram.toSvg(window.toExtend);
+		injectD3();
+
+		// Inject listeners for collapsing and expanding
+		document.querySelectorAll(".non-terminal")
+			.forEach(event => injectCollapseListener(event as HTMLElement));
+		document.querySelectorAll("g.comment")
+			.forEach(element => injectExpandListener(element as HTMLElement));
+
+		// Set the focus to the element
+		focusElementSvg();
+
+		// Hide the error message container
+		errorMessageContainer.style.display = "none";
+	}).catch(e => {
+		const PRODUCTION_NOT_FOUND_REGEX = /^Production '([^']*)' not found, but required for expansion$/;
+
+		console.warn(`An error occurred while generating the diagram: ${e}`);
+		if (!e.message.includes("but found") &&
+			!e.message.includes("Unknown character") &&
+			!PRODUCTION_NOT_FOUND_REGEX.test(e.message)
+		) {
+			console.warn(e.stack);
+		}
+
+		errorMessageContainer.innerHTML = `<p>${e}</p>`;
+		errorMessageContainer.style.display = "block";
+
+		// Don't hide graph if it is a "production X not found" error
+		if (!PRODUCTION_NOT_FOUND_REGEX.test(e.message)) {
+			//diagramContainer.style.display = "none";
+			diagramContainer.innerHTML = "";
+		}
+	});
+}
+
+/**
+ * Inject a listener for collapsing expanded non-terminal-symbols.
+ * @param element The element to inject the listener into.
+ */
+function injectCollapseListener(element: HTMLElement): void {
+	element.addEventListener("click", (event) => {
+		if (event.currentTarget == null) {
+			console.warn("Failed to find current target.");
+			return;
+		}
+
+		if (event.ctrlKey) {
+			// Use the pressed NTS as the start symbol
+			const ntsName = (event.currentTarget as HTMLElement).querySelector("text")?.textContent ?? "";
+			if (startSymbolSelect == null) {
+				console.warn("Failed to find start symbol select.");
+				return;
+			}
+			startSymbolSelect.value = ntsName;
+			handleStartSymbolSelection();
+		} else {
+			// Get ID from iner child with tag "title"
+			const title = (event.currentTarget as HTMLElement).querySelector("title");
+			const pathTitle = title?.textContent?.trim() ?? "";
+
+			// Expand the NTS
+			const path = title2Path(pathTitle);
+			if (path.length >= Diagram.MAX_EXPANSION_DEPTH) {
+				console.warn(`Cannot expand NTS on path '${pathTitle}'. Depth limit reached!`);
+				alert("Max. expansion depth reached!");
+				return;
+			}
+
+			// Add the ID to the set of non-terminals to extend
+			window.toExtend.add(path);
+			console.debug(`Expanding NTS on path '${pathTitle}'`);
+
+			// Get "title" child of the clicked element and set the path as the focus element
+			focusElementPath = (event.currentTarget as HTMLElement).querySelector("title")?.innerHTML ?? "";
+
+			// Generate the diagram again
+			generateDiagram();
+			updateUrl();
+		}
+	});
+}
+
+/**
+ * Inject a listener for expanding collapsed non-terminal-symbols.
+ * @param element The element to inject the listener into.
+ */
+function injectExpandListener(element: HTMLElement): void {
+	element.addEventListener("click", (event) => {
+		// Get ID from inner child with tag "title"
+		const title = (event.currentTarget as HTMLElement).querySelector("title");
+		const pathTitle = title?.textContent?.trim() ?? "";
+
+		// Add the ID to the set of non-terminals to extend
+		console.debug(`Collapsing NTS on path '${pathTitle}'`);
+
+		// Remove the pathTitle
+		window.toExtend = new Set(Array.from(window.toExtend).filter((x) => x.join("-") !== pathTitle));
+
+		// Get "title" child of the clicked element and set the path as the focus element
+		focusElementPath = (event.currentTarget as HTMLElement).querySelector("title")?.innerHTML ?? "";
+
+		// Generate the diagram again
+		generateDiagram();
+		updateUrl();
+	});
+}
+
+/**
+ * Reset the path cleanup timer.
+ */
+function resetPathCleanupTimer(): void {
+	clearTimeout(timeoutId as number);
+	timeoutId = setTimeout(() => {
+		try {
+			const prevSize = window.toExtend.size;
+			window.toExtend = filterInvalidPaths(ebnfGrammarArea.value, window.toExtend);
+			if (prevSize !== window.toExtend.size) {
+				console.debug(`Cleaned up ${prevSize - window.toExtend.size} paths`);
+				generateDiagram();
+				updateUrl();
+			} else {
+				console.debug("No paths to clean up");
+			}
+		} catch (e) {
+			console.warn(`An error occurred while cleaning up paths (this can likely be ignored): ${e}`);
+		}
+	}, 5000);
+}
 
 /**
  * Checks if a word starts with an uppercase letter.
@@ -59,10 +401,10 @@ export function isQuote(char: string): boolean {
 export async function asyncString2Diagram(grammar: string, startSymbolName?: string): Promise<Diagram> {
 	console.debug("Generating diagram…");
 	return new Promise((resolve, reject) => {
-	   // Timeout to prevent blocking the UI or freezing the browser
-	   asyncString2Grammar(grammar).then((grammar: Grammar) => {
+		// Timeout to prevent blocking the UI or freezing the browser
+		asyncString2Grammar(grammar).then((grammar: Grammar) => {
 			resolve(asyncGrammar2Diagram(grammar, startSymbolName));
-	   }).catch(reject);
+		}).catch(reject);
 	});
 }
 
@@ -76,22 +418,22 @@ export async function asyncString2Diagram(grammar: string, startSymbolName?: str
 export async function asyncGrammar2Diagram(grammar: Grammar, startSymbolName?: string): Promise<Diagram> {
 	console.debug("Generating diagram…");
 	return new Promise((resolve, reject) => {
-	   // Timeout to prevent blocking the UI or freezing the browser
-	   	const timeoutID = setTimeout(() => {
+		// Timeout to prevent blocking the UI or freezing the browser
+		const timeoutID = setTimeout(() => {
 			console.debug("Generation Timeout");
 			reject();
-	   	}, GENERATION_TIMEOUT);
+		}, GENERATION_TIMEOUT);
 
-	   	try {
+		try {
 			// Generate the diagram
 			const diagram = Diagram.fromGrammar(grammar, startSymbolName);
 			console.debug("Diagram generated successfully.");
 			clearTimeout(timeoutID);
 			resolve(diagram);
-	   	} catch (e) {
+		} catch (e) {
 			clearTimeout(timeoutID);
 			reject(e);
-	   	}
+		}
 	});
 }
 
@@ -105,19 +447,19 @@ export async function asyncString2Grammar(grammar: string): Promise<Grammar> {
 	return new Promise((resolve, reject) => {
 		// Timeout to prevent blocking the UI or freezing the browser
 		const timeoutID = setTimeout(() => {
-			 console.debug("Generation Timeout");
-			 reject();
+			console.debug("Generation Timeout");
+			reject();
 		}, GENERATION_TIMEOUT);
 
 		try {
-			 // Generate the diagram
-			 const g = Grammar.fromString(grammar);
-			 console.debug("Grammar scanned/parsed successfully.");
-			 clearTimeout(timeoutID);
-			 resolve(g);
+			// Generate the diagram
+			const g = Grammar.fromString(grammar);
+			console.debug("Grammar scanned/parsed successfully.");
+			clearTimeout(timeoutID);
+			resolve(g);
 		} catch (e) {
-			 clearTimeout(timeoutID);
-			 reject(e);
+			clearTimeout(timeoutID);
+			reject(e);
 		}
 	 });
 }
@@ -188,7 +530,6 @@ export function getNonAsciiChars(str: string, extended: boolean = false): Set<st
 export function title2Path(title: string): number[] {
 	return title.split('-').map(Number);
 }
-
 
 /**
  * Add the values of the grammar and expand paths to a URL.
@@ -271,11 +612,9 @@ export function getValuesFromUrl(searchParams: string): [string, Set<number[]>, 
 			throw new Error("Decompression failed");
 		}
 		grammar = uncompressedGrammar;
-
 	} else if (base64Grammar) {
 		// Uncompressed grammar
 		grammar = atob(base64UrlToBase64(base64Grammar));
-
 	}
 
 	// Expand paths
@@ -337,32 +676,31 @@ function getSvg(toExpand: Set<number[]>): Promise<string> {
 		}
 
 		// Generate new diagram to get clean SVG
-		asyncString2Diagram(ebnfGrammarValue)
-			.then((diagram) => {
-				let svgHtml = diagram.toSvg(toExpand);
+		asyncString2Diagram(ebnfGrammarValue).then((diagram) => {
+			let svgHtml = diagram.toSvg(toExpand);
 
-				const additionalAttributes = [
-					'xmlns="http://www.w3.org/2000/svg"',
-					'shape-rendering="geometricPrecision"',
-					'text-rendering="geometricPrecision"',
-					'image-rendering="optimizeQuality"',
-				];
+			const additionalAttributes = [
+				'xmlns="http://www.w3.org/2000/svg"',
+				'shape-rendering="geometricPrecision"',
+				'text-rendering="geometricPrecision"',
+				'image-rendering="optimizeQuality"',
+			];
 
-				// Add additional attributes to the SVG
-				svgHtml = svgHtml.replace("<svg", `<svg ${additionalAttributes.join(" ")}`);
+			// Add additional attributes to the SVG
+			svgHtml = svgHtml.replace("<svg", `<svg ${additionalAttributes.join(" ")}`);
 
-				//  Get the style of the diagram (./css/railroad.css)
-				const styleSheet = document.styleSheets[0];
+			//  Get the style of the diagram (./css/railroad.css)
+			const styleSheet = document.styleSheets[0];
 
-				asyncCss2String(styleSheet).then((cssString) => {
-					// Add the CSS to the SVG as a style element
-					svgHtml = svgHtml.replace("</defs>", `<style>${cssString}</style></defs>`);
+			asyncCss2String(styleSheet).then((cssString) => {
+				// Add the CSS to the SVG as a style element
+				svgHtml = svgHtml.replace("</defs>", `<style>${cssString}</style></defs>`);
 
-					resolve(svgHtml);
-				}).catch((e) => {
-					reject(e);
-				});
+				resolve(svgHtml);
+			}).catch((e) => {
+				reject(e);
 			});
+		});
 	});
 }
 
@@ -467,30 +805,29 @@ function buttonPressReset(button: HTMLButtonElement): void {
 
 /**
  * Update the URL with the current grammar and expand paths.
- * @param toExtend The paths to extend
+ * Loosely based on https://stackoverflow.com/a/27993650/8527195
+ * @param window.toExtend The paths to extend
  * @param currentStartSymbolName The name of the current start symbol
  * @returns {void} - Nothing
  */
-export function updateUrl(toExtend?: Set<number[]>, currentStartSymbolName?:string): void {
+function updateUrl(currentStartSymbolName?:string): void {
 	const grammar = document.querySelector("textarea[name=ebnf_grammar]") as HTMLTextAreaElement;
 	if (!grammar) return;
 
 	// Replace URL
-	window.history.replaceState({}, "", addValuesToUrl(window.location.href, grammar.value, toExtend, currentStartSymbolName));
+	window.history.replaceState({}, "", addValuesToUrl(window.location.href, grammar.value, window.toExtend, currentStartSymbolName));
 }
 
 /**
  * Update the Viewbox size of the SVG.
  * @returns {void} - Nothing
  */
-export function updateSvgViewBoxSize(): void {
+function updateSvgViewBoxSize(): void {
 	const diagSvg = document.getElementsByClassName("railroad-diagram")[0];
-	if (!diagSvg) {
-	  return;
-	}
+	if (!diagSvg) return;
+
 	const flexContainer = document.getElementsByClassName("flex-container")[0].children;
 	const totalHeightNonEbnfElems = Array.from(flexContainer).slice(0, flexContainer.length - 1).reduce((acc, elem) => acc + elem.clientHeight, 0);
-
 	const leftoverHeight = window.innerHeight - totalHeightNonEbnfElems;
 
 	// Check if parent element is present
@@ -503,10 +840,10 @@ export function updateSvgViewBoxSize(): void {
 /**
  * Update the start symbols in the dropdown.
  * @param  {Array<string>} startSymbols The start symbols to set
- * @returns {void} - Nothing
+ * @param  {string} currentStartSymbolName The name of the current start symbol
+ * @returns {string|undefined} - The name of the current start symbol
  */
 export function setStartSymbols(startSymbols: string[], currentStartSymbolName: string): string | undefined {
-	const startSymbolDropDown = document.querySelector(".start-symbol-drop-down") as HTMLElement;
 	if (!startSymbolDropDown) {
 		console.warn("Failed to find start symbol drop down.");
 		return undefined;
@@ -524,7 +861,7 @@ export function setStartSymbols(startSymbols: string[], currentStartSymbolName: 
 	const startSymbolSelect = document.querySelector("#start-symbol") as HTMLSelectElement;
 	if (!startSymbolSelect) {
 		console.warn("Failed to find start symbol select.");
-	 	return undefined;
+		return undefined;
 	}
 
 	// Check if the list is up-to-date (length and item wise)
@@ -533,7 +870,7 @@ export function setStartSymbols(startSymbols: string[], currentStartSymbolName: 
 		for (let i = 0; i < startSymbols.length; i++) {
 			if (startSymbolSelect.options[i].value !== startSymbols[i]) {
 				allMatch = false;
-		 		break;
+				break;
 			}
 		}
 		if (allMatch) {
@@ -544,41 +881,43 @@ export function setStartSymbols(startSymbols: string[], currentStartSymbolName: 
 	console.debug("Updating start symbols in dropdown.");
 	startSymbolSelect.innerHTML = "";
 	startSymbols.forEach((startSymbol) => {
-	  const option = document.createElement("option");
-	  option.value = startSymbol;
-	  option.text = startSymbol;
-	  startSymbolSelect.appendChild(option);
+		const option = document.createElement("option");
+		option.value = startSymbol;
+		option.text = startSymbol;
+		startSymbolSelect.appendChild(option);
 	});
 	startSymbolDropDown.style.display = "block";
 
 	// Check if current start symbol is in the list
 	if (startSymbols.includes(currentStartSymbolName)) {
-	  // Keep the current start symbol
-	  startSymbolSelect.value = currentStartSymbolName;
-	  return currentStartSymbolName;
+		// Keep the current start symbol
+		startSymbolSelect.value = currentStartSymbolName;
+		return currentStartSymbolName;
 	} else {
-	  // Use the first start symbol as fallback
-	  startSymbolSelect.value = firstSymbol;
-	  updateUrl( undefined, firstSymbol);
-	  return firstSymbol;
+		// Use the first start symbol as fallback
+		startSymbolSelect.value = firstSymbol;
+		updateUrl(firstSymbol);
+		return firstSymbol;
 	}
 }
 
-export function handleStartSymbolSelection(toExtend: Set<number[]>): void {
+/**
+ * Handle the selection of a new start symbol.
+ */
+function handleStartSymbolSelection(): void {
 	const startSymbolSelect = document.querySelector("#start-symbol") as HTMLSelectElement;
-	if (!startSymbolSelect) {
-		console.warn("Failed to find start symbol select.");
-		return;
+	if (startSymbolSelect == null) {
+		throw new Error("Failed to find start symbol select.");
 	}
 
 	const startSymbol = startSymbolSelect.value;
-	if (startSymbol === (window as any).currentStartSymbolName) {
-	  return;
+	if (startSymbol === window.currentStartSymbolName) {
+		return;
 	}
-	(window as any).currentStartSymbolName = startSymbol;
-	// Clear "toExtend" as start symbol changed
+	window.currentStartSymbolName = startSymbol;
+	// Clear "window.toExtend" as start symbol changed
 	window.toExtend.clear();
 	console.debug(`Setting start symbol to '${startSymbol}' and creating new diagram.`);
-	(window as any).generateDiagram();
-	updateURL();
+	generateDiagram();
+	updateUrl();
 }
