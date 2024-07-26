@@ -2,7 +2,7 @@
   "name": "ebnf-railroad-visualizer",
   "description": "A web-based EBNF railroad diagram visualizer",
   "homepage": "https://github.com/MrMinemeet/ebnf_railroad_visualizer",
-  "license": "MIT",
+  "license": "CC-BY-4.0",
   "author": {
     "name": "Alexander Voglsperger",
     "email": "alex@wtf-my-code.works",
