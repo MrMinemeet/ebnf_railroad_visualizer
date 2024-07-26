@@ -62,8 +62,8 @@ export class Diagram {
 	 */
 	private generateDiagram(): any {
 		// Get the use the specified start symbol or the first production as a fallback
-		const  firstProd = (this.startSymbolName.length > 0) ? 
-			this.grammar.getProductionFromName(this.startSymbolName) : 
+		const  firstProd = (this.startSymbolName.length > 0) ?
+			this.grammar.getProductionFromName(this.startSymbolName) :
 			this.grammar.syntax.productions[0];
 
 		const diagram = rr.Diagram(this.generateFrom(firstProd));
@@ -110,7 +110,7 @@ export class Diagram {
 
 		// Don't support multiple terms in a repetition for compacting
 		if (repExpr.terms.length !== 1) {
-			console.debug("Repetition has multiple terms (i.e. contains optionals). Can't compact.")
+			console.debug("Repetition has multiple terms (i.e. contains optionals). Can't compact.");
 			return this.generateBasicSequence(term.factors);
 		}
 
@@ -140,8 +140,8 @@ export class Diagram {
 
 				if (remainingRepFactors.every((f) => f.isTS())) {
 					console.debug("Advanced compaction possible. Generating compacted sequence with separator on backedge.");
-					const forwardEdge: any[] = []; // Holds the fractors presend in the repetition and before it (stuff that can sit on the forward edge) 
-					let facts = repExpr.terms[0].factors.slice(j + 1, repExpr.terms[0].factors.length)
+					const forwardEdge: any[] = []; // Holds the fractors presend in the repetition and before it (stuff that can sit on the forward edge)
+					const facts = repExpr.terms[0].factors.slice(j + 1, repExpr.terms[0].factors.length);
 					for (const forwardEdgeFactors of facts) {
 						forwardEdge.push(this.forFactor(forwardEdgeFactors));
 					}
@@ -163,7 +163,7 @@ export class Diagram {
 								// Skip data that is already in the repetition but keep stuff before and after
 								continue;
 							}
-		
+
 							compactedFactors.push(this.forFactor(term.factors[i], repExpr.id === term.factors[i].value.id));
 						}
 						return rr.Sequence(...compactedFactors);
@@ -209,7 +209,7 @@ export class Diagram {
 		}
 
 		console.debug("Can't be compacted or visually prepared. Generating basic sequence.");
-		return this.generateBasicSequence(term.factors);	
+		return this.generateBasicSequence(term.factors);
 	}
 
 	private generateBasicSequence(factors: Factor[]): any {
@@ -234,17 +234,17 @@ export class Diagram {
 				if (oneOrMore) {
 					return rr.OneOrMore(generated);
 				} else {
-					/* Repetition could not be compacted by using "OneOrMore" loop. 
+					/* Repetition could not be compacted by using "OneOrMore" loop.
 					 * Check if the loop can be visually compacted by moving symbols to the backedge and using a empty line in the forward edge.
 					* Would work for NTS too but looks quite bad and is not as easy to understand. Therefore, it will be limited to TS only.
 					*/
-					let expr = factor.value as Expression; // A Repetition Factor can only hold a Expression
+					const expr = factor.value as Expression; // A Repetition Factor can only hold a Expression
 
 					// Check if all terms have factors that are terminal symbols
 					if (expr.terms.every((t) => t.factors.every((f) => f.isTS()))) {
 						// Put all terms in parallel and in there put all factors in reverse sequence
 						const parallelTerms: any[] = [];
-						
+
 						for (const term of expr.terms) {
 							// Reverse the factors to get the correct order in the diagram when shown
 							const repFactors = [];
@@ -393,7 +393,7 @@ export class Diagram {
 		// Inject markers into correct paths
 		const OUTGOING_LOOP_CURVE_REGEX = /<path d="M([\d.]+ [\d.]+)a10 10 0 0 0 -10 10v([\d.]+)a10 10 0 0 0 10 10"><\/path>/g;
 		const INCOMING_LOOP_CURVE_REGEX = /<path d="M([\d.]+ [\d.]+)a10 10 0 0 0 10 -10v(-?[\d.]+)a10 10 0 0 0 -10 -10"><\/path>/g;
-		let injectedMarkerSvg = svgWithMarkerDef
+		const injectedMarkerSvg = svgWithMarkerDef
 			.replace(OUTGOING_LOOP_CURVE_REGEX,  (_: string, p1: string, p2: string) => {
 				return `<path d="M${p1}a10 10 0 0 0 -10 10v${p2}a10 10 0 0 0 10 10" marker-start="url(#outgoing-loop-arrow)"></path>`;
 			}).replace(INCOMING_LOOP_CURVE_REGEX, (_: string, p1: string, p2: string) => {

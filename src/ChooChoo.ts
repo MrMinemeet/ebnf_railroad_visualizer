@@ -70,7 +70,7 @@ export async function asyncString2Diagram(grammar: string, startSymbolName?: str
  * Asynchronously generate a diagram from a given grammar.
  * @param {Grammar} grammar - The grammar to generate a diagram from.
  * @param {string} startSymbolName - The name of the start symbol. If not provided the first production is used.
- * @param {string} startSymbolName - The name of the start symbol. If not provided the first production is used. 
+ * @param {string} startSymbolName - The name of the start symbol. If not provided the first production is used.
  * @returns {Promise<Diagram>} - The generated diagram.
  */
 export async function asyncGrammar2Diagram(grammar: Grammar, startSymbolName?: string): Promise<Diagram> {
@@ -325,37 +325,37 @@ function getSvg(toExpand: Set<number[]>): Promise<string> {
 	return new Promise((resolve, reject) => {
 		const ebnfGrammarValue = (document.querySelector("textarea[name=ebnf_grammar]") as HTMLTextAreaElement)?.value;
 		if (ebnfGrammarValue.trim() === "") {
-			console.debug("Nothing was entered into the textarea.")
-			reject ("No grammar to visualize")
+			console.debug("Nothing was entered into the textarea.");
+			reject ("No grammar to visualize");
 		}
 
 		// Generate new diagram to get clean SVG
 		asyncString2Diagram(ebnfGrammarValue)
-		.then((diagram) => {
-			let svgHtml = diagram.toSvg(toExpand);
+			.then((diagram) => {
+				let svgHtml = diagram.toSvg(toExpand);
 
-			const additionalAttributes = [
-				'xmlns="http://www.w3.org/2000/svg"',
-				'shape-rendering="geometricPrecision"',
-				'text-rendering="geometricPrecision"',
-				'image-rendering="optimizeQuality"',
-			];
+				const additionalAttributes = [
+					'xmlns="http://www.w3.org/2000/svg"',
+					'shape-rendering="geometricPrecision"',
+					'text-rendering="geometricPrecision"',
+					'image-rendering="optimizeQuality"',
+				];
 
-			// Add additional attributes to the SVG
-			svgHtml = svgHtml.replace("<svg", `<svg ${additionalAttributes.join(" ")}`);
+				// Add additional attributes to the SVG
+				svgHtml = svgHtml.replace("<svg", `<svg ${additionalAttributes.join(" ")}`);
 
-			//  Get the style of the diagram (./css/railroad.css)
-			const styleSheet = document.styleSheets[0];
+				//  Get the style of the diagram (./css/railroad.css)
+				const styleSheet = document.styleSheets[0];
 
-			asyncCss2String(styleSheet).then((cssString) => {
-				// Add the CSS to the SVG as a style element
-				svgHtml = svgHtml.replace("</defs>", `<style>${cssString}</style></defs>`);
+				asyncCss2String(styleSheet).then((cssString) => {
+					// Add the CSS to the SVG as a style element
+					svgHtml = svgHtml.replace("</defs>", `<style>${cssString}</style></defs>`);
 
-				resolve(svgHtml);
-			}).catch((e) => {
-				reject(e);
+					resolve(svgHtml);
+				}).catch((e) => {
+					reject(e);
+				});
 			});
-		});
 	});
 }
 
@@ -400,8 +400,8 @@ export async function exportPng(toExpand: Set<number[]>): Promise<void> {
 
 		// Update the SVG width and height
 		const scaledSvgHtml = svgHtml
-								.replace(`width="${origWidth}"`, `width="${scaledWidth}"`)
-								.replace(`height="${origHeight}"`, `height="${scaledHeight}"`);
+			.replace(`width="${origWidth}"`, `width="${scaledWidth}"`)
+			.replace(`height="${origHeight}"`, `height="${scaledHeight}"`);
 
 		// Create blob from SVG and use it to create a data URL
 		const blob = new Blob([scaledSvgHtml], {type: "image/svg+xml;charset=utf-8"});
