@@ -1,0 +1,1 @@
+"use strict";import{isUppercase as r}from"../ChooChoo.js";export class Sym{constructor(t,s=-1){this.name=t,this.id=s}toString(){return this.name}equals(t){return this.name==t.name}isTS(){return!r(this.name)||this.name.startsWith('"')}}

@@ -1,0 +1,1 @@
+"use strict";import{Sym as r}from"../scannerparser/Sym.js";export class Identifier extends r{constructor(t,e=-1){if(t.length===0)throw new Error("An identifier must have at least one letter");super(t.join(""),e),this.letters=t}toString(){return this.letters.join("")}}

@@ -1,0 +1,1 @@
+"use strict";import{Sym as i}from"../scannerparser/Sym.js";export class Production extends i{constructor(t,r,s=-1){super(`${t} = ${r}`,s),this.ident=t,this.expr=r}toString(){return`${this.ident} = ${this.expr} .`}}

@@ -1,0 +1,1 @@
+"use strict";export var Kind;(function(r){r.ident="identifier",r.literal="literal",r.eof="EOF",r.lpar="(",r.rpar=")",r.lbrack="[",r.rbrack="]",r.lbrace="{",r.rbrace="}",r.period=".",r.pipe="|",r.assign="=",r.quote='"',r.unknown="unknown"})(Kind||(Kind={}));export class Token{constructor(t){this.str="",this.kind=t}toString(){return this.kind}}

@@ -1,0 +1,1 @@
+"use strict";import{Sym as e}from"../scannerparser/Sym.js";export class Literal extends e{constructor(r,t=-1){if(r.length===0)throw new Error("A literal must have at least one character");super(r,t)}toString(){return`"${super.toString()}"`}}

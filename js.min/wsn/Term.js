@@ -1,0 +1,1 @@
+"use strict";import{Sym as e}from"../scannerparser/Sym.js";export class Term extends e{constructor(t,r=-1){if(t.length===0)throw new Error("A term must have at least one factor");super(t.map(o=>o.toString()).join(" "),r),this.factors=t}toString(){return this.factors.map(t=>t.toString()).join(" ")}}

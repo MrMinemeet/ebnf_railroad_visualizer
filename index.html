@@ -20,7 +20,7 @@ To view a copy of this license, see the provided LICENSE file or visit https://c
     <meta property="og:url" content="https://wtf-my-code.works/rr-diagram/">
     <meta property="og:type" content="website">
     <script type="module">
-      import { install } from "./out/ChooChoo.js";
+      import { install } from "./js.min/ChooChoo.js";
       install(window);
     </script>
   </head>
@@ -58,7 +58,7 @@ To view a copy of this license, see the provided LICENSE file or visit https://c
     </div>
 
     <script type="module" async defer>
-      import { getValuesFromUrl } from "./out/ChooChoo.js";
+      import { getValuesFromUrl } from "./js.min/ChooChoo.js";
       
       // Async defer is not a guarantee that the DOM is ready. The following event does.
       // document.addEventListener("DOMContentLoaded", function() { // Doesn't work reliably in Chrome
