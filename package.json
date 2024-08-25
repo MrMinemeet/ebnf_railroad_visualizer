@@ -46,9 +46,8 @@
     "useMinified": "sed -i 's/\\.\\/out\\//.\\/js.min\\//g' index.html",
     "useNormal": "sed -i 's/\\.\\/js.min\\//.\\/out\\//g' index.html",
     "bundle": "rm -f ./bundle.zip && pnpm run minify && pnpm run useMinified && zip -r bundle.zip js.min/ css/ images/ index.html README.md LICENSE && pnpm run useNormal",
-    "copy-files": "mkdir -p dist && cp -R js.min dist/js.min && cp -R css dist/css && cp -R images dist/images && cp index.html dist/",
     "predeploy": "git checkout gh-pages && git merge main",
-    "deploy": "pnpm run minify && pnpm run useMinified && pnpm run copy-files && git add dist/ && git commit -m 'Deploy to gh-pages' && git push origin gh-pages",
+    "deploy": "pnpm run minify && pnpm run useMinified && git add -A && git commit -m 'Deploy to gh-pages' && git push origin gh-pages",
     "postdeploy": "pnpm run useNormal && git checkout -"
   },
   "packageManager": "pnpm@9.0.6+sha256.0624e30eff866cdeb363b15061bdb7fd9425b17bc1bb42c22f5f4efdea21f6b3"
