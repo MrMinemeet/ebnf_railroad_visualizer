@@ -6,3 +6,7 @@ js.min
 
 # Builds
 bundle.zip
+
+# Don't ignore dist/ and it's subfolders as it will be used by github pages
+!dist
+!dist/**
