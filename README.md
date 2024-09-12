@@ -4,6 +4,11 @@ Uses the [Wirth Syntax Notation](https://en.wikipedia.org/wiki/Wirth_syntax_nota
 
 This project is a part of the course [Project in Software Engineering](https://ssw.jku.at/Teaching/Lectures/PSE/2024SS/index.html) at the SSW and is supervised by [Dr. Markus Weninger](https://ssw.jku.at/General/Staff/Weninger/).
 
+## Access:
+I host the project on my own website: https://wtf-my-code.works/rr-diagram/.  
+Should you encounter any issues, please let me know by creating an issue on this repository. In the meantime you can use the mirror hosted via [GitHub Pages](https://mrminemeet.github.io/ebnf_railroad_visualizer/).
+
+
 ## Usage
 The grammar expects a correctly formatted EBNF grammar in WSN. Uppercase identifiers are treated as Non-Terminal Symbols (*NTS*). Lowercase identifiers are treated as Terminal Symbols (*TS*) which cannot be broken down further, e.g. `an` which may stand for a-z, A-Z and 0-9.
 
