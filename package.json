@@ -22,15 +22,15 @@
   ],
   "devDependencies": {
     "@types/d3": "^7.4.3",
-    "@types/node": "^20.14.9",
-    "@typescript-eslint/eslint-plugin": "^7.14.1",
-    "@typescript-eslint/parser": "^7.14.1",
+    "@types/node": "^20.16.5",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
     "esbuild": "0.22.0",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-jest": "^28.6.0",
-    "eslint-plugin-prettier": "^5.1.3",
-    "typescript": "^5.5.2"
+    "eslint-plugin-jest": "^28.8.3",
+    "eslint-plugin-prettier": "^5.2.1",
+    "typescript": "^5.6.2"
   },
   "scripts": {
     "compile": "tsc -p ./",
@@ -42,7 +42,7 @@
     "minifywsn": "./node_modules/.bin/esbuild --minify ./out/wsn/*.js --outdir=./js.min/wsn/",
     "minifyscannerparser": "./node_modules/.bin/esbuild --minify ./out/scannerparser/*.js --outdir=./js.min/scannerparser/",
     "minifyexternal": "./node_modules/.bin/esbuild --minify ./out/external/*.js --outdir=./js.min/external/",
-    "minifygen": "./node_modules/.bin/esbuild --minify ./out/*.js --outdir=./js.min/",
+    "minifygen": "./node_modules/.bin/esbuild --minify  --keep-names ./out/*.js --outdir=./js.min/",
     "useMinified": "sed -i 's/\\.\\/out\\//.\\/js.min\\//g' index.html",
     "useNormal": "sed -i 's/\\.\\/js.min\\//.\\/out\\//g' index.html",
     "bundle": "rm -f ./bundle.zip && pnpm run minify && pnpm run useMinified && zip -r bundle.zip js.min/ css/ images/ index.html README.md LICENSE && pnpm run useNormal",
