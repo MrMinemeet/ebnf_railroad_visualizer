@@ -49,3 +49,17 @@ textarea {
 .controls {
   padding: 5px;
 }
+
+.wayback-machine-warning {
+  background-color: #C62828;
+  text-align: center;
+  color : white; 
+}
+
+.wayback-machine-warning a {
+  color: #81D4FA;
+}
+
+.wayback-machine-warning a:hover {
+  color: #039BE5;
+}

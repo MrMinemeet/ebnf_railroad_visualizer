@@ -30,8 +30,12 @@ To view a copy of this license, see the provided LICENSE file or visit https://c
         <h1>EBNF Visualizer</h1>
         <a loading="lazy" id="repository_reference" href="https://github.com/MrMinemeet/ebnf_railroad_visualizer" target="_blank"><img src="./images/github-mark.svg" alt="GitHub Invertocat linking to the repository"></a>
       </div>
+      <div class="wayback-machine-warning" style="display:none">
+        <p>This website seems to be a snapshot from the WayBack Machine. It may not work as expected.</p>
+        <p>Please visit <a href="https://wtf-my-code.works/rr-diagram/">wtf-my-code.works/rr-diagram</a> or use the backup hosted on <a href="https://mrminemeet.github.io/ebnf_railroad_visualizer/">GitHub Pages</a>.</p>
+      </div>
       <div class="flex-item">
-      <h2>Grammar</h2>
+        <h2>Grammar</h2>
         <textarea autofocus="true" id="userInput" name="ebnf_grammar" placeholder="EBNF-Grammar in Wirth Syntax Notation" oninput="handleGenerateDiagram()"></textarea>
         <div id="error_message">
           <!-- Error message will be inserted here -->
@@ -56,6 +60,12 @@ To view a copy of this license, see the provided LICENSE file or visit https://c
         <!-- Diagram will be inserted here -->
       </div>
     </div>
+    <script type="module">
+      // Show warning if the website is a snapshot from Internet Archive's Wayback Machine
+      if (window.location.hostname.includes("127.0.0.1")) {
+        document.querySelector(".wayback-machine-warning").style.display = "block";
+      }
+    </script>
 
     <script type="module" async defer>
       import { getValuesFromUrl } from "./out/ChooChoo.js";
