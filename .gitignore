@@ -3,6 +3,7 @@ out
 
 test
 js.min
+closure-compiler/*.jar
 
 # Builds
 bundle.zip

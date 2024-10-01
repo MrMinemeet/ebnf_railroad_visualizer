@@ -33,6 +33,7 @@
     "typescript": "^5.6.2"
   },
   "scripts": {
+    "dev-local-setup": "pnpm i && ./closure-compiler/fetchLatestClosureCompiler.sh",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "pretest": "pnpm run compile && pnpm run lint",
