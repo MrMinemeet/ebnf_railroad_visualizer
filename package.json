@@ -42,7 +42,7 @@
     "minifywsn": "./node_modules/.bin/esbuild --minify ./out/wsn/*.js --outdir=./js.min/wsn/",
     "minifyscannerparser": "./node_modules/.bin/esbuild --minify ./out/scannerparser/*.js --outdir=./js.min/scannerparser/",
     "minifyexternal": "./node_modules/.bin/esbuild --minify ./out/external/*.js --outdir=./js.min/external/",
-    "minifygen": "./node_modules/.bin/esbuild --minify  --keep-names ./out/*.js --outdir=./js.min/",
+    "minifygen": "./node_modules/.bin/esbuild --minify --keep-names ./out/*.js --outdir=./js.min/",
     "useMinified": "sed -i 's/\\.\\/out\\//.\\/js.min\\//g' index.html",
     "useNormal": "sed -i 's/\\.\\/js.min\\//.\\/out\\//g' index.html",
     "bundle": "rm -f ./bundle.zip && pnpm run minify && pnpm run useMinified && zip -r bundle.zip js.min/ css/ images/ index.html README.md LICENSE && pnpm run useNormal",
@@ -50,5 +50,5 @@
     "deploy": "pnpm run minify && pnpm run useMinified && git add -A && git commit -m 'Deploy to gh-pages' && git push origin gh-pages",
     "postdeploy": "pnpm run useNormal && git checkout -"
   },
-  "packageManager": "pnpm@9.0.6+sha256.0624e30eff866cdeb363b15061bdb7fd9425b17bc1bb42c22f5f4efdea21f6b3"
+  "packageManager": "pnpm@9.12.1+sha512.e5a7e52a4183a02d5931057f7a0dbff9d5e9ce3161e33fa68ae392125b79282a8a8a470a51dfc8a0ed86221442eb2fb57019b0990ed24fab519bf0e1bc5ccfc4"
 }
