@@ -845,7 +845,7 @@ function updateSvgViewBoxSize(): void {
  * @param  {string} currentStartSymbolName The name of the current start symbol
  * @returns {string|undefined} - The name of the current start symbol
  */
-export function setStartSymbols(startSymbols: string[], currentStartSymbolName: string): string | undefined {
+function setStartSymbols(startSymbols: string[], currentStartSymbolName: string): string | undefined {
 	if (!startSymbolDropDown) {
 		console.warn("Failed to find start symbol drop down.");
 		return undefined;
@@ -853,6 +853,7 @@ export function setStartSymbols(startSymbols: string[], currentStartSymbolName: 
 
 	if (startSymbols.length === 0) {
 		startSymbolDropDown.style.display = "none";
+		console.warn("Start symbol selection is of size 0");
 		return undefined;
 	}
 	const firstSymbol = startSymbols[0];
@@ -876,7 +877,7 @@ export function setStartSymbols(startSymbols: string[], currentStartSymbolName: 
 			}
 		}
 		if (allMatch) {
-			return undefined;
+			return currentStartSymbolName;
 		}
 	}
 
@@ -916,10 +917,10 @@ function handleStartSymbolSelection(): void {
 	if (startSymbol === window.currentStartSymbolName) {
 		return;
 	}
+	console.debug(`Setting start symbol to '${window.currentStartSymbolName}' and creating new diagram.`);
 	window.currentStartSymbolName = startSymbol;
 	// Clear "window.toExtend" as start symbol changed
 	window.toExtend.clear();
-	console.debug(`Setting start symbol to '${startSymbol}' and creating new diagram.`);
 	generateDiagram();
 	updateUrl();
 }
