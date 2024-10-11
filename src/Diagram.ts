@@ -191,7 +191,7 @@ export class Diagram {
 					break;
 				}
 			}
-			if (basicCompaction) {
+			if (basicCompaction && idxRep < 0) {
 				// Can basic compaction compacted. Generate sequence with "OneOrMore" flag. This requires "ignoring" the terms before the repetition, that are already in the repetition
 				console.debug("Simple compaction possible. Generating compacted sequence with OneOrMore loop.");
 				const compactedFactors = [];
