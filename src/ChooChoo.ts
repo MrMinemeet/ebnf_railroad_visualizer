@@ -809,15 +809,15 @@ function buttonPressReset(button: HTMLButtonElement): void {
  * Update the URL with the current grammar and expand paths.
  * Loosely based on https://stackoverflow.com/a/27993650/8527195
  * @param window.toExtend The paths to extend
- * @param currentStartSymbolName The name of the current start symbol
+ * @param startSymbol The name of the current start symbol
  * @returns {void} - Nothing
  */
-function updateUrl(currentStartSymbolName?:string): void {
+function updateUrl(startSymbol?:string): void {
 	const grammar = document.querySelector("textarea[name=ebnf_grammar]") as HTMLTextAreaElement;
 	if (!grammar) return;
 
 	// Replace URL
-	window.history.replaceState({}, "", addValuesToUrl(window.location.href, grammar.value, window.toExtend, currentStartSymbolName));
+	window.history.replaceState({}, "", addValuesToUrl(window.location.href, grammar.value, window.toExtend, startSymbol ?? window.currentStartSymbolName));
 }
 
 /**
