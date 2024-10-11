@@ -117,18 +117,18 @@ export class Diagram {
 
 
 		{
-			let i = repIdx - 1; // Idx of the factor directly before the repetition
-			let j = repExpr.terms[0].factors.length - 1; // Idx of the last factor in the repetition
-			for (; (i >= 0) && (j >= 0); i--, j--) {
-				const repTerm = repExpr.terms[0].factors[j].value as Term;
-				const beforeTerm = term.factors[i].value as Term;
+			let idxBeforeRep = repIdx - 1; // Idx of the factor directly before the repetition
+			let idxRep = repExpr.terms[0].factors.length - 1; // Idx of the last factor in the repetition
+			for (; (idxBeforeRep >= 0) && (idxRep >= 0); idxBeforeRep--, idxRep--) {
+				const repTerm = repExpr.terms[0].factors[idxRep].value as Term;
+				const beforeTerm = term.factors[idxBeforeRep].value as Term;
 
 				if (!repTerm.equals(beforeTerm)) {
 					break;
 				}
 			}
 
-			if (j >= 0) {
+			if (idxRep >= 0) {
 				/*
 				* Check if it can be compressed with a separator item on the backedge.
 				* Example:
@@ -137,12 +137,12 @@ export class Diagram {
 				* E.g. should work for x { "," "," x } as well
 				*/
 				// Check if the remaining factors in the repetition are TS that may be moved to the backedge to compact it in a advanced way
-				const remainingRepFactors = repExpr.terms[0].factors.slice(0, j + 1);
+				const remainingRepFactors = repExpr.terms[0].factors.slice(0, idxRep + 1);
 
 				if (remainingRepFactors.every((f) => f.isTS())) {
 					console.debug("Advanced compaction possible. Generating compacted sequence with separator on backedge.");
 					const forwardEdge: any[] = []; // Holds the fractors presend in the repetition and before it (stuff that can sit on the forward edge)
-					const facts = repExpr.terms[0].factors.slice(j + 1, repExpr.terms[0].factors.length);
+					const facts = repExpr.terms[0].factors.slice(idxRep + 1, repExpr.terms[0].factors.length);
 					for (const forwardEdgeFactors of facts) {
 						forwardEdge.push(this.forFactor(forwardEdgeFactors));
 					}
@@ -172,18 +172,6 @@ export class Diagram {
 				}
 			}
 
-			let basicCompaction = true;
-			i = repIdx - 1; // Idx of the factor directly before the repetition
-			j = repExpr.terms[0].factors.length - 1; // Idx of the last factor in the repetition
-			for (; (i >= 0) && (j >= 0); i--, j--) {
-				const repTerm = repExpr.terms[0].factors[j].value as Term;
-				const beforeTerm = term.factors[i].value as Term;
-
-				if (!repTerm.equals(beforeTerm)) {
-					basicCompaction = false;
-					break;
-				}
-			}
 			/*
 			 * Run Backwards and check if the repetition can be compacted
 			 * Example:
@@ -191,7 +179,19 @@ export class Diagram {
 			 * start at directly before the repetition and at the end of the repetition and then compare.
 			 * I.e. in this case check 'C' and then 'b'. 'a' is not checked as the repetition is at the beginning.
 			 */
-			if (basicCompaction) {
+			let basicCompaction = true;
+			idxBeforeRep = repIdx - 1; // Idx of the factor directly before the repetition
+			idxRep = repExpr.terms[0].factors.length - 1; // Idx of the last factor in the repetition
+			for (; (idxBeforeRep >= 0) && (idxRep >= 0); idxBeforeRep--, idxRep--) {
+				const repTerm = repExpr.terms[0].factors[idxRep].value as Term;
+				const beforeTerm = term.factors[idxBeforeRep].value as Term;
+
+				if (!repTerm.equals(beforeTerm)) {
+					basicCompaction = false;
+					break;
+				}
+			}
+			if (basicCompaction && idxRep < 0) {
 				// Can basic compaction compacted. Generate sequence with "OneOrMore" flag. This requires "ignoring" the terms before the repetition, that are already in the repetition
 				console.debug("Simple compaction possible. Generating compacted sequence with OneOrMore loop.");
 				const compactedFactors = [];
