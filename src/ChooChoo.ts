@@ -678,7 +678,7 @@ function getSvg(toExpand: Set<number[]>): Promise<string> {
 		}
 
 		// Generate new diagram to get clean SVG
-		asyncString2Diagram(ebnfGrammarValue).then((diagram) => {
+		asyncString2Diagram(ebnfGrammarValue, window.currentStartSymbolName).then((diagram) => {
 			let svgHtml = diagram.toSvg(toExpand);
 
 			const additionalAttributes = [
