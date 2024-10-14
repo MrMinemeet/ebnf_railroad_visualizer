@@ -4,15 +4,16 @@ Uses the [Wirth Syntax Notation](https://en.wikipedia.org/wiki/Wirth_syntax_nota
 
 This project is a part of the course [Project in Software Engineering](https://ssw.jku.at/Teaching/Lectures/PSE/2024SS/index.html) at the SSW and is supervised by [Dr. Markus Weninger](https://ssw.jku.at/General/Staff/Weninger/).
 
-## Access:
-I host the project on my own website: https://wtf-my-code.works/rr-diagram/.  
-Should you encounter any issues, please let me know by creating an issue on this repository. In the meantime you can use the mirror hosted via [GitHub Pages](https://mrminemeet.github.io/ebnf_railroad_visualizer/).
-
-
-## Usage
+## Implementation expectations
 The grammar expects a correctly formatted EBNF grammar in WSN. Uppercase identifiers are treated as Non-Terminal Symbols (*NTS*). Lowercase identifiers are treated as Terminal Symbols (*TS*) which cannot be broken down further, e.g. `an` which may stand for a-z, A-Z and 0-9.
 
 The grammar is automatically parsed and visualized as a railroad diagram when an input is detected. Errors are displayed below the input grammar if any occur.
+
+## Usage on provided website
+I host the project on my own website: https://wtf-my-code.works/rr-diagram/.  
+Should you encounter any issues, please let me know by creating an issue on this repository. In the meantime you can use the mirror hosted via [GitHub Pages](https://mrminemeet.github.io/ebnf_railroad_visualizer/).
+
+If you want to use the package yourself, you can find the installation [further down](#installation-within-another-project).
 
 ## Example
 The following input results in the railroad diagram below:
@@ -59,13 +60,50 @@ The repetition detection has two versions that are applied
 ## TODOs
 * Make UI nicer and a bit more user-friendly. Maybe also add some instructions and a dark mode 🌕
 
+## Installation within another project
+The `ebnf-railroad-visualizer` package can be used by importing the `install(…)` function from the package. The function takes a single argument, which is the `Window` object, that the package will use to install the visualizer.
+
+### Installation
+Import the package and it's dependency like shown below:
+```javascript
+import { install } from 'ebnf-railroad-visualizer';
+import * as d3 from 'https://cdn.jsdelivr.net/npm/d3@7/+esm'; // Optional, but recommended
+
+install(window, d3);
+```
+
+The generated diagrams require some CSS to be displayed correctly. The CSS can be found in the [railroad.css](./css/railroad.css) file, which has been adapted a bit from the [original file](https://github.com/tabatkins/railroad-diagrams/blob/gh-pages/railroad.css).
+
+### Expected HTML Objects
+The `install`-method expects the following HTML objects on the page:
+* `error_message` - Container for error messages.
+* `visualized-ebnf` - Container for the diagram.
+* `ebnf_grammar` - Textarea for the EBNF grammar.
+* `.start-symbol-drop-down` - Container for the start symbol dropdown.
+* `start-symbol` - Select for the start symbol.
+
+### Provided Functions and Properties
+In return, the package provides the following functions on the `window` object:
+* `generateDiagram` - Generate the diagram from the entered grammar
+* `handleGenerateDiagram` - Handle the generation of a diagram from the entered grammar
+* `handleStartSymbolSelection` - Handle the selection of the start symbol
+* `onCollapseAll` - Collapse all NTS (e.g. onClick)
+* `onExpandAll` - Expand all NTS (e.g. onClick)
+* `exportSvg` - Export the diagram as SVG (e.g. onClick)
+* `exportPng` - Export the diagram as PNG (e.g. onClick)
+
+Furthermore, the following properties are attached to the `window` object.
+These can be set from another location to change the extended NTS or the start symbol.
+* `window.chooChoo.toExtend` - List of NTS to extend
+* `window.chooChoo.startSymbol` - Start symbol
+
+**For further information, please check out the [source code](./src/) and the [index.html](./index.html) file.**
+
 ## Included Dependencies / Other Resources
 - [railroad.js](https://github.com/tabatkins/railroad-diagrams) by Tab Atkins Jr. et. al (with some modifications, see comment in the file at line ~16) | Provided as MIT (according to Github Repository) and CC0 (according to file itself)
-- [github-mark.svg](https://github.com/logos) by GitHub
 - [lz-string.js](https://github.com/pieroxy/lz-string) by pieroxy | Provided as MIT (according to Github Repository) and WTFPL (according to file itself)
-- [D3](https://github.com/d3/d3) by Mike Bostock et. al | Provided as ISC
-
----
+- [D3](https://github.com/d3/d3) by Mike Bostock et. al | Provided as ISC. **Optional dependency**
+- [github-mark.svg](https://github.com/logos) by GitHub. **Only used on website**
 ## License
 EBNF Railroad Diagram Visualizer © 2024 by Alexander Voglsperger is licensed under CC BY 4.0. To view a copy of this license, see [LICENSE](./LICENSE) or visit https://creativecommons.org/licenses/by/4.0/.
 

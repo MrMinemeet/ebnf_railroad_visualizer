@@ -15,7 +15,7 @@
 
 import { Diagram } from "./Diagram.js";
 import { Grammar } from "./Grammar.js";
-import * as d3 from 'https://cdn.jsdelivr.net/npm/d3@7/+esm';
+import type * as d3T from "d3";
 
 import LZString from "./external/lz-string.js";
 
@@ -30,9 +30,11 @@ const COMPRESSED_EXPAND_PARAM: string = "expandlz";
 const EXPAND_PARAM: string = "expand";
 const START_SYMBOL_PARAM: string = "start";
 
+let d3: (typeof d3T) | undefined;
+
 interface ChooChooVariables {
-	toExtend: Set<number[]>;
-	currentStartSymbolName: string;
+	toExtend: Set<number[]>; // Set of paths to expand
+	currentStartSymbolName: string; // Name of the current start symbol
 }
 
 interface Window extends globalThis.Window{
@@ -81,9 +83,10 @@ let chooChoo: ChooChooVariables;
  * - `ebnf_grammar` - Textarea for the EBNF grammar.
  * - `.start-symbol-drop-down` - Container for the start symbol dropdown.
  * - `start-symbol` - Select for the start symbol.
- * @param window The window object to install the functions into.
+ * @param {Window} window The window object to install the functions into.
+ * @param {typeof d3} d3Param The d3 to use. Must be imported in the main script and passed here.
  */
-export function install(window: Window): void {
+export function install(window: Window, d3Param?: typeof d3T): void {
 	let elem = document.getElementById("error_message");
 
 	if (elem == null) throw new Error("Failed to find 'error_message' container");
@@ -101,6 +104,11 @@ export function install(window: Window): void {
 	if (elem == null) throw new Error("Failed to find 'start-symbol' select");
 	else startSymbolSelect = elem as HTMLSelectElement;
 	startSymbolDropDown = document.querySelector(".start-symbol-drop-down") as HTMLElement;
+
+	if (d3Param == null) {
+		console.warn("d3 not provided. Will not be able to zoom.");
+	}
+	d3 = d3Param;
 
 	// Initialize provided functions
 	window.generateDiagram = generateDiagram;
@@ -125,6 +133,10 @@ export function install(window: Window): void {
  * Focus the element with the path stored in `focusElementPath`.
  */
 function focusElementSvg(): void {
+	if (d3 == null) {
+		return;
+	}
+
 	if (focusElementPath.trim().length === 0) {
 		return;
 	}
@@ -201,8 +213,13 @@ function onExpandAll(): void {
 
 /**
  * Inject D3 zoom into the SVG.
+ * Loosely based on https://stackoverflow.com/a/27993650/8527195
  */
 function injectD3(): void {
+	if (d3 == null) {
+		return;
+	}
+
 	const diagramSvg = document.getElementsByClassName("railroad-diagram")[0];
 	diagramSvg.removeAttribute("width");
 	diagramSvg.removeAttribute("height");
@@ -292,7 +309,7 @@ function generateDiagram(): void {
 
 /**
  * Inject a listener for collapsing expanded non-terminal-symbols.
- * @param element The element to inject the listener into.
+ * @param {HTMLElement} element The element to inject the listener into.
  */
 function injectCollapseListener(element: HTMLElement): void {
 	element.addEventListener("click", (event) => {
@@ -339,7 +356,7 @@ function injectCollapseListener(element: HTMLElement): void {
 
 /**
  * Inject a listener for expanding collapsed non-terminal-symbols.
- * @param element The element to inject the listener into.
+ * @param {HTMLElement} element The element to inject the listener into.
  */
 function injectExpandListener(element: HTMLElement): void {
 	element.addEventListener("click", (event) => {
@@ -446,7 +463,7 @@ async function asyncGrammar2Diagram(grammar: Grammar, startSymbolName?: string):
 /**
  * Asynchronously generate a grammar from a given grammar string
  * @param {string} grammar - The grammar string to generate from
- * @returns {Promise<Diagram>} - The generated grammar
+ * @returns {Promise<Grammar>} - The generated grammar
  */
 async function asyncString2Grammar(grammar: string): Promise<Grammar> {
 	console.debug("Scanning/Parsing grammar");
@@ -472,8 +489,8 @@ async function asyncString2Grammar(grammar: string): Promise<Grammar> {
 
 /**
  * Asynchronously convert a CSSStyleSheet to a string.
- * @param styleSheet The CSSStyleSheet to convert.
- * @returns A promise that resolves to the CSSStyleSheet as a string.
+ * @param {CSSStyleSheet} styleSheet The CSSStyleSheet to convert.
+ * @returns {Promise<string>} A promise that resolves to the CSSStyleSheet as a string.
  */
 async function asyncCss2String(styleSheet: CSSStyleSheet): Promise<string> {
 	return new Promise((resolve, reject) => {
@@ -491,8 +508,8 @@ async function asyncCss2String(styleSheet: CSSStyleSheet): Promise<string> {
 
 /**
  * Convert a base64 encoded string to a base64URL encoded string.
- * @param base64 The base64 encoded string to convert
- * @returns The base64URL encoded string
+ * @param {string} base64 The base64 encoded string to convert
+ * @returns {string} The base64URL encoded string
  */
 function base64ToBase64Url(base64: string): string {
 	return base64
@@ -503,8 +520,8 @@ function base64ToBase64Url(base64: string): string {
 
 /**
  * Convert a base64URL encoded string to a base64 encoded string.
- * @param base64Url The base64URL encoded string to convert
- * @returns The base64 encoded string
+ * @param {string} base64Url The base64URL encoded string to convert
+ * @returns {string} The base64 encoded string
  */
 function base64UrlToBase64(base64Url: string): string {
 	let base64 = base64Url
@@ -518,9 +535,9 @@ function base64UrlToBase64(base64Url: string): string {
 
 /**
  * Check if a string is ASCII.
- * @param str The string to check
- * @param extended If `true`, the string can contain extended ASCII characters (0-255), otherwise only 0-127
- * @returns
+ * @param {string} str The string to check
+ * @param {boolean} extended If `true`, the string can contain extended ASCII characters (0-255), otherwise only 0-127
+ * @returns {Set<string> A set of non-ASCII characters}
  */
 function getNonAsciiChars(str: string, extended: boolean = false): Set<string>  {
 	return new Set(str
@@ -530,8 +547,8 @@ function getNonAsciiChars(str: string, extended: boolean = false): Set<string>  
 
 /**
  * Converts the string used for the path in svg titels into an array of numbers representing the path.
- * @param title The title string to convert
- * @returns The path as an array of numbers
+ * @param {string} title The title string to convert
+ * @returns {number[]} The path as an array of numbers
  */
 function title2Path(title: string): number[] {
 	return title.split('-').map(Number);
@@ -541,11 +558,11 @@ function title2Path(title: string): number[] {
  * Add the values of the grammar and expand paths to a URL.
  * The values are added as base64URL encoded strings. If the values are over a certain threshold, they are compressed using LZString. If they are below the threshold, they are only encoded in order to avoid the overhead of compression.
  * If a value is empty, it is removed from the URL. If a value is not provided, it will not be added/removed, nor will it be updated.
- * @param url The URL to add the values to
- * @param grammar The grammar
- * @param expandPath The expand paths
- * @param startSymbolName The name of the start symbol
- * @returns The URL with the values added
+ * @param {string} urlHref The URL to add the values to
+ * @param {string} grammar The grammar
+ * @param {Set<number[]>} expandPath The expand paths
+ * @param {string} startSymbolName The name of the start symbol
+ * @returns {URL} The URL with the values added
  */
 function addValuesToUrl(urlHref: string, grammar?: string, expandPath?: Set<number[]>, startSymbolName?: string): URL {
 	const newUrl = new URL(urlHref);
@@ -598,7 +615,7 @@ function addValuesToUrl(urlHref: string, grammar?: string, expandPath?: Set<numb
 /**
  * Get the values of the grammar and expand paths from a URL.
  * The counterpart to `addValuesToUrl`.
- * @param searchParams The search parameters of the URL
+ * @param {string} searchParams The search parameters of the URL
  * @returns The grammar, expanded paths and start symbol name
  */
 export function getValuesFromUrl(searchParams: string): [string, Set<number[]>, string] {
@@ -650,9 +667,9 @@ export function getValuesFromUrl(searchParams: string): [string, Set<number[]>, 
 
 /**
  * Filter out invalid paths from a set of paths.
- * @param grammar The grammar to find the paths in
- * @param paths The current paths
- * @returns The current paths with invalid paths removed
+ * @param {string} grammar The grammar to find the paths in
+ * @param {Set<number[]>} paths The current paths
+ * @returns {Set<number[]>} The current paths with invalid paths removed
  */
 function filterInvalidPaths(grammar:string, paths: Set<number[]>): Set<number[]> {
 	const validPaths = new Set<number[]>();
@@ -671,6 +688,7 @@ function filterInvalidPaths(grammar:string, paths: Set<number[]>): Set<number[]>
 /**
  * Get the SVG of the diagram.
  * This does not reuse the diagram shown in the UI, but generates a new one to get a clean SVG.
+ * @param {Set<number[]>} toExpand The paths to expand
  * @returns The SVG as a svg+xml string
  */
 function getSvg(toExpand: Set<number[]>): Promise<string> {
@@ -712,7 +730,7 @@ function getSvg(toExpand: Set<number[]>): Promise<string> {
 
 /**
  * Export the diagram as an SVG file.
- * @returns {void} - Nothing
+ * @param {Set<number[]>} toExpand The paths to expand, if not provided the current paths are used
  */
 export async function exportSvg(toExpand?: Set<number[]>): Promise<void> {
 	toExpand = toExpand || chooChoo.toExtend;
@@ -734,6 +752,7 @@ export async function exportSvg(toExpand?: Set<number[]>): Promise<void> {
 
 /**
  * Export the diagram as a PNG file.
+ * @param {Set<number[]>} toExpand The paths to expand, if not provided the current paths are used
  */
 export async function exportPng(toExpand?: Set<number[]>): Promise<void> {
 	toExpand = toExpand || chooChoo.toExtend;
@@ -797,7 +816,7 @@ export async function exportPng(toExpand?: Set<number[]>): Promise<void> {
 
 /**
  * Set a spinner cursor and disable a button.
- * @param button The button to disable
+ * @param {HTMLButtonElement} button The button to disable
  */
 function buttonPressLoad(button: HTMLButtonElement): void {
 	button.style.cursor = "wait";
@@ -806,7 +825,7 @@ function buttonPressLoad(button: HTMLButtonElement): void {
 
 /**
  * Reset the cursor and enable a button.
- * @param button The button to enable
+ * @param {HTMLButtonElement} button The button to enable
  */
 function buttonPressReset(button: HTMLButtonElement): void {
 	button.style.cursor = "default";
@@ -815,10 +834,7 @@ function buttonPressReset(button: HTMLButtonElement): void {
 
 /**
  * Update the URL with the current grammar and expand paths.
- * Loosely based on https://stackoverflow.com/a/27993650/8527195
- * @param toExtend The paths to extend
- * @param startSymbol The name of the current start symbol
- * @returns {void} - Nothing
+ * @param {string} [startSymbol] The name of the current start symbol
  */
 function updateUrl(startSymbol?:string): void {
 	const grammar = document.querySelector("textarea[name=ebnf_grammar]") as HTMLTextAreaElement;
@@ -835,7 +851,6 @@ function updateUrl(startSymbol?:string): void {
 
 /**
  * Update the Viewbox size of the SVG.
- * @returns {void} - Nothing
  */
 function updateSvgViewBoxSize(): void {
 	const diagSvg = document.getElementsByClassName("railroad-diagram")[0];
