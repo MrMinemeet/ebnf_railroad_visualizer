@@ -4,7 +4,6 @@
  */
 
 import { Token, Kind } from './Token.js';
-import { isQuote } from '../ChooChoo.js';
 
 const LF: string = "\n";
 
@@ -36,9 +35,9 @@ export class Scanner {
 		const token = new Token(Kind.unknown);
 
 		// Special handling for literals, where almost every character is valid when under double quotes
-		if (this.isLiteral && !isQuote(this.ch)) {
+		if (this.isLiteral && !Scanner.isQuote(this.ch)) {
 			let chars = ""; // letter { letter }
-			while (this.hasNext() && !isQuote(this.ch)) {
+			while (this.hasNext() && !Scanner.isQuote(this.ch)) {
 				// Add until the next '"' is found
 				if (this.ch === " ") {
 					// Make space explicitly visible
@@ -65,7 +64,7 @@ export class Scanner {
 		}
 
 		// Perform quote check before switch as a helper function is used
-		if (isQuote(this.ch)) {
+		if (Scanner.isQuote(this.ch)) {
 			token.kind = Kind.quote;
 			this.nextChar();
 			this.isLiteral = !this.isLiteral;
@@ -169,5 +168,16 @@ export class Scanner {
 	 */
 	getPosition(): [number, number] {
 		return [this.line, this.column];
+	}
+
+	/**
+	 * Checks if char is some type of quote character.
+	 *
+	 * Because iOS (and probably other OS) uses different quotes.
+	 * @param char The character to check.
+	 * @returns `true` if the character is a quote character, `false` otherwise.
+	 */
+	static isQuote(char: string): boolean {
+		return char === '"' || char === '„' || char ==='“';
 	}
 }

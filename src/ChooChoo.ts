@@ -3,21 +3,21 @@
  * To view a copy of this license, see the provided LICENSE file or visit https://creativecommons.org/licenses/by/4.0/
  */
 
-import { Diagram } from "./Diagram.js";
-import { Grammar } from "./Grammar.js";
-import * as d3 from 'https://cdn.jsdelivr.net/npm/d3@7/+esm';
-
-import LZString from "./external/lz-string.js";
 /*
  *     ooOOOO
  *    oo      _____
  *   _I__n_n__||_|| ________
  * >(_________|_7_|-|______|
  *  /o ()() ()() o   oo  oo
- *
- * This file is my "utils.ts" version, for stuff that I need, doesn't fit somewhere
- * else and/or is not provided my TS/JS per default.
+ * 
+ * This file contains the main logic for the EBNF Railroad Visualizer.
  */
+
+import { Diagram } from "./Diagram.js";
+import { Grammar } from "./Grammar.js";
+import * as d3 from 'https://cdn.jsdelivr.net/npm/d3@7/+esm';
+
+import LZString from "./external/lz-string.js";
 
 const GENERATION_TIMEOUT: number = 100;
 const COMPRESSION_THRESHOLD: number = 100;
@@ -30,9 +30,13 @@ const COMPRESSED_EXPAND_PARAM: string = "expandlz";
 const EXPAND_PARAM: string = "expand";
 const START_SYMBOL_PARAM: string = "start";
 
-interface Window extends globalThis.Window{
-	currentStartSymbolName: string;
+interface ChooChooVariables {
 	toExtend: Set<number[]>;
+	currentStartSymbolName: string;
+}
+
+interface Window extends globalThis.Window{
+	chooChoo: ChooChooVariables;
 
 	generateDiagram: () => void;
 	handleGenerateDiagram: () => void;
@@ -54,8 +58,11 @@ let zoom: d3.ZoomBehavior<Element, unknown>;
 let focusElementPath: string = "";
 let timeoutId: unknown;
 
+let chooChoo: ChooChooVariables;
+
 /**
  * Installs provided functions into `window`, initializes global variables and adds listeners.
+ * 
  * Provided functions:
  * - `generateDiagram` - Generate the diagram from the entered grammar.
  * - `handleGenerateDiagram` - Handle the generation of a diagram from the entered grammar.
@@ -64,6 +71,10 @@ let timeoutId: unknown;
  * - `onExpandAll` - Handle the expansion of all non-terminal-symbols.
  * - `exportSvg ` - Export the diagram as an SVG file.
  * - `exportPng` - Export the diagram as a PNG file.
+ * 
+ * Provided global variables:
+ * - `chooChoo` - Holds all necessary objects for this package.
+ * 
  * Expected DOM elements:
  * - `error_message` - Container for error messages.
  * - `visualized-ebnf` - Container for the diagram.
@@ -91,21 +102,23 @@ export function install(window: Window): void {
 	else startSymbolSelect = elem as HTMLSelectElement;
 	startSymbolDropDown = document.querySelector(".start-symbol-drop-down") as HTMLElement;
 
-	// Initialize global variables
-	window.currentStartSymbolName = "";
-	window.toExtend = new Set<number[]>();
-
 	// Initialize provided functions
 	window.generateDiagram = generateDiagram;
 	window.handleGenerateDiagram = handleGenerateDiagram;
 	window.handleStartSymbolSelection = handleStartSymbolSelection;
 	window.onCollapseAll = onCollapseAll;
 	window.onExpandAll = onExpandAll;
-	window.exportSvg = (): Promise<void> => exportSvg(window.toExtend);
-	window.exportPng = (): Promise<void> => exportPng(window.toExtend);
+	window.exportSvg = (): Promise<void> => exportSvg();
+	window.exportPng = (): Promise<void> => exportPng();
 
 	// Add listeners
 	window.addEventListener("resize", window.updateSvgViewBoxSize);
+
+	// Initialize global variables and attach a container to the window for external access
+	window.chooChoo = chooChoo = {
+		toExtend: new Set<number[]>(),
+		currentStartSymbolName: ""
+	}
 }
 
 /**
@@ -164,7 +177,7 @@ function handleGenerateDiagram(): void {
  */
 function onCollapseAll(): void {
 	// Remove all non-terminals to extend
-	window.toExtend.clear();
+	chooChoo.toExtend.clear();
 	// Generate the diagram again
 	generateDiagram();
 	updateUrl();
@@ -177,9 +190,9 @@ function onExpandAll(): void {
 	const ebnfGrammarValue = ebnfGrammarArea.value;
 	if (ebnfGrammarValue.trim() === "") return;
 	console.debug("Expanding all non-erminals");
-	// Replace currently "window.toExtend" with all IDs that are expandable
-	asyncString2Diagram(ebnfGrammarValue, window.currentStartSymbolName).then((diagram) => {
-	  window.toExtend = diagram.getAllNtsPaths();
+	// Replace current "chooChoo.toExtend" with all IDs that are expandable
+	asyncString2Diagram(ebnfGrammarValue, chooChoo.currentStartSymbolName).then((diagram) => {
+	  chooChoo.toExtend = diagram.getAllNtsPaths();
 	  generateDiagram();
 	  updateUrl();
 	}).catch((e) =>  console.warn(e));
@@ -238,10 +251,10 @@ function generateDiagram(): void {
 
 	asyncString2Grammar(grammarVal).then((grammar) => {
 		// Get all nts start symbols
-		window.currentStartSymbolName = setStartSymbols(grammar.getStartSymbols(), window.currentStartSymbolName) || "";
-		return asyncGrammar2Diagram(grammar, window.currentStartSymbolName);
+		chooChoo.currentStartSymbolName = setStartSymbols(grammar.getStartSymbols(), chooChoo.currentStartSymbolName) || "";
+		return asyncGrammar2Diagram(grammar, chooChoo.currentStartSymbolName);
 	}).then((diagram) => {
-		diagramContainer.innerHTML = diagram.toSvg(window.toExtend);
+		diagramContainer.innerHTML = diagram.toSvg(chooChoo.toExtend);
 		injectD3();
 
 		// Inject listeners for collapsing and expanding
@@ -311,7 +324,7 @@ function injectCollapseListener(element: HTMLElement): void {
 			}
 
 			// Add the ID to the set of non-terminals to extend
-			window.toExtend.add(path);
+			chooChoo.toExtend.add(path);
 			console.debug(`Expanding NTS on path '${pathTitle}'`);
 
 			// Get "title" child of the clicked element and set the path as the focus element
@@ -338,7 +351,7 @@ function injectExpandListener(element: HTMLElement): void {
 		console.debug(`Collapsing NTS on path '${pathTitle}'`);
 
 		// Remove the pathTitle
-		window.toExtend = new Set(Array.from(window.toExtend).filter((x) => x.join("-") !== pathTitle));
+		chooChoo.toExtend = new Set(Array.from(chooChoo.toExtend).filter((x) => x.join("-") !== pathTitle));
 
 		// Get "title" child of the clicked element and set the path as the focus element
 		focusElementPath = (event.currentTarget as HTMLElement).querySelector("title")?.innerHTML ?? "";
@@ -356,10 +369,10 @@ function resetPathCleanupTimer(): void {
 	clearTimeout(timeoutId as number);
 	timeoutId = setTimeout(() => {
 		try {
-			const prevSize = window.toExtend.size;
-			window.toExtend = filterInvalidPaths(ebnfGrammarArea.value, window.toExtend);
-			if (prevSize !== window.toExtend.size) {
-				console.debug(`Cleaned up ${prevSize - window.toExtend.size} paths`);
+			const prevSize = chooChoo.toExtend.size;
+			chooChoo.toExtend = filterInvalidPaths(ebnfGrammarArea.value, chooChoo.toExtend);
+			if (prevSize !== chooChoo.toExtend.size) {
+				console.debug(`Cleaned up ${prevSize - chooChoo.toExtend.size} paths`);
 				generateDiagram();
 				updateUrl();
 			} else {
@@ -382,16 +395,7 @@ export function isUppercase(word: string): boolean {
 	return /^\p{Lu}/u.test( word );
 }
 
-/**
- * Checks if char is some type of quote character.
- *
- * Because iOS (and probably other OS) uses different quotes.
- * @param char The character to check.
- * @returns `true` if the character is a quote character, `false` otherwise.
- */
-export function isQuote(char: string): boolean {
-	return char === '"' || char === '„' || char ==='“';
-}
+
 
 /**
 * Asynchronously generate a diagram from a given grammar string.
@@ -400,7 +404,7 @@ export function isQuote(char: string): boolean {
 * @returns {Promise<Diagram>} - The generated diagram.
 * @throws {Error} - If the diagram could not be generated or took longer than the timeout.
 */
-export async function asyncString2Diagram(grammar: string, startSymbolName?: string): Promise<Diagram> {
+async function asyncString2Diagram(grammar: string, startSymbolName?: string): Promise<Diagram> {
 	console.debug("Generating diagram…");
 	return new Promise((resolve, reject) => {
 		// Timeout to prevent blocking the UI or freezing the browser
@@ -417,7 +421,7 @@ export async function asyncString2Diagram(grammar: string, startSymbolName?: str
  * @param {string} startSymbolName - The name of the start symbol. If not provided the first production is used.
  * @returns {Promise<Diagram>} - The generated diagram.
  */
-export async function asyncGrammar2Diagram(grammar: Grammar, startSymbolName?: string): Promise<Diagram> {
+async function asyncGrammar2Diagram(grammar: Grammar, startSymbolName?: string): Promise<Diagram> {
 	console.debug("Generating diagram…");
 	return new Promise((resolve, reject) => {
 		// Timeout to prevent blocking the UI or freezing the browser
@@ -444,7 +448,7 @@ export async function asyncGrammar2Diagram(grammar: Grammar, startSymbolName?: s
  * @param {string} grammar - The grammar string to generate from
  * @returns {Promise<Diagram>} - The generated grammar
  */
-export async function asyncString2Grammar(grammar: string): Promise<Grammar> {
+async function asyncString2Grammar(grammar: string): Promise<Grammar> {
 	console.debug("Scanning/Parsing grammar");
 	return new Promise((resolve, reject) => {
 		// Timeout to prevent blocking the UI or freezing the browser
@@ -471,7 +475,7 @@ export async function asyncString2Grammar(grammar: string): Promise<Grammar> {
  * @param styleSheet The CSSStyleSheet to convert.
  * @returns A promise that resolves to the CSSStyleSheet as a string.
  */
-export async function asyncCss2String(styleSheet: CSSStyleSheet): Promise<string> {
+async function asyncCss2String(styleSheet: CSSStyleSheet): Promise<string> {
 	return new Promise((resolve, reject) => {
 		try {
 			resolve(Array.from(styleSheet.cssRules)
@@ -490,7 +494,7 @@ export async function asyncCss2String(styleSheet: CSSStyleSheet): Promise<string
  * @param base64 The base64 encoded string to convert
  * @returns The base64URL encoded string
  */
-export function base64ToBase64Url(base64: string): string {
+function base64ToBase64Url(base64: string): string {
 	return base64
 		.replace(/\+/g, '-')
 		.replace(/\//g, '_')
@@ -502,7 +506,7 @@ export function base64ToBase64Url(base64: string): string {
  * @param base64Url The base64URL encoded string to convert
  * @returns The base64 encoded string
  */
-export function base64UrlToBase64(base64Url: string): string {
+function base64UrlToBase64(base64Url: string): string {
 	let base64 = base64Url
 		.replace(/-/g, '+')
 		.replace(/_/g, '/');
@@ -518,7 +522,7 @@ export function base64UrlToBase64(base64Url: string): string {
  * @param extended If `true`, the string can contain extended ASCII characters (0-255), otherwise only 0-127
  * @returns
  */
-export function getNonAsciiChars(str: string, extended: boolean = false): Set<string>  {
+function getNonAsciiChars(str: string, extended: boolean = false): Set<string>  {
 	return new Set(str
 		.split('')
 		.filter(char => char.charCodeAt(0) > (extended ? 255 : 127)));
@@ -529,7 +533,7 @@ export function getNonAsciiChars(str: string, extended: boolean = false): Set<st
  * @param title The title string to convert
  * @returns The path as an array of numbers
  */
-export function title2Path(title: string): number[] {
+function title2Path(title: string): number[] {
 	return title.split('-').map(Number);
 }
 
@@ -543,7 +547,7 @@ export function title2Path(title: string): number[] {
  * @param startSymbolName The name of the start symbol
  * @returns The URL with the values added
  */
-export function addValuesToUrl(urlHref: string, grammar?: string, expandPath?: Set<number[]>, startSymbolName?: string): URL {
+function addValuesToUrl(urlHref: string, grammar?: string, expandPath?: Set<number[]>, startSymbolName?: string): URL {
 	const newUrl = new URL(urlHref);
 
 	if (startSymbolName && startSymbolName.trim() !== "") {
@@ -595,7 +599,7 @@ export function addValuesToUrl(urlHref: string, grammar?: string, expandPath?: S
  * Get the values of the grammar and expand paths from a URL.
  * The counterpart to `addValuesToUrl`.
  * @param searchParams The search parameters of the URL
- * @returns The grammar and expand paths
+ * @returns The grammar, expanded paths and start symbol name
  */
 export function getValuesFromUrl(searchParams: string): [string, Set<number[]>, string] {
 	const urlSearchparams = new URLSearchParams(searchParams);
@@ -650,7 +654,7 @@ export function getValuesFromUrl(searchParams: string): [string, Set<number[]>, 
  * @param paths The current paths
  * @returns The current paths with invalid paths removed
  */
-export function filterInvalidPaths(grammar:string, paths: Set<number[]>): Set<number[]> {
+function filterInvalidPaths(grammar:string, paths: Set<number[]>): Set<number[]> {
 	const validPaths = new Set<number[]>();
 	const allPaths = Array.from(Diagram.fromString(grammar).getAllNtsPaths());
 
@@ -678,7 +682,7 @@ function getSvg(toExpand: Set<number[]>): Promise<string> {
 		}
 
 		// Generate new diagram to get clean SVG
-		asyncString2Diagram(ebnfGrammarValue, window.currentStartSymbolName).then((diagram) => {
+		asyncString2Diagram(ebnfGrammarValue, chooChoo.currentStartSymbolName).then((diagram) => {
 			let svgHtml = diagram.toSvg(toExpand);
 
 			const additionalAttributes = [
@@ -710,7 +714,9 @@ function getSvg(toExpand: Set<number[]>): Promise<string> {
  * Export the diagram as an SVG file.
  * @returns {void} - Nothing
  */
-export async function exportSvg(toExpand: Set<number[]>): Promise<void> {
+export async function exportSvg(toExpand?: Set<number[]>): Promise<void> {
+	toExpand = toExpand || chooChoo.toExtend;
+
 	const exportAsSvgButton = document.querySelector("#export-as-svg") as HTMLButtonElement;
 	buttonPressLoad(exportAsSvgButton);
 	getSvg(toExpand).then((svgHtml) => {
@@ -729,7 +735,9 @@ export async function exportSvg(toExpand: Set<number[]>): Promise<void> {
 /**
  * Export the diagram as a PNG file.
  */
-export async function exportPng(toExpand: Set<number[]>): Promise<void> {
+export async function exportPng(toExpand?: Set<number[]>): Promise<void> {
+	toExpand = toExpand || chooChoo.toExtend;
+
 	const exportAsPngButton = document.querySelector("#export-as-png") as HTMLButtonElement;
 	buttonPressLoad(exportAsPngButton);
 
@@ -808,7 +816,7 @@ function buttonPressReset(button: HTMLButtonElement): void {
 /**
  * Update the URL with the current grammar and expand paths.
  * Loosely based on https://stackoverflow.com/a/27993650/8527195
- * @param window.toExtend The paths to extend
+ * @param toExtend The paths to extend
  * @param startSymbol The name of the current start symbol
  * @returns {void} - Nothing
  */
@@ -817,7 +825,12 @@ function updateUrl(startSymbol?:string): void {
 	if (!grammar) return;
 
 	// Replace URL
-	window.history.replaceState({}, "", addValuesToUrl(window.location.href, grammar.value, window.toExtend, startSymbol ?? window.currentStartSymbolName));
+	window.history.replaceState({}, "", 
+		addValuesToUrl(location.href,
+			grammar.value,
+			chooChoo.toExtend,
+			startSymbol ?? chooChoo.currentStartSymbolName
+		));
 }
 
 /**
@@ -914,13 +927,13 @@ function handleStartSymbolSelection(): void {
 	}
 
 	const startSymbol = startSymbolSelect.value;
-	if (startSymbol === window.currentStartSymbolName) {
+	if (startSymbol === chooChoo.currentStartSymbolName) {
 		return;
 	}
-	console.debug(`Setting start symbol to '${window.currentStartSymbolName}' and creating new diagram.`);
-	window.currentStartSymbolName = startSymbol;
-	// Clear "window.toExtend" as start symbol changed
-	window.toExtend.clear();
+	console.debug(`Setting start symbol to '${chooChoo.currentStartSymbolName}' and creating new diagram.`);
+	chooChoo.currentStartSymbolName = startSymbol;
+	// Clear "chooChoo.toExtend" as start symbol changed
+	chooChoo.toExtend.clear();
 	generateDiagram();
 	updateUrl();
 }
