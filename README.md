@@ -61,6 +61,8 @@ The repetition detection has two versions that are applied
 * Make UI nicer and a bit more user-friendly. Maybe also add some instructions and a dark mode 🌕
 
 ## Installation within another project
+Found on [NpmJs](https://www.npmjs.com/package/ebnf-railroad-visualizer)
+
 The `ebnf-railroad-visualizer` package can be used by importing the `install(…)` function from the package. The function takes a single argument, which is the `Window` object, that the package will use to install the visualizer.
 
 ### Installation
