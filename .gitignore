@@ -6,3 +6,4 @@ js.min
 
 # Builds
 bundle.zip
+*.tgz
