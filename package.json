@@ -3,6 +3,7 @@
   "description": "A web-based EBNF railroad diagram visualizer",
   "homepage": "https://github.com/MrMinemeet/ebnf_railroad_visualizer",
   "license": "CC-BY-4.0",
+  "version": "1.0.0",
   "author": {
     "name": "Alexander Voglsperger",
     "email": "alex@wtf-my-code.works",
@@ -19,6 +20,15 @@
     "visualizer",
     "client-side",
     "web"
+  ],
+  "type": "module",
+  "main": "out/index.js",
+  "types": "out/index.d.ts",
+  "files": [
+    "out/**/*.js",
+    "out/**/*.d.ts",
+    "README.md",
+    "LICENSE"
   ],
   "devDependencies": {
     "@types/d3": "^7.4.3",
@@ -39,10 +49,10 @@
     "lint": "eslint src --ext ts",
     "clear": "rm -rf ./out ./js.min ./node_modules ./bundle.zip",
     "minify": "pnpm run clear && pnpm i && pnpm run compile && pnpm run minifygen && pnpm run minifywsn && pnpm run minifyscannerparser && pnpm run minifyexternal",
-    "minifywsn": "./node_modules/.bin/esbuild --minify ./out/wsn/*.js --outdir=./js.min/wsn/",
-    "minifyscannerparser": "./node_modules/.bin/esbuild --minify ./out/scannerparser/*.js --outdir=./js.min/scannerparser/",
-    "minifyexternal": "./node_modules/.bin/esbuild --minify ./out/external/*.js --outdir=./js.min/external/",
-    "minifygen": "./node_modules/.bin/esbuild --minify --keep-names ./out/*.js --outdir=./js.min/",
+    "minifywsn": "./node_modules/.bin/esbuild --minify --target=es2020 ./out/wsn/*.js --outdir=./js.min/wsn/",
+    "minifyscannerparser": "./node_modules/.bin/esbuild --minify --target=es2020 ./out/scannerparser/*.js --outdir=./js.min/scannerparser/",
+    "minifyexternal": "./node_modules/.bin/esbuild --minify --target=es2020 ./out/external/*.js --outdir=./js.min/external/",
+    "minifygen": "./node_modules/.bin/esbuild --minify --target=es2020 --keep-names ./out/*.js --outdir=./js.min/",
     "useMinified": "sed -i 's/\\.\\/out\\//.\\/js.min\\//g' index.html",
     "useNormal": "sed -i 's/\\.\\/js.min\\//.\\/out\\//g' index.html",
     "bundle": "rm -f ./bundle.zip && pnpm run minify && pnpm run useMinified && zip -r bundle.zip js.min/ css/ images/ index.html README.md LICENSE && pnpm run useNormal",

@@ -20,8 +20,9 @@ To view a copy of this license, see the provided LICENSE file or visit https://c
     <meta property="og:url" content="https://wtf-my-code.works/rr-diagram/">
     <meta property="og:type" content="website">
     <script type="module">
-      import { install } from "./js.min/ChooChoo.js";
-      install(window);
+      import * as d3 from 'https://cdn.jsdelivr.net/npm/d3@7/+esm';
+      import { install } from "./out/ChooChoo.js";
+      install(window, d3);
     </script>
   </head>
   <body>
@@ -81,8 +82,8 @@ To view a copy of this license, see the provided LICENSE file or visit https://c
 
         // Update grammar and expand numbers
         document.querySelector("textarea[name=ebnf_grammar]").value = grammar;
-        window.toExtend = urlExpand;
-        window.currentStartSymbolName = startSymbolName;
+        window.chooChoo.toExtend = urlExpand;
+        window.chooChoo.currentStartSymbolName = startSymbolName;
 
         if (grammar !== "") {
           console.info("Generating diagram from URL parameters…");
