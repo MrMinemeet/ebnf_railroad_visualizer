@@ -4,94 +4,94 @@ To view a copy of this license, see the provided LICENSE file or visit https://c
 -->
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <title>EBNF Railroad Visualizer</title>
-    <meta charset="UTF-8">
-    <meta name="description" content="A visualizer for EBNF grammars using railroad diagrams.">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="author" content="Alexander Voglsperger">
-    <meta name="keywords" content="EBNF, Railroad, Visualizer, Diagram, Syntax, Notation, Wirth, Grammar, Extended, Backus, Naur, Form, Tool, Generator">
-    <link rel="icon" href="./images/favicon.svg" />
-    <link rel="stylesheet" type="text/css" href="./css/railroad.css">
-    <link rel="stylesheet" href="./css/styles.css">
-    <meta property="og:title" content="EBNF Railroad Visualizer">
-    <meta property="og:description" content="A visualizer for EBNF grammars using railroad diagrams.">
-    <meta property="og:image" content="https://wtf-my-code.works/rr-diagram/images/og-image.png">
-    <meta property="og:url" content="https://wtf-my-code.works/rr-diagram/">
-    <meta property="og:type" content="website">
-    <script type="module">
-      import * as d3 from 'https://cdn.jsdelivr.net/npm/d3@7/+esm';
-      import { install } from "./out/ChooChoo.js";
-      install(window, d3);
-    </script>
-  </head>
-  <body>
-    <div class="flex-container">
-      <div class="flex-item">
-        <h1>EBNF Visualizer</h1>
-        <a loading="lazy" id="repository_reference" href="https://github.com/MrMinemeet/ebnf_railroad_visualizer" target="_blank"><img src="./images/github-mark.svg" alt="GitHub Invertocat linking to the repository"></a>
-      </div>
-      <div class="wayback-machine-warning" style="display:none">
-        <p>This website seems to be a snapshot from the WayBack Machine. It may not work as expected.</p>
-        <p>Please visit <a href="https://wtf-my-code.works/rr-diagram/">wtf-my-code.works/rr-diagram</a> or use the backup hosted on <a href="https://mrminemeet.github.io/ebnf_railroad_visualizer/">GitHub Pages</a>.</p>
-      </div>
-      <div class="flex-item">
-        <h2>Grammar</h2>
-        <textarea autofocus="true" id="userInput" name="ebnf_grammar" placeholder="EBNF-Grammar in Wirth Syntax Notation" oninput="handleGenerateDiagram()"></textarea>
-        <div id="error_message">
-          <!-- Error message will be inserted here -->
-        </div>
-      </div>
-      <div class="flex-item">
-        <h2>Railroad Diagram</h2>
-        <div class="start-symbol-drop-down controls" style="display: none;">
-          <label for="start-symbol">Start symbol:</label>
-          <select name="start-symbol" id="start-symbol" onchange="handleStartSymbolSelection()">
-            <!-- Start symbols will be inserted here -->
-          </select>
-        </div>
-        <div class="controls">
-          <button onclick="onExpandAll();">Expand All</button>
-          <button onclick="onCollapseAll();">Collapse All</button>
-          <button id="export-as-svg" onclick="exportSvg(window.toExtend);">Export as SVG</button>
-          <button id="export-as-png" onclick="exportPng(window.toExtend);">Export as PNG</button>
-        </div>
-      </div>
-      <div class="flex-item" id="visualized-ebnf">
-        <!-- Diagram will be inserted here -->
-      </div>
-    </div>
-    <script type="module">
-      // Show warning if the website is a snapshot from Internet Archive's Wayback Machine
-      if (window.location.hostname.includes("web.archive.org")) {
-        document.querySelector(".wayback-machine-warning").style.display = "block";
-      }
-    </script>
+	<head>
+		<title>EBNF Railroad Visualizer</title>
+		<meta charset="UTF-8">
+		<meta name="description" content="A visualizer for EBNF grammars using railroad diagrams.">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta name="author" content="Alexander Voglsperger">
+		<meta name="keywords" content="EBNF, Railroad, Visualizer, Diagram, Syntax, Notation, Wirth, Grammar, Extended, Backus, Naur, Form, Tool, Generator">
+		<link rel="icon" href="./images/favicon.svg" />
+		<link rel="stylesheet" type="text/css" href="./css/railroad.css">
+		<link rel="stylesheet" href="./css/styles.css">
+		<meta property="og:title" content="EBNF Railroad Visualizer">
+		<meta property="og:description" content="A visualizer for EBNF grammars using railroad diagrams.">
+		<meta property="og:image" content="https://wtf-my-code.works/rr-diagram/images/og-image.png">
+		<meta property="og:url" content="https://wtf-my-code.works/rr-diagram/">
+		<meta property="og:type" content="website">
+		<script type="module">
+			import * as d3 from 'https://cdn.jsdelivr.net/npm/d3@7/+esm';
+			import { install } from "./out/ChooChoo.js";
+			install(window, d3);
+		</script>
+	</head>
+	<body>
+		<div class="flex-container">
+			<div class="flex-item">
+				<h1>EBNF Visualizer</h1>
+				<a loading="lazy" id="repository_reference" href="https://github.com/MrMinemeet/ebnf_railroad_visualizer" target="_blank"><img src="./images/github-mark.svg" alt="GitHub Invertocat linking to the repository"></a>
+			</div>
+			<div class="wayback-machine-warning" style="display:none">
+				<p>This website seems to be a snapshot from the WayBack Machine. It may not work as expected.</p>
+				<p>Please visit <a href="https://wtf-my-code.works/rr-diagram/">wtf-my-code.works/rr-diagram</a> or use the backup hosted on <a href="https://mrminemeet.github.io/ebnf_railroad_visualizer/">GitHub Pages</a>.</p>
+			</div>
+			<div class="flex-item">
+				<h2>Grammar</h2>
+				<textarea autofocus="true" id="userInput" name="ebnf_grammar" placeholder="EBNF-Grammar in Wirth Syntax Notation" oninput="handleGenerateDiagram()"></textarea>
+				<div id="error_message">
+					<!-- Error message will be inserted here -->
+				</div>
+			</div>
+			<div class="flex-item">
+				<h2>Railroad Diagram</h2>
+				<div class="start-symbol-drop-down controls" style="display: none;">
+					<label for="start-symbol">Start symbol:</label>
+					<select name="start-symbol" id="start-symbol" onchange="handleStartSymbolSelection()">
+						<!-- Start symbols will be inserted here -->
+					</select>
+				</div>
+				<div class="controls">
+					<button onclick="onExpandAll();">Expand All</button>
+					<button onclick="onCollapseAll();">Collapse All</button>
+					<button id="export-as-svg" onclick="exportSvg(window.toExtend);">Export as SVG</button>
+					<button id="export-as-png" onclick="exportPng(window.toExtend);">Export as PNG</button>
+				</div>
+			</div>
+			<div class="flex-item" id="visualized-ebnf">
+				<!-- Diagram will be inserted here -->
+			</div>
+		</div>
+		<script type="module">
+			// Show warning if the website is a snapshot from Internet Archive's Wayback Machine
+			if (window.location.hostname.includes("web.archive.org")) {
+				document.querySelector(".wayback-machine-warning").style.display = "block";
+			}
+		</script>
 
-    <script type="module" async defer>
-      import { getValuesFromUrl } from "./out/ChooChoo.js";
-      
-      // Async defer is not a guarantee that the DOM is ready. The following event does.
-      // document.addEventListener("DOMContentLoaded", function() { // Doesn't work reliably in Chrome
-      document.onreadystatechange = function() {
-        if (document.readyState !== "complete") return;
+		<script type="module" async defer>
+			import { getValuesFromUrl } from "./out/ChooChoo.js";
+			
+			// Async defer is not a guarantee that the DOM is ready. The following event does.
+			// document.addEventListener("DOMContentLoaded", function() { // Doesn't work reliably in Chrome
+			document.onreadystatechange = async function() {
+				if (document.readyState !== "complete") return;
 
-        console.info("Retrieving data from URL parameters…");
-        // Try to get grammar from URL
-        const [ grammar, urlExpand, startSymbolName ] = getValuesFromUrl(window.location.search);
+				console.info("Retrieving data from URL parameters…");
+				// Try to get grammar from URL
+				const [ grammar, urlExpand, startSymbolName ] = await getValuesFromUrl(window.location.search);
 
-        // Update grammar and expand numbers
-        document.querySelector("textarea[name=ebnf_grammar]").value = grammar;
-        window.chooChoo.toExtend = urlExpand;
-        window.chooChoo.currentStartSymbolName = startSymbolName;
+				// Update grammar and expand numbers
+				document.querySelector("textarea[name=ebnf_grammar]").value = grammar;
+				window.chooChoo.toExtend = urlExpand;
+				window.chooChoo.currentStartSymbolName = startSymbolName;
 
-        if (grammar !== "") {
-          console.info("Generating diagram from URL parameters…");
-          /* Try to generate when grammar is not empty. 
-          The other two values do not make sense to generate a diagram, if the grammar is empty. */
-          window.generateDiagram();
-        }
-      };
-    </script>
-  </body>
+				if (grammar !== "") {
+					console.info("Generating diagram from URL parameters…");
+					/* Try to generate when grammar is not empty. 
+					The other two values do not make sense to generate a diagram, if the grammar is empty. */
+					window.generateDiagram();
+				}
+			};
+		</script>
+	</body>
 </html>
