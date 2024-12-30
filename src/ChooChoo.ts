@@ -15,18 +15,20 @@
 
 import { Diagram } from "./Diagram.js";
 import { Grammar } from "./Grammar.js";
+import { compressAndEncode, decodeAndDecompress } from "./Compressor.js";
 import type * as d3T from "d3";
 
-import LZString from "./external/lz-string.js";
 
 const GENERATION_TIMEOUT: number = 100;
 const COMPRESSION_THRESHOLD: number = 100;
 const PNG_EXPORT_SCALE_FACTOR: number = 4;
 
 // parameter names for URL data
-const COMPRESSED_GRAMMAR_PARAM: string = "grammarlz";
+const COMPRESSED_GRAMMAR_PARAM_LZ: string = "grammarlz";
+const COMPRESSED_GRAMMAR_PARAM_GZIP: string = "grammargzip";
 const GRAMMAR_PARAM: string = "grammar";
-const COMPRESSED_EXPAND_PARAM: string = "expandlz";
+const COMPRESSED_EXPAND_PARAM_LZ: string = "expandlz";
+const COMPRESSED_EXPAND_PARAM_GZIP: string = "expandlz";
 const EXPAND_PARAM: string = "expand";
 const START_SYMBOL_PARAM: string = "start";
 
@@ -35,6 +37,10 @@ let d3: (typeof d3T) | undefined;
 interface ChooChooVariables {
 	toExtend: Set<number[]>; // Set of paths to expand
 	currentStartSymbolName: string; // Name of the current start symbol
+}
+
+interface LZString {
+	decompressFromBase64: (input: string) => string;
 }
 
 interface Window extends globalThis.Window{
@@ -48,6 +54,8 @@ interface Window extends globalThis.Window{
 	updateSvgViewBoxSize: () => void;
 	exportSvg: () => void;
 	exportPng: () => void;
+
+	LZString?: LZString;
 }
 declare const window: Window & typeof globalThis;
 
@@ -564,7 +572,7 @@ function title2Path(title: string): number[] {
  * @param {string} startSymbolName The name of the start symbol
  * @returns {URL} The URL with the values added
  */
-function addValuesToUrl(urlHref: string, grammar?: string, expandPath?: Set<number[]>, startSymbolName?: string): URL {
+async function addValuesToUrl(urlHref: string, grammar?: string, expandPath?: Set<number[]>, startSymbolName?: string): Promise<URL> {
 	const newUrl = new URL(urlHref);
 
 	if (startSymbolName && startSymbolName.trim() !== "") {
@@ -575,14 +583,15 @@ function addValuesToUrl(urlHref: string, grammar?: string, expandPath?: Set<numb
 	}
 
 	if (grammar) {
-		newUrl.searchParams.delete(COMPRESSED_GRAMMAR_PARAM);
+		newUrl.searchParams.delete(COMPRESSED_GRAMMAR_PARAM_LZ);
+		newUrl.searchParams.delete(COMPRESSED_GRAMMAR_PARAM_GZIP);
 		newUrl.searchParams.delete(GRAMMAR_PARAM);
 
 		if (grammar.trim() !== "") {
 			if (grammar.length > COMPRESSION_THRESHOLD) {
 				// Compress the grammar
-				const compressedGrammar = LZString.compressToBase64(grammar);
-				newUrl.searchParams.set(COMPRESSED_GRAMMAR_PARAM, base64ToBase64Url(compressedGrammar));
+				const compressedGrammar = await compressAndEncode(grammar);
+				newUrl.searchParams.set(COMPRESSED_GRAMMAR_PARAM_GZIP, base64ToBase64Url(compressedGrammar));
 			} else {
 				// Set the grammar
 				const base64Grammar = btoa(grammar);
@@ -592,15 +601,17 @@ function addValuesToUrl(urlHref: string, grammar?: string, expandPath?: Set<numb
 	}
 
 	if (expandPath) {
-		newUrl.searchParams.delete(COMPRESSED_EXPAND_PARAM);
+		newUrl.searchParams.delete(COMPRESSED_EXPAND_PARAM_LZ);
+		newUrl.searchParams.delete(COMPRESSED_EXPAND_PARAM_GZIP);
 		newUrl.searchParams.delete(EXPAND_PARAM);
 
 		if (expandPath.size !== 0) {
 			const joinedPath = Array.from(expandPath).map(path => path.join("-")).join("|");
 			if (joinedPath.length > COMPRESSION_THRESHOLD) {
 				// Compress the expand paths
-				const compressedExpand = LZString.compressToBase64(joinedPath);
-				newUrl.searchParams.set(COMPRESSED_EXPAND_PARAM, base64ToBase64Url(compressedExpand));
+				const compressedExpand = await compressAndEncode(joinedPath);
+				debugger;
+				newUrl.searchParams.set(COMPRESSED_EXPAND_PARAM_GZIP, base64ToBase64Url(compressedExpand));
 			} else {
 				// Set the expand paths
 				const base64Expand = btoa(joinedPath);
@@ -618,44 +629,75 @@ function addValuesToUrl(urlHref: string, grammar?: string, expandPath?: Set<numb
  * @param {string} searchParams The search parameters of the URL
  * @returns The grammar, expanded paths and start symbol name
  */
-export function getValuesFromUrl(searchParams: string): [string, Set<number[]>, string] {
+export async function getValuesFromUrl(searchParams: string): Promise<[string, Set<number[]>, string]> {
 	const urlSearchparams = new URLSearchParams(searchParams);
-	let grammar: string = "";
 	let expandPaths: Set<number[]> = new Set();
-
 	const startSymbolName = urlSearchparams.get(START_SYMBOL_PARAM) || "";
 
 	// Grammar
-	const compressedGrammar = urlSearchparams.get(COMPRESSED_GRAMMAR_PARAM);
+	const GzipCompressedGrammar = urlSearchparams.get(COMPRESSED_GRAMMAR_PARAM_GZIP);
+	const LzCompressedGrammar = urlSearchparams.get(COMPRESSED_GRAMMAR_PARAM_LZ);
 	const base64Grammar = urlSearchparams.get(GRAMMAR_PARAM);
-	if (compressedGrammar) {
-		// Compressed grammar
-		const uncompressedGrammar = LZString.decompressFromBase64(base64UrlToBase64(compressedGrammar));
-		if (uncompressedGrammar === null) {
-			throw new Error("Decompression failed");
+
+	let grammar: string = "";
+	if (GzipCompressedGrammar) {
+		console.debug("Fetching grammar from Gzip");
+		try {
+			grammar = await decodeAndDecompress(base64UrlToBase64(GzipCompressedGrammar));
+		} catch (e: any) {
+			console.error("Decompression failed!", e);
 		}
-		grammar = uncompressedGrammar;
+
+	} else if (LzCompressedGrammar) {
+		console.debug("Falling back to old compression library");
+		try {
+			await fetchLzString();
+			// Compressed grammar
+			const uncompressedGrammar = window.LZString?.decompressFromBase64(base64UrlToBase64(LzCompressedGrammar));
+			if (uncompressedGrammar == null) {
+				throw new Error("Decompression failed!");
+			}
+			grammar = uncompressedGrammar;
+		} catch (e: any) {
+			console.error("URL uses old compression library, but the library could not be loaded!", e);
+		}
 	} else if (base64Grammar) {
 		// Uncompressed grammar
 		grammar = atob(base64UrlToBase64(base64Grammar));
 	}
 
 	// Expand paths
-	const compressedExpand = urlSearchparams.get(COMPRESSED_EXPAND_PARAM);
+	const GzipCompressedExpand = urlSearchparams.get(COMPRESSED_EXPAND_PARAM_GZIP);
+	const LzCompressedExpand = urlSearchparams.get(COMPRESSED_EXPAND_PARAM_LZ);
 	const base64Expand = urlSearchparams.get(EXPAND_PARAM);
-	let expandPathString: string|undefined = undefined;
-	if (compressedExpand) {
-		// Compressed expand paths
-		const uncompressedExpand = LZString.decompressFromBase64(base64UrlToBase64(compressedExpand));
-		if (uncompressedExpand === null) {
-			throw new Error("Decompression failed");
-		}
-		expandPathString = uncompressedExpand;
 
+	let expandPathString: string|undefined = undefined;
+	if (GzipCompressedExpand) {
+		console.debug("Fetching expanded paths from Gzip")
+		try {
+			expandPathString = await decodeAndDecompress(base64UrlToBase64(GzipCompressedExpand));
+		} catch (e: any) {
+			console.error("Decompression failed!", e);
+		}
+
+	} else if (LzCompressedExpand) {
+		console.warn("Falling back to old compression library");
+		// Compressed expand paths
+		try {
+			if (window.LZString == null) {
+				await fetchLzString();
+			}
+			const uncompressedExpand = window.LZString?.decompressFromBase64(base64UrlToBase64(LzCompressedExpand));
+			if (uncompressedExpand == null) {
+				throw new Error("Decompression failed");
+			}
+			expandPathString = uncompressedExpand;
+		} catch (e: any) {
+			console.error("URL uses old compression library, but the library could not be loaded!", e);
+		}
 	} else if (base64Expand) {
 		// Uncompressed expand paths
 		expandPathString = atob(base64UrlToBase64(base64Expand));
-
 	}
 
 	if (expandPathString) {
@@ -836,17 +878,18 @@ function buttonPressReset(button: HTMLButtonElement): void {
  * Update the URL with the current grammar and expand paths.
  * @param {string} [startSymbol] The name of the current start symbol
  */
-function updateUrl(startSymbol?:string): void {
+async function updateUrl(startSymbol?:string): Promise<void> {
 	const grammar = document.querySelector("textarea[name=ebnf_grammar]") as HTMLTextAreaElement;
 	if (!grammar) return;
 
+	const newUrl = await addValuesToUrl(location.href,
+		grammar.value,
+		chooChoo.toExtend,
+		startSymbol ?? chooChoo.currentStartSymbolName
+	)
+
 	// Replace URL
-	window.history.replaceState({}, "", 
-		addValuesToUrl(location.href,
-			grammar.value,
-			chooChoo.toExtend,
-			startSymbol ?? chooChoo.currentStartSymbolName
-		));
+	window.history.replaceState({}, "", newUrl);
 }
 
 /**
@@ -951,4 +994,19 @@ function handleStartSymbolSelection(): void {
 	chooChoo.toExtend.clear();
 	generateDiagram();
 	updateUrl();
+}
+
+/**
+ * Fetches the lz-string library on demand and puts it into the global scope.
+ * Only needed if the URL contains a compressed value with the old library.
+ */
+function fetchLzString(): Promise<void> {
+	console.warn("Loading lz-string dynamically. Consider updating the URL");
+	return new Promise((resolve, reject) => {
+		const script = document.createElement("script");
+		script.src = "https://cdn.jsdelivr.net/gh/pieroxy/lz-string@1.5.0/libs/lz-string.min.js";
+		script.onload = () => resolve();
+		script.onerror = reject;
+		document.head.appendChild(script);
+	});
 }
