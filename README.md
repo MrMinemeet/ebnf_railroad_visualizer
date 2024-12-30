@@ -34,12 +34,13 @@ Try it out yourself with this [LINK](https://wtf-my-code.works/rr-diagram/?gramm
 ![Example railroad diagram with expanded NTS](./images/expanded_railroad_diagram.svg)  [Link to Example](https://wtf-my-code.works/rr-diagram/?grammar=UGF0aCA9IERpciB7IERpciB9IE5hbWUgLgpEaXIgPSAoIE5hbWUgfCAiLiIgWyAiLiIgXSApICIvIiAuCk5hbWUgPSBhbiB7IGFuIH0gLg&expand=MTItMTEtMTAtMi0xfDEyLTExLTEwLTktOA)
 
 * **URL Encoded Grammar:** Grammar is base64URL encoded into the URL. This allows for easy sharing of the current grammar by copying the URL or bookmarking it. The encoding also includes the list of expanded NTS.  
-The URL encoding also utilizes `lz-string` to compress the grammar and expand parameter in order to reduce their length. A size comparison was performed on the grammar for [MicroJava](https://www.ssw.jku.at/Misc/CC/Handouts.pdf) with the following results (character count):
+The URL encoding also utilizes GZip via `CompressionStream` to compress the grammar and expand parameter in order to reduce their length. Before `lz-string` was used, which is now being phased out in this project and only loaded on demand.  
+ A size comparison was performed on the grammar for [MicroJava](https://www.ssw.jku.at/Misc/CC/Handouts.pdf) with the following results:
 
-|Grammar|URL Encoded|Base64 Encoded|lz-string Compressed Base64|
-|-------|-----------|--------------|---------------------------|
-|   1241|       2305|          1656|                        916|
-|   100%|     185,7%|        133.4%|                      73,8%|
+|                    |Grammar|URL Encoded|Base64 Encoded|lz-string Compressed Base64|gzip Compressed Base64|
+|--------------------|-------|-----------|--------------|---------------------------|----------------------|
+|Size in Chars       |   1003|       1789|          1340|                        792|                   624|
+|Size rel. to Grammar|   100%|     178,4%|        133,4%|                      78,9%|                 62,2%|
 
 This only includes the grammar length, not the encoded expands. 
 
@@ -103,9 +104,10 @@ These can be set from another location to change the extended NTS or the start s
 
 ## Included Dependencies / Other Resources
 - [railroad.js](https://github.com/tabatkins/railroad-diagrams) by Tab Atkins Jr. et. al (with some modifications, see comment in the file at line ~16) | Provided as MIT (according to Github Repository) and CC0 (according to file itself)
-- [lz-string.js](https://github.com/pieroxy/lz-string) by pieroxy | Provided as MIT (according to Github Repository) and WTFPL (according to file itself)
+- [lz-string.js](https://github.com/pieroxy/lz-string) by pieroxy | Provided as MIT (according to Github Repository) and WTFPL (according to file itself) | **Phasing out**
 - [D3](https://github.com/d3/d3) by Mike Bostock et. al | Provided as ISC. **Optional dependency**
 - [github-mark.svg](https://github.com/logos) by GitHub. **Only used on website**
+
 ## License
 EBNF Railroad Diagram Visualizer © 2024 by Alexander Voglsperger is licensed under CC BY 4.0. To view a copy of this license, see [LICENSE](./LICENSE) or visit https://creativecommons.org/licenses/by/4.0/.
 
