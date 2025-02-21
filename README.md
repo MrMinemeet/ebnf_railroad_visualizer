@@ -4,6 +4,9 @@ Uses the [Wirth Syntax Notation](https://en.wikipedia.org/wiki/Wirth_syntax_nota
 
 This project is a part of the course [Project in Software Engineering](https://ssw.jku.at/Teaching/Lectures/PSE/2024SS/index.html) at the SSW and is supervised by [Dr. Markus Weninger](https://ssw.jku.at/General/Staff/Weninger/).
 
+> [!TIP]
+> Almost all of the provided images are clickable and bring you to the visualizer with the matching input.
+
 ## Implementation expectations
 The grammar expects a correctly formatted EBNF grammar in WSN. Uppercase identifiers are treated as Non-Terminal Symbols (*NTS*). Lowercase identifiers are treated as Terminal Symbols (*TS*) which cannot be broken down further, e.g. `an` which may stand for a-z, A-Z and 0-9.
 
@@ -22,16 +25,14 @@ Path = Dir { Dir } Name .
 Dir = ( Name | "." [ "." ] ) "/" .
 Name = an { an } .
 ```
-![Example railroad diagram for given grammar](./images/basic_railroad_diagram.svg)
-
-Try it out yourself with this [LINK](https://wtf-my-code.works/rr-diagram/?grammar=UGF0aCA9IERpciB7IERpciB9IE5hbWUgLgpEaXIgPSAoIE5hbWUgfCAiLiIgWyAiLiIgXSApICIvIiAuCk5hbWUgPSBhbiB7IGFuIH0gLg).
+[![Example railroad diagram for given grammar](./images/basic_railroad_diagram.svg)](https://wtf-my-code.works/rr-diagram/?grammar=UGF0aCA9IERpciB7IERpciB9IE5hbWUgLgpEaXIgPSAoIE5hbWUgfCAiLiIgWyAiLiIgXSApICIvIiAuCk5hbWUgPSBhbiB7IGFuIH0gLg).
 
 ## Features
 * **Error Information:** In the case that an error occurs during scanning or parsing of the input grammar, a small description is written below the grammar as shown:  
 ![Example of message for faulty grammar](./images/faulty_grammar_input.jpg)
 
 * **NTS Expansion:** NTS are displayed as rectangles and can be expanded by clicking them. The definition of the NTS is then displayed in a dashed box as shown:  
-![Example railroad diagram with expanded NTS](./images/expanded_railroad_diagram.svg)  [Link to Example](https://wtf-my-code.works/rr-diagram/?grammar=UGF0aCA9IERpciB7IERpciB9IE5hbWUgLgpEaXIgPSAoIE5hbWUgfCAiLiIgWyAiLiIgXSApICIvIiAuCk5hbWUgPSBhbiB7IGFuIH0gLg&expand=MTItMTEtMTAtMi0xfDEyLTExLTEwLTktOA)
+[![Example railroad diagram with expanded NTS](./images/expanded_railroad_diagram.svg)](https://wtf-my-code.works/rr-diagram/?grammar=UGF0aCA9IERpciB7IERpciB9IE5hbWUgLgpEaXIgPSAoIE5hbWUgfCAiLiIgWyAiLiIgXSApICIvIiAuCk5hbWUgPSBhbiB7IGFuIH0gLg&expand=MTItMTEtMTAtMi0xfDEyLTExLTEwLTktOA)
 
 * **URL Encoded Grammar:** Grammar is base64URL encoded into the URL. This allows for easy sharing of the current grammar by copying the URL or bookmarking it. The encoding also includes the list of expanded NTS.  
 The URL encoding also utilizes GZip via `CompressionStream` to compress the grammar and expand parameter in order to reduce their length. Before `lz-string` was used, which is now being phased out in this project and only loaded on demand.  
@@ -48,15 +49,15 @@ This only includes the grammar length, not the encoded expands.
 
 * **Compacted 0…n Repetition:**
 If the repetition only contains of TS, then the content is compacted onto the back-edge and the forward-edge is kept empty. This is shown in the following picture:  
-![Example railroad diagram with compacted repetition](./images/ts_only_optional_loop.svg) [Link to Example](https://wtf-my-code.works/rr-diagram/?start=Example&grammar=RXhhbXBsZSA9IHsgIiwiIHggfSAu)
+[![Example railroad diagram with compacted repetition](./images/ts_only_optional_loop.svg)](https://wtf-my-code.works/rr-diagram/?start=Example&grammar=RXhhbXBsZSA9IHsgIiwiIHggfSAu)
 
 * **1…n Repetition detection:** 
 The repetition detection has two versions that are applied
 	1. *Advanced Repetition Detection* - for e.g. `x { "," x }`, which removes the `x` in front of the repetition and converts the repetition to a `ZeroOrMore` repetition. The inner `x` is on the forward edge of the repetition and the `","` being on the backward edge as shown in the following picture:  
-	![Example railroad diagram with advanced repetition](./images/advanced_repetition.svg) [Link to Example](https://wtf-my-code.works/rr-diagram/?start=Example&grammar=RXhhbXBsZSA9IHggeyAiLCIgeCB9IC4&expand=MTItMTEtMTAtNi01LTQtM3wxMi0xMS0xMC04)
+	[![Example railroad diagram with advanced repetition](./images/advanced_repetition.svg)](https://wtf-my-code.works/rr-diagram/?start=Example&grammar=RXhhbXBsZSA9IHggeyAiLCIgeCB9IC4&expand=MTItMTEtMTAtNi01LTQtM3wxMi0xMS0xMC04)
 
 	2. *Basic Repetition Detection* - for e.g. `x { x }`, which removes the `x` in front of the repetition and converts the repetition to a `OneOrMore` repetition. The inner `x` is on the forward edge of the repetition as shown in the following picture:  
-	![Example railroad diagram with basic repetition](./images/basic_repetition.svg) [Link to Example](https://wtf-my-code.works/rr-diagram/?start=Example&grammar=RXhhbXBsZSA9IHggeyB4IH0gLg)
+	[![Example railroad diagram with basic repetition](./images/basic_repetition.svg)](https://wtf-my-code.works/rr-diagram/?start=Example&grammar=RXhhbXBsZSA9IHggeyB4IH0gLg)
 
 ## TODOs
 * Make UI nicer and a bit more user-friendly. Maybe also add some instructions and a dark mode 🌕
@@ -103,9 +104,13 @@ These can be set from another location to change the extended NTS or the start s
 **For further information, please check out the [source code](./src/) and the [index.html](./index.html) file.**
 
 ## Included Dependencies / Other Resources
-- [railroad.js](https://github.com/tabatkins/railroad-diagrams) by Tab Atkins Jr. et. al (with some modifications, see comment in the file at line ~16) | Provided as MIT (according to Github Repository) and CC0 (according to file itself)
-- [lz-string.js](https://github.com/pieroxy/lz-string) by pieroxy | Provided as MIT (according to Github Repository) and WTFPL (according to file itself) | **Phasing out**
-- [D3](https://github.com/d3/d3) by Mike Bostock et. al | Provided as ISC. **Optional dependency**
+- [railroad.js](https://github.com/tabatkins/railroad-diagrams) by Tab Atkins Jr. et. al (with some modifications, see comment in the file at line ~16)
+	- Provided as MIT (according to Github Repository) and CC0 (according to file itself)
+- [lz-string.js](https://github.com/pieroxy/lz-string) by pieroxy |
+	- Provided as MIT (according to Github Repository) and WTFPL (according to file itself)
+ 	- Phasing out (replaced by [CompressionStreams](https://developer.mozilla.org/en-US/docs/Web/API/Compression_Streams_API))
+- [D3](https://github.com/d3/d3) by Mike Bostock et. al
+	- Provided as ISC. **Optional dependency**
 - [github-mark.svg](https://github.com/logos) by GitHub. **Only used on website**
 
 ## License
