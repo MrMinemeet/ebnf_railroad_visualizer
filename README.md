@@ -1,3 +1,12 @@
+> [!IMPORTANT]
+> **This repository is no longer actively maintained.**
+> 
+> The website at https://wtf-my-code.works/rr-diagram/ will remain available on a best-effort basis, but uptime or functionality cannot be guaranteed.
+> 
+> Thank you to everyone who has used and supported the project so far! ❤️
+> 
+> Feel free to fork, modify, or build upon it — it's licensed under [CC BY 4.0](./LICENSE).
+
 # EBNF Railroad Diagram Visualizer
 A client-side browser-based tool for visualizing EBNF grammars as railroad diagrams.
 Uses the [Wirth Syntax Notation](https://en.wikipedia.org/wiki/Wirth_syntax_notation) (*WSN*) for EBNF, as this is the common format used by the [Institute for System Software](https://ssw.jku.at/) (SSW) at Johannes Kepler University.
